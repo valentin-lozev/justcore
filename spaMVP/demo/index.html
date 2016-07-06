@@ -1,0 +1,39 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>spaMVP</title>
+    <link href="styles.css" rel="stylesheet" />
+</head>
+<body>
+
+    <div id="main">
+        <header>
+            <nav>
+                <a href="#/">Home</a>
+                <a href="#/products">Items</a>
+            </nav>
+            <h1>SPA MVP framework</h1>
+        </header>
+
+        <div id="container"></div>
+    </div>
+
+    <script defer src="/dist/spaMVP-1.2.3.js"></script>
+    <script defer src="/demo/App.js"></script>
+    <script defer src="templates/home.js"></script>
+    <script defer src="templates/products.js"></script>
+    <script defer src="templates/productItem.js"></script>
+    <script defer src="templates/productPanel.js"></script>
+
+    <!-- Modules -->
+    <script defer src="modules/Search.js"></script>
+    <script defer src="modules/Filter.js"></script>
+    <script defer src="modules/ShoppingCart.js"></script>
+
+    <script defer src="models/Product.js"></script>
+    <script defer src="services/ProductsService.js"></script>
+    <script defer src="presenters/ProductsPresenter.js"></script>
+    <script defer src="views/ProductsPanelView.js"></script>
+    <script defer src="modules/ProductPanel.js"></script>
+</body>
+</html>
