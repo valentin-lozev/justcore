@@ -2,7 +2,7 @@
 /// <reference path="../../spamvp/src/core.js" />
 /// <reference path="../../spamvp/src/sandbox/sandbox.js" />
 
-describe('Sandbox', function () {
+describe('Core', function () {
     var core = null,
         runningModules = {},
         singletonModuleId = 'singleton',
