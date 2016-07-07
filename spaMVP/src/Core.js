@@ -109,8 +109,8 @@
     */
     Core.prototype.register = function (moduleId, moduleFactory) {
         var tempModule = null;
-        if (typeof moduleId !== 'string' || moduleId.trim() === '') {
-            throw new TypeError(moduleId + ' Module registration FAILED: ID must be non empty string.');
+        if (typeof moduleId !== 'string' || moduleId === '') {
+            throw new TypeError(moduleId + ' Module registration FAILED: ID must be a non empty string.');
         }
 
         if (typeof moduleFactory !== 'function') {
@@ -127,38 +127,51 @@
         }
 
         tempModule = null;
-        _modules[moduleId] = { create: moduleFactory, instance: null };
+        _modules[moduleId] = { create: moduleFactory, instances: null };
         return this;
     };
 
     /**
      *  Starts an instance of given module and initializes it.
      *  @param {string} moduleId - Id of the module, which must be started.
+     *  @param {object} options - 
      */
-    Core.prototype.start = function (moduleId) {
+    Core.prototype.start = function (moduleId, options) {
         var module = _modules[moduleId];
         if (!module) {
-            throw new ReferenceError(moduleId + ' Module was not found.');
+            throw new ReferenceError(moduleId + ' Module not found.');
         }
 
-        if (module.instance) {
+        options = options || {};
+        if (typeof options !== 'object') {
+            throw new TypeError(moduleId + ' Module\'s options must be an object.');
+        }
+
+        module.instances = module.instances || {};
+        var instanceId = options.instanceId || moduleId;
+        if (module.instances.hasOwnProperty(instanceId)) {
             return;
         }
 
-        module.instance = module.create(new spaMVP.Sandbox(this));
-        module.instance.init();
+        var instance = module.create(new spaMVP.Sandbox(this, instanceId));
+        module.instances[instanceId] = instance;
+        instance.init(options);
+        return this;
     };
 
     /**
      *  Stops a given module.
      *  @param {string} moduleId - Id of the module, which must be stopped.
+     *  @param {string} [instanceId] - Specific module's instance id.
      */
-    Core.prototype.stop = function (moduleId) {
-        var module = _modules[moduleId];
-        if (module && module.instance) {
-            module.instance.destroy();
-            module.instance = null;
+    Core.prototype.stop = function (moduleId, instanceId) {
+        var module = _modules[moduleId], id = instanceId || moduleId;
+        if (module && module.instances.hasOwnProperty(id)) {
+            module.instances[id].destroy();
+            delete module.instances[id];
         }
+
+        return this;
     };
 
     /**

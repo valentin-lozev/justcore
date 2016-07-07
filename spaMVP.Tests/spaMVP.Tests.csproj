@@ -57,6 +57,7 @@
     <Content Include="tests\Collection-tests.js" />
     <Content Include="tests\inheritance-tests.js" />
     <Content Include="tests\RouteManager-tests.js" />
+    <Content Include="tests\Core-tests.js" />
     <Content Include="tests\Sandbox-tests.js" />
     <Content Include="tests\View-tests.js" />
     <Content Include="tests\Presenter-tests.js" />

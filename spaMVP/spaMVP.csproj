@@ -84,10 +84,14 @@
     <Content Include="dist\spaMVP-1.2.3.min.js">
       <DependentUpon>spaMVP-1.2.3.js</DependentUpon>
     </Content>
+    <Content Include="dist\spaMVP-1.3.js" />
+    <Content Include="dist\spaMVP-1.3.min.js">
+      <DependentUpon>spaMVP-1.3.js</DependentUpon>
+    </Content>
     <Content Include="lib\UIEvent.js" />
     <Content Include="packages.config" />
     <Content Include="src\helpers.js" />
-    <Content Include="demo\App.js" />
+    <Content Include="demo\app.js" />
     <Content Include="src\license.js" />
     <Content Include="src\mvp\Collection.js" />
     <Content Include="src\mvp\HashSet.js" />

@@ -1,6 +1,6 @@
 [
   {
-    "outputFileName": "dist/spaMVP-1.2.3.js",
+    "outputFileName": "dist/spaMVP-1.3.js",
     "inputFiles": [
       "src/license.js",
       "src/mvp/Model.js",

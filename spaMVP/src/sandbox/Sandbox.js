@@ -3,9 +3,11 @@
 
     /**
      *  @class spaMVP.Sandbox
+     *  @property {string} moduleInstanceId
      */
-    function Sandbox(core) {
+    function Sandbox(core, moduleInstanceId) {
         _core = core;
+        this.moduleInstanceId = moduleInstanceId;
     }
 
     /**
@@ -47,26 +49,6 @@
         if (Array.isArray(eventTypes)) {
             _core.unsubscribe(eventTypes, handler, context);
         }
-    };
-
-    /**
-     *  Starts an instance of given module and initializes it.
-     *  @param {string} id
-     */
-    Sandbox.prototype.startModule = function (id) {
-        if (typeof id !== 'string' || id === '') {
-            throw new TypeError('Invalid module id: ' + id);
-        }
-
-        _core.start(id);
-    };
-
-    /**
-     *  Stops a given module.
-     *  @param {string} id
-     */
-    Sandbox.prototype.stopModule = function (id) {
-        _core.stop(id);
     };
 
     /**

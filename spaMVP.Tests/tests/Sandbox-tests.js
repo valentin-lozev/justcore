@@ -4,7 +4,9 @@
 
 describe('Sandbox', function ()
 {
-    var sandbox = null, mock = null, core = null; hasModuleStarted = false;
+    var sandbox = null, 
+        mock = null, 
+        core = null;
 
     beforeAll(function () {
         core = new spaMVP._private.Core();
@@ -115,51 +117,5 @@ describe('Sandbox', function ()
         expect(differentInstance).toBeDefined();
         expect(service.success()).toBeTruthy();
         expect(service === differentInstance).not.toBeTruthy();
-    });
-
-    it('should be able to start modules from its core by providing valid parameters', function () {
-        var moduleId = 'testModule';
-        expect(function () { core.register(moduleId, null); }).toThrow();
-        expect(function () { core.register(moduleId, 3); }).toThrow();
-        expect(function () { core.register('', function () { }); }).toThrow();
-        expect(function () { core.register(null, function () { }); }).toThrow();
-        expect(function () { core.register(moduleId, 'invalid factory'); }).toThrow();
-        expect(function () {
-            core.register(moduleId, function (sb) {
-                return {
-                    destroy: function () { }
-                };
-            });
-        }).toThrow();
-        expect(function () {
-            core.register(moduleId, function (sb) {
-                return {
-                    init: function () { }
-                };
-            });
-        }).toThrow();
-
-        var validModuleFactory = function () {
-            core.register(moduleId, function (sb) {
-                return {
-                    init: function () {
-                        hasModuleStarted = sb instanceof spaMVP.Sandbox;
-                    },
-                    destroy: function () { hasModuleStarted = false; }
-                };
-            });
-        };
-        expect(validModuleFactory).not.toThrow();
-        expect(validModuleFactory).toThrow();
-
-        sandbox.startModule(moduleId);
-        expect(hasModuleStarted).toBeTruthy();
-    });
-
-    it('should be able to stop modules from its core', function () {
-        var moduleId = 'testModule';
-        sandbox.stopModule(moduleId);
-
-        expect(hasModuleStarted).toBeFalsy();
     });
 });
