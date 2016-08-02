@@ -1,12 +1,12 @@
 ﻿var spaMVP = (function (spaMVP) {
-    var _core = null;
 
     /**
      *  @class spaMVP.Sandbox
+     *  @property {spaMVP.Core} core
      *  @property {string} moduleInstanceId
      */
     function Sandbox(core, moduleInstanceId) {
-        _core = core;
+        this.core = core;
         this.moduleInstanceId = moduleInstanceId;
     }
 
@@ -17,7 +17,7 @@
      */
     Sandbox.prototype.publish = function (eventType, data) {
         if (typeof eventType === 'string') {
-            _core.publish(eventType, data);
+            this.core.publish(eventType, data);
         }
     };
 
@@ -36,7 +36,7 @@
             throw new TypeError('Event type handler must be a function');
         }
 
-        _core.subscribe(eventTypes, handler, context);
+        this.core.subscribe(eventTypes, handler, context);
     };
 
     /**
@@ -47,7 +47,7 @@
      */
     Sandbox.prototype.unsubscribe = function (eventTypes, handler, context) {
         if (Array.isArray(eventTypes)) {
-            _core.unsubscribe(eventTypes, handler, context);
+            this.core.unsubscribe(eventTypes, handler, context);
         }
     };
 
@@ -57,7 +57,7 @@
      *  @returns {Object}
      */
     Sandbox.prototype.getService = function (id) {
-        return _core.getService(id);
+        return this.core.getService(id);
     };
 
     spaMVP.Sandbox = Sandbox;
