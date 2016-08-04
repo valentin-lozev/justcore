@@ -66,20 +66,21 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="demo\app\config\modulesConfig.js" />
+    <Content Include="demo\app\config\servicesConfig.js" />
     <Content Include="demo\index.html" />
-    <Content Include="demo\models\Product.js" />
-    <Content Include="demo\modules\ShoppingCart.js" />
-    <Content Include="demo\modules\ProductPanel.js" />
-    <Content Include="demo\modules\Filter.js" />
-    <Content Include="demo\modules\Search.js" />
-    <Content Include="demo\presenters\ProductsPresenter.js" />
-    <Content Include="demo\services\ProductsService.js" />
+    <Content Include="demo\app\models\Product.js" />
+    <Content Include="demo\app\modules\ShoppingCart.js" />
+    <Content Include="demo\app\modules\ProductPanel.js" />
+    <Content Include="demo\app\modules\Filter.js" />
+    <Content Include="demo\app\modules\Search.js" />
+    <Content Include="demo\app\presenters\ProductsPresenter.js" />
+    <Content Include="demo\app\services\ProductsService.js" />
     <Content Include="demo\styles.css" />
     <Content Include="demo\templates\productItem.js" />
-    <Content Include="demo\templates\productPanel.js" />
-    <Content Include="demo\templates\products.js" />
-    <Content Include="demo\templates\home.js" />
-    <Content Include="demo\views\ProductsPanelView.js" />
+    <Content Include="demo\templates\productsPage.js" />
+    <Content Include="demo\templates\homePage.js" />
+    <Content Include="demo\app\views\ProductsPanelView.js" />
     <Content Include="dist\spaMVP-1.2.3.js" />
     <Content Include="dist\spaMVP-1.2.3.min.js">
       <DependentUpon>spaMVP-1.2.3.js</DependentUpon>

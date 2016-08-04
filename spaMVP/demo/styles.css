@@ -11,35 +11,35 @@ img {
     width: 150px;
     height: 100px
 }
-div[data-module="SearchModule"], 
-div[data-module="FilterModule"]{  
+div[data-module="Search"], 
+div[data-module="Filter"]{  
     margin-left:10px;  
 } 
-div[data-module="FilterModule"] ul {  
+div[data-module="Filter"] ul {  
     list-style-type:none;  
     margin:10px 0;  
     padding:0;  
     border-top:2px solid #474747;  
     border-bottom:2px solid #474747;  
     } 
-div[data-module="FilterModule"] li {  
+div[data-module="Filter"] li {  
     display:inline-block;  
     padding:5px 10px 5px 0; 
 } 
-div[data-module="FilterModule"] li a { 
+div[data-module="Filter"] li a { 
     text-decoration:none; 
     font-weight:bold; 
     color:#474747; 
 } 
-div[data-module="ProductPanelModule"] { 
+div[data-module="ProductPanel"] { 
     float:left; 
     width: 588px; 
 } 
-div[data-module="ProductPanelModule"] ul { 
+div[data-module="ProductPanel"] ul { 
     margin:0; 
     padding:0; 
 } 
-div[data-module="ProductPanelModule"] li { 
+div[data-module="ProductPanel"] li { 
     list-style-type:none; 
     display:inline-block; 
     text-align:center; 
@@ -49,15 +49,15 @@ div[data-module="ProductPanelModule"] li {
     margin:5px; 
     cursor: pointer
 }
-div[data-module="ProductPanelModule"] li:hover {
+div[data-module="ProductPanel"] li:hover {
     border: 1px solid darkorange
 }  
-div[data-module="ProductPanelModule"] li p { 
+div[data-module="ProductPanel"] li p { 
     margin:10px 0 0 0;
     color: darkorange
 } 
   
-div[data-module="ShoppingCartModule"] { 
+div[data-module="ShoppingCart"] { 
     float:left; 
     background:#ccc; 
     height:300px; 
@@ -66,24 +66,24 @@ div[data-module="ShoppingCartModule"] {
     border:1px solid #474747; 
 } 
   
-div[data-module="ShoppingCartModule"] ul { 
+div[data-module="ShoppingCart"] ul { 
     list-style-type:none; 
     padding:0; 
 } 
   
-div[data-module="ShoppingCartModule"]  li { 
+div[data-module="ShoppingCart"]  li { 
     padding:3px; 
     margin:2px 0; 
     background:#ececec; 
     border: 1px solid #333
 }
   
-div[data-module="ShoppingCartModule"]  .product_name { 
+div[data-module="ShoppingCart"]  .product_name { 
     display:inline-block; 
     width:230px; 
 } 
   
-div[data-module="ShoppingCartModule"]  .price { 
+div[data-module="ShoppingCart"]  .price { 
     display: inline-block; 
     float:right; 
 }

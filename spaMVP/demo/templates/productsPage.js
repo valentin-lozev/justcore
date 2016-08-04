@@ -1,12 +1,12 @@
 ﻿var Templates = Templates || {};
-Templates.products = function () {
+Templates.productsPage = function () {
     return '<div>' +
-                '<div data-module="SearchModule">' +
+                '<div data-module="Search">' +
                     '<input id="search_input" type="text" placeholder="Search..."/>' +
                     '<button id="search_button">Search</button>' +
                     '<button id="reset_search">Reset</button>' +
                 '</div>' +
-                '<div data-module="FilterModule">' +
+                '<div data-module="Filter">' +
                     '<ul>' +
                         '<li><a>Red</a></li>' +
                         '<li><a>Blue</a></li>' +
@@ -14,8 +14,10 @@ Templates.products = function () {
                         '<li><a>Accessory</a></li>' +
                     '</ul>' +
                 '</div>' +
-                '<div data-module="ProductPanelModule"></div>' +
-                '<div data-module="ShoppingCartModule">' +
+                '<div data-module="ProductPanel">' +
+                    '<ul></ul>' +
+                '</div>' +
+                '<div data-module="ShoppingCart">' +
                     '<ul></ul>' +
                 '</div>' +
             '</div>';

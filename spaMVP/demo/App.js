@@ -1,36 +1,32 @@
-﻿function getModules() {
-    var result = [];
-    var modules = document.querySelectorAll('#container [data-module]');
-    for (var i = 0, len = modules.length; i < len; i++) {
-        result.push(modules[i].dataset.module);
+﻿(function () {
+
+    function getModules() {
+        var result = [];
+        var modules = document.querySelectorAll('#container [data-module]');
+        for (var i = 0, len = modules.length; i < len; i++) {
+            result.push(modules[i].dataset.module);
+        }
+
+        return result;
     }
 
-    return result;
-}
+    function onRouteChanged(templateName) {
+        getModules().forEach(moduleId => App.stop(moduleId));
 
-function handleRoute(templateName) {
-    getModules().forEach(function (moduleId) { App.stop(moduleId); });
-    document.getElementById('container').innerHTML = Templates[templateName]();
-    getModules().forEach(function (moduleId) { App.start(moduleId); });
-}
+        document.getElementById('container').innerHTML = Templates[templateName]();
 
-var App = spaMVP.createAppCore()
-    .defaultUrl('/')
-    .registerRoute('/', function (routeParams) {
-        handleRoute('home');
-    })
-    .registerRoute('/products', function (routeParams) {
-        handleRoute('products');
-    })
-    .registerRoute('/products/{id}', function (routeParams) {
-        handleRoute('product');
-        this.publish('route-params-changed', routeParams);
-    })
-    .run(function () {
-        console.log('app is running...');
-    });
+        getModules().forEach(moduleId => App.start(moduleId));
+    }
 
-// TODO: add namespace
-// TODO: add enum for all events
-// TODO: modules builder
-// TODO: services builder
+    var App = spaMVP.createAppCore()
+        .defaultUrl('/')
+        .registerRoute('/', routeParams => onRouteChanged('homePage'))
+        .registerRoute('/products', routeParams => onRouteChanged('productsPage'))
+        .registerRoute('/products/{id}', routeParams => alert('Product ' + routeParams.id + ' is selected.'))
+        .run(function () {
+            modulesConfig.register(this);
+            servicesConfig.register(this);
+
+            console.log('app is running...');
+        });
+}());

@@ -1,27 +1,6 @@
 ﻿var ShoppingCart = ShoppingCart || (function () {
 
-    /**
-     *  @type {spaMVP.Sandbox}
-     */
-    var sandbox = null;
-
-    function ShoppingCart(sb) {
-        sandbox = sb;
-        this.cart = null;
-        this.items = {};
-    }
-
-    ShoppingCart.prototype.init = function () {
-        this.cart = document.querySelector('div[data-module="ShoppingCartModule"] ul');
-        this.items = {};
-        sandbox.subscribe(['add-item'], this.addItem, this);
-    };
-
-    ShoppingCart.prototype.destroy = function () {
-        // remove listeners
-    };
-
-    ShoppingCart.prototype.addItem = function (type, product) {
+    function addItem(type, product) {
         var entry = document.querySelector('#cart-' + product.id + ' .quantity');
         if (entry) {
             entry.innerHTML = (parseInt(entry.innerHTML, 10) + 1);
@@ -49,12 +28,27 @@
         this.cart.appendChild(entry);
 
         this.items[product.id] = 1;
-    };
+    }
+
+    class ShoppingCart {
+        constructor(sb) {
+            this.sandbox = sb;
+            this.cart = null;
+            this.items = {};
+        }
+
+        init() {
+            this.cart = document.querySelector('div[data-module="ShoppingCart"] ul');
+            this.items = {};
+            this.sandbox.subscribe(['add-item'], addItem, this);
+        }
+
+        destroy() {
+            this.sandbox.unsubscribe(['add-item'], addItem, this);
+            // remove listeners
+        }
+    }
 
     return ShoppingCart;
 
 }());
-
-App.register('ShoppingCartModule', function (sb) {
-    return new ShoppingCart(sb);
-});
