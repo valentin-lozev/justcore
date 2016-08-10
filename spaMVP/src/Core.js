@@ -150,7 +150,7 @@
         module.instances = module.instances || {};
         var instanceId = options.instanceId || moduleId;
         if (module.instances.hasOwnProperty(instanceId)) {
-            return;
+            return this;
         }
 
         var instance = module.create(new spaMVP.Sandbox(this, instanceId));

@@ -80,7 +80,7 @@
      */
     View.prototype.setPresenter = function (presenter) {
         if (this._presenter === presenter) {
-            return;
+            return this;
         }
 
         this._presenter = presenter;
