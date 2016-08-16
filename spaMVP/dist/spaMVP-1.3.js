@@ -919,7 +919,7 @@ var spaMVP = (function (spaMVP) {
      *  Renders its view.
      */
     Presenter.prototype.render = function () {
-        this.getView().render(this.getModel());
+        return this.getView().render(this.getModel());
     };
 
     /**

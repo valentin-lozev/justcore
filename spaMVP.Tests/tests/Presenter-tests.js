@@ -50,7 +50,9 @@ describe('Presenter', function () {
         var model = new spaMVP.Model();
         var presenter = new spaMVP.Presenter(mockedView);
         presenter.setModel(model);
-        presenter.render();
+        presenter.render(); 
+        
+        // TODO: test render result
 
         expect(mockedView.render).toHaveBeenCalledWith(model);
         expect(mockedView.render.calls.count()).toEqual(2);
