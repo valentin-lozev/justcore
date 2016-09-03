@@ -57,7 +57,7 @@
      *  @returns {Element}
      */
     View.prototype.render = function (model) {
-        if (this._template) {
+        if (this.domNode && this._template) {
             this.domNode.innerHTML = this._template.call(this, model);
         }
 

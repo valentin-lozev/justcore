@@ -121,7 +121,7 @@
             throw new TypeError(moduleId + ' Module registration FAILED: a module with such id has been already registered.');
         }
 
-        tempModule = moduleFactory(new spaMVP.Sandbox(this));
+        tempModule = moduleFactory(new spaMVP.Sandbox(this, moduleId));
         if (typeof tempModule.init !== 'function' || typeof tempModule.destroy !== 'function') {
             throw new TypeError(moduleId + ' Module registration FAILED: Module has no init or destroy methods.');
         }
@@ -166,7 +166,7 @@
      */
     Core.prototype.stop = function (moduleId, instanceId) {
         var module = _modules[moduleId], id = instanceId || moduleId;
-        if (module && module.instances.hasOwnProperty(id)) {
+        if (module && module.instances && module.instances.hasOwnProperty(id)) {
             module.instances[id].destroy();
             delete module.instances[id];
         }
