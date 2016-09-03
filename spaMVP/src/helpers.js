@@ -1,5 +1,14 @@
 ﻿var spaMVP = (function (spaMVP) {
 
+    // Polyfill for older browsers
+    if (typeof Object.create !== 'function') {
+        Object.create = function (o) {
+            function F() { }
+            F.prototype = o;
+            return new F();
+        };
+    }
+
     function subclassFactory(getInheritorFunc) {
         var inheritor = getInheritorFunc();
         if (!inheritor || typeof inheritor !== 'function') {
@@ -10,15 +19,6 @@
     }
 
     function subclass(inheritor) {
-        // Polyfill for older browsers
-        if (typeof Object.create !== 'function') {
-            Object.create = function (o) {
-                function F() { }
-                F.prototype = o;
-                return new F();
-            };
-        }
-
         var BaseClass = this;
 
         var prototype = inheritor.prototype;
