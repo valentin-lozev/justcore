@@ -121,6 +121,22 @@
     };
 
     /**
+     *  Determines whether a model is in the collection.
+     *  @returns {Boolean}
+     */
+    Collection.prototype.contains = function (model) {
+        return this.models.contains(model);
+    };
+
+    /**
+     *  Determines whether the collection is not empty.
+     *  @returns {Boolean}
+     */
+    Collection.prototype.any = function () {
+        return this.models.size > 0;
+    };
+
+    /**
      *  Returns the models as Array without copying them.
      *  @returns {Array}
      */

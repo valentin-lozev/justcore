@@ -157,4 +157,35 @@ describe('Collection', function () {
 
         expect(result).toBeTruthy();
     });
+
+    it('should return false when does not constain given item', function () {
+        var collection = new spaMVP.Collection();
+        var model = new spaMVP.Model();
+
+        expect(collection.contains(model)).toBeFalsy();
+    });
+
+    it('should return true when constains given item', function () {
+        var collection = new spaMVP.Collection();
+        var model = new spaMVP.Model();
+
+        collection.add(model);
+
+        expect(collection.contains(model)).toBeTruthy();
+    });
+
+    it('should return false when constains no items', function () {
+        var collection = new spaMVP.Collection();
+
+        expect(collection.any()).toBeFalsy();
+    });
+
+    it('should return true when constains at least one item', function () {
+        var collection = new spaMVP.Collection();
+        var model = new spaMVP.Model();
+
+        collection.add(model);
+
+        expect(collection.any()).toBeTruthy();
+    });
 });
