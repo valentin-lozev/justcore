@@ -450,6 +450,22 @@ var spaMVP = (function (spaMVP) {
     };
 
     /**
+     *  Determines whether a model is in the collection.
+     *  @returns {Boolean}
+     */
+    Collection.prototype.contains = function (model) {
+        return this.models.contains(model);
+    };
+
+    /**
+     *  Determines whether the collection is not empty.
+     *  @returns {Boolean}
+     */
+    Collection.prototype.any = function () {
+        return this.models.size > 0;
+    };
+
+    /**
      *  Returns the models as Array without copying them.
      *  @returns {Array}
      */
@@ -723,7 +739,7 @@ var spaMVP = (function (spaMVP, document) {
      *  @returns {Element}
      */
     View.prototype.render = function (model) {
-        if (this._template) {
+        if (this.domNode && this._template) {
             this.domNode.innerHTML = this._template.call(this, model);
         }
 
@@ -1455,7 +1471,7 @@ var spaMVP = (function (spaMVP) {
             throw new TypeError(moduleId + ' Module registration FAILED: a module with such id has been already registered.');
         }
 
-        tempModule = moduleFactory(new spaMVP.Sandbox(this));
+        tempModule = moduleFactory(new spaMVP.Sandbox(this, moduleId));
         if (typeof tempModule.init !== 'function' || typeof tempModule.destroy !== 'function') {
             throw new TypeError(moduleId + ' Module registration FAILED: Module has no init or destroy methods.');
         }
@@ -1500,7 +1516,7 @@ var spaMVP = (function (spaMVP) {
      */
     Core.prototype.stop = function (moduleId, instanceId) {
         var module = _modules[moduleId], id = instanceId || moduleId;
-        if (module && module.instances.hasOwnProperty(id)) {
+        if (module && module.instances && module.instances.hasOwnProperty(id)) {
             module.instances[id].destroy();
             delete module.instances[id];
         }
