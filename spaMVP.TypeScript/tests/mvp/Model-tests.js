@@ -1,4 +1,4 @@
-/// <reference path="../jasmine.d.ts" />
+/// <reference path="../../jasmine.d.ts" />
 /// <chutzpah_reference path="jasmine.js" />
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];

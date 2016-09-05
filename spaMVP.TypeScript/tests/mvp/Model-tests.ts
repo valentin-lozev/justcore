@@ -1,4 +1,4 @@
-﻿/// <reference path="../jasmine.d.ts" />
+﻿/// <reference path="../../jasmine.d.ts" />
 /// <chutzpah_reference path="jasmine.js" />
 
 describe('Model', () => {
