@@ -1,0 +1,21 @@
+{
+  "name": "spamvp",
+  "version": "2.0.0",
+  "description": "",
+  "main": "gulpfile.js",
+  "directories": {
+    "test": "tests"
+  },
+  "dependencies": {  
+  },
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-concat": "^2.6.0",
+    "gulp-minify": "^0.0.14"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Valentin Lozev",
+  "license": "MIT"
+}

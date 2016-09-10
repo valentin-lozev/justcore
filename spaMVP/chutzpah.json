@@ -1,0 +1,14 @@
+{
+  "Framework": "jasmine",
+  "TestHarnessLocationMode": "SettingsFileAdjacent",
+  "Compile": { "Mode": "External" },
+  "References": [
+    { "Path": "dist/js/spaMVP-2.0.0.min.js" }
+  ],
+  "Tests": [
+    {
+      "Path": "tests",
+      "Includes": [ "*.js" ]
+    }
+  ]
+}

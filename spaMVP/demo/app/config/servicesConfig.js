@@ -1,11 +1,7 @@
-﻿(function (global) {
-
-    function registerServices(app) {
-        app.addService('products', sb => new ProductService(sb));
-    }
-
-    global.servicesConfig = { 
-        register: registerServices 
-    };
-
-})(window);
+function registerServices(app) {
+    app.addService('products', function (sb) { return new ProductService(); });
+}
+var servicesConfig = {
+    register: registerServices
+};
+//# sourceMappingURL=servicesConfig.js.map

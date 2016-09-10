@@ -1,14 +1,10 @@
-﻿(function (global) {
-
-    function registerModules(app) {        
-        app.register('Filter', sb => new Filter(sb))
-            .register('ProductPanel', sb => new ProductPanel(sb))
-            .register('Search', sb => new Search(sb))
-            .register('ShoppingCart', sb => new ShoppingCart(sb));
-    }
-
-    global.modulesConfig = { 
-        register: registerModules 
-    };
-
-})(window);
+function registerModules(app) {
+    app.register('Filter', function (sb) { return new Filter(sb); })
+        .register('ProductPanel', function (sb) { return new ProductPanel(sb); })
+        .register('Search', function (sb) { return new Search(sb); })
+        .register('ShoppingCart', function (sb) { return new ShoppingCart(sb); });
+}
+var modulesConfig = {
+    register: registerModules
+};
+//# sourceMappingURL=modulesConfig.js.map

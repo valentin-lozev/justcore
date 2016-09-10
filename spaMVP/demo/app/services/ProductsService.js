@@ -1,8 +1,7 @@
-﻿class ProductService {
-    constructor() {
+var ProductService = (function () {
+    function ProductService() {
     }
-
-    getAll(onSuccess, onError) {
+    ProductService.prototype.getAll = function (onSuccess, onError) {
         var result = [
             new Product(1, 'Red', 'http://www.technopolis.bg/medias/sys_master/hff/he8/9594025213982.jpg'),
             new Product(2, 'Blue', 'http://www.technopolis.bg/medias/sys_master/h50/h6e/9575018463262.jpg'),
@@ -16,5 +15,7 @@
             new Product(10, 'Mobile Accessory', 'http://www.technopolis.bg/medias/sys_master/he1/he1/9525280571422.jpg')
         ];
         onSuccess(result);
-    }
-}
+    };
+    return ProductService;
+}());
+//# sourceMappingURL=ProductsService.js.map
