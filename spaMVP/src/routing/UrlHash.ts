@@ -1,11 +1,6 @@
 ﻿namespace spaMVP {
     "use strict";
 
-    export interface QueryParam {
-        key: string;
-        value: string;
-    }
-
     /**
      *  @class UrlHash - Represents the string after "#" in a url.
      *  @property {String} value - The string after # in a url.

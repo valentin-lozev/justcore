@@ -15,11 +15,6 @@
         }
     }
 
-    export interface Module {
-        init(options: any): void;
-        destroy(): void;
-    }
-
     export class Core {
         private onDomReady: (ev: Event) => void = initialize.bind(this);
         private onAppStart: Function;

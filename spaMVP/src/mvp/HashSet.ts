@@ -1,11 +1,6 @@
 namespace spaMVP {
     "use strict";
 
-    export interface Equatable<T> {
-        equals(other: T): boolean;
-        hash(): number;
-    }
-
     /**
      *  Creates a collection of unique items.
      *  @class spaMVP.HashSet

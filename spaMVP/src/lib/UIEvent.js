@@ -1,5 +1,6 @@
 var spaMVP;
 (function (spaMVP) {
+    "use strict";
     /**
      *  Author: Martin Chaov
      *  github: https://github.com/mchaov/JSEventsManager

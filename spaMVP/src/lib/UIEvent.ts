@@ -1,11 +1,5 @@
-﻿interface Element {
-    trigger(): boolean;
-    hasEvent(name: string): boolean;
-    detach(): boolean;
-    events: boolean;
-}
-
-namespace spaMVP {
+﻿namespace spaMVP {
+    "use strict";
 
     /**
      *  Author: Martin Chaov

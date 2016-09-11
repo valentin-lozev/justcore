@@ -1,14 +1,6 @@
 ﻿namespace spaMVP {
     "use strict";
 
-    export interface RouteConfig {
-        defaultUrl: string;
-        registerRoute(pattern: string, callback: (routeParams: any) => void): void;
-        startRoute(hash: string): void;
-        getRoutes(): string[];
-        hasRoutes(): boolean;
-    }
-
     /**
      *  @class RouteConfig - Handles spa application route changes.
      */

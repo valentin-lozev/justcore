@@ -4,6 +4,9 @@
   "Compile": { "Mode": "External" },
   "References": [
     {
+      "Path": "src/interfaces/Interfaces.ts"
+    },
+    {
       "Path": "src/routing/UrlHash.js"
     },
     {

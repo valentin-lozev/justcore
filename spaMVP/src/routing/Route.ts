@@ -3,11 +3,6 @@
 
     let routeParamRegex = /{([a-zA-Z]+)}/; // e.g {id}
 
-    export interface RouteToken {
-        name: string;
-        isDynamic: boolean;
-    }
-
     /**
      *  @class Route - Accepts a pattern and split it by / (slash).
      *  It also supports dynamic params - {yourDynamicParam}.
