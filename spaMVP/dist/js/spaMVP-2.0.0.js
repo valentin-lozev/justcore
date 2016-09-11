@@ -7,10 +7,13 @@
 //# sourceMappingURL=license.js.map
 var spaMVP;
 (function (spaMVP) {
-    // Polyfill for older browsers
-    if (typeof Object.create !== 'function') {
+    "use strict";
+    // polyfill for older browsers
+    if (typeof Object.create !== "function") {
         Object.create = function (o) {
-            function F() { }
+            function F() {
+                //
+            }
             F.prototype = o;
             return new F();
         };
@@ -27,8 +30,8 @@ var spaMVP;
     }
     function subclassFactory(getInheritorFunc) {
         var inheritor = getInheritorFunc();
-        if (!inheritor || typeof inheritor !== 'function') {
-            throw new Error('Inheritor\'s function constructor must be supplied.');
+        if (!inheritor || typeof inheritor !== "function") {
+            throw new Error("Inheritor's function constructor must be supplied.");
         }
         return subclass.call(this, inheritor);
     }
@@ -45,9 +48,10 @@ var spaMVP;
 //# sourceMappingURL=helpers.js.map
 var spaMVP;
 (function (spaMVP) {
+    "use strict";
     spaMVP.ModelEvents = {
-        Change: 'change',
-        Destroy: 'destroy'
+        Change: "change",
+        Destroy: "destroy"
     };
     /**
      *  @class spaMVP.Model
@@ -123,6 +127,7 @@ var spaMVP;
 //# sourceMappingURL=Model.js.map
 var spaMVP;
 (function (spaMVP) {
+    "use strict";
     /**
      *  Creates a collection of unique items.
      *  @class spaMVP.HashSet
@@ -167,9 +172,11 @@ var spaMVP;
                 this.items[hashCode] = item;
             }
             else if (!Array.isArray(this.items[hashCode])) {
+                // the second item with this hash
                 this.items[hashCode] = [this.items[hashCode], item];
             }
             else {
+                // there are already two or more items with this hash
                 this.items[hashCode].push(item);
             }
             this.size++;
@@ -267,10 +274,11 @@ var __extends = (this && this.__extends) || function (d, b) {
 };
 var spaMVP;
 (function (spaMVP) {
+    "use strict";
     spaMVP.CollectionEvents = {
-        AddedItems: 'added-items',
-        DeletedItems: 'deleted-items',
-        UpdatedItem: 'updated-item'
+        AddedItems: "added-items",
+        DeletedItems: "deleted-items",
+        UpdatedItem: "updated-item"
     };
     /**
      *  Composite pattern on spaMVP.Model.
@@ -444,6 +452,9 @@ var spaMVP;
         return false;
     }
     function UIEvent(config) {
+        if (!(this instanceof UIEvent)) {
+            return new UIEvent(config);
+        }
         this.htmlElement = config.htmlElement;
         this.eventConfig = {
             name: config.name,
@@ -523,6 +534,7 @@ var spaMVP;
 //# sourceMappingURL=UIEvent.js.map
 var spaMVP;
 (function (spaMVP) {
+    "use strict";
     function eventHandler(ev) {
         var target = ev.target;
         var dataset = target.dataset;
@@ -530,7 +542,7 @@ var spaMVP;
             return;
         }
         var callbackName = dataset[ev.type];
-        if (typeof this[callbackName] === 'function') {
+        if (typeof this[callbackName] === "function") {
             this[callbackName](dataset, target, ev);
             return;
         }
@@ -565,7 +577,7 @@ var spaMVP;
          */
         View.prototype.map = function (eventType, useCapture, selector) {
             if (useCapture === void 0) { useCapture = false; }
-            new spaMVP.UIEvent({
+            spaMVP.UIEvent({
                 name: eventType,
                 htmlElement: !selector ? this.domNode : this.domNode.querySelector(selector),
                 handler: eventHandler,
@@ -589,7 +601,7 @@ var spaMVP;
          *  Removes all elements and mapped events.
          */
         View.prototype.destroy = function () {
-            if (typeof this.domNode.detach === 'function') {
+            if (typeof this.domNode.detach === "function") {
                 this.domNode.detach();
             }
             this.removeAllElements();
@@ -633,6 +645,7 @@ var spaMVP;
 //# sourceMappingURL=View.js.map
 var spaMVP;
 (function (spaMVP) {
+    "use strict";
     /**
      *  @class spaMVP.Presenter
      */
@@ -715,8 +728,9 @@ var spaMVP;
 //# sourceMappingURL=Presenter.js.map
 var spaMVP;
 (function (spaMVP) {
+    "use strict";
     /**
-     *  @class UrlHash - Represents the string after '#' in a url.
+     *  @class UrlHash - Represents the string after "#" in a url.
      *  @property {String} value - The string after # in a url.
      *  @property {Array} tokens - The array of string tokens after splitint its value by / (slash).
      *  @property {Array} queryParams - The array of key-value pairs parsed from the query string in its value.
@@ -724,7 +738,7 @@ var spaMVP;
     var UrlHash = (function () {
         function UrlHash() {
             this.questionMarkIndex = -1;
-            this.url = '';
+            this.url = "";
             this.tokens = [];
             this.queryParams = [];
         }
@@ -733,9 +747,9 @@ var spaMVP;
                 return this.url;
             },
             set: function (url) {
-                url = url || '';
+                url = url || "";
                 this.url = url;
-                this.questionMarkIndex = url.indexOf('?');
+                this.questionMarkIndex = url.indexOf("?");
                 this.queryParams = [];
                 this.tokens = [];
                 this.populateQueryParams();
@@ -754,21 +768,21 @@ var spaMVP;
             }
             this.queryParams = this.value
                 .substring(this.questionMarkIndex + 1)
-                .split('&')
+                .split("&")
                 .map(function (keyValuePairString) { return _this.parseQueryParam(keyValuePairString); });
         };
         UrlHash.prototype.parseQueryParam = function (keyValuePair) {
-            var args = keyValuePair.split('=');
+            var args = keyValuePair.split("=");
             return {
                 key: args[0],
-                value: args[1] || ''
+                value: args[1] || ""
             };
         };
         UrlHash.prototype.populateTokens = function () {
             var valueWithoutQuery = this.getValueWithoutQuery();
             this.tokens = valueWithoutQuery
-                .split('/')
-                .filter(function (token) { return token !== ''; });
+                .split("/")
+                .filter(function (token) { return token !== ""; });
         };
         UrlHash.prototype.getValueWithoutQuery = function () {
             if (!this.anyQueryParams()) {
@@ -783,6 +797,7 @@ var spaMVP;
 //# sourceMappingURL=UrlHash.js.map
 var spaMVP;
 (function (spaMVP) {
+    "use strict";
     var routeParamRegex = /{([a-zA-Z]+)}/; // e.g {id}
     /**
      *  @class Route - Accepts a pattern and split it by / (slash).
@@ -792,10 +807,10 @@ var spaMVP;
     var Route = (function () {
         function Route(pattern, onStart) {
             this.tokens = [];
-            if (typeof pattern === 'undefined' ||
-                typeof pattern !== 'string' ||
+            if (typeof pattern === "undefined" ||
+                typeof pattern !== "string" ||
                 pattern === null) {
-                throw new Error('Route pattern should be non empty string.');
+                throw new Error("Route pattern should be non empty string.");
             }
             this.pattern = pattern;
             this.callback = onStart;
@@ -839,8 +854,8 @@ var spaMVP;
         Route.prototype.populateTokens = function () {
             var _this = this;
             this.tokens = [];
-            this.pattern.split('/').forEach(function (urlFragment) {
-                if (urlFragment !== '') {
+            this.pattern.split("/").forEach(function (urlFragment) {
+                if (urlFragment !== "") {
                     _this.tokens.push(_this.parseToken(urlFragment));
                 }
             });
@@ -875,11 +890,12 @@ var spaMVP;
 //# sourceMappingURL=Route.js.map
 var spaMVP;
 (function (spaMVP) {
+    "use strict";
     /**
      *  @class RouteConfig - Handles spa application route changes.
      */
-    var RouteConfig = (function () {
-        function RouteConfig() {
+    var DefaultRouteConfig = (function () {
+        function DefaultRouteConfig() {
             this.routes = [];
             this.urlHash = new spaMVP.UrlHash();
             this.defaultUrl = null;
@@ -889,16 +905,16 @@ var spaMVP;
          *  When url's hash is changed it executes a callback with populated dynamic routes and query parameters.
          *  Dynamic route param can be registered with {yourParam}.
          */
-        RouteConfig.prototype.registerRoute = function (pattern, callback) {
+        DefaultRouteConfig.prototype.registerRoute = function (pattern, callback) {
             if (this.routes.some(function (r) { return r.pattern === pattern; })) {
-                throw new Error('Route ' + pattern + ' has been already registered.');
+                throw new Error("Route " + pattern + " has been already registered.");
             }
             this.routes.push(new spaMVP.Route(pattern, callback));
         };
         /**
          *  Starts hash url if such is registered, if not, it starts the default one.
          */
-        RouteConfig.prototype.startRoute = function (hash) {
+        DefaultRouteConfig.prototype.startRoute = function (hash) {
             this.urlHash.value = hash;
             var nextRoute = this.findRoute();
             if (nextRoute) {
@@ -915,16 +931,16 @@ var spaMVP;
         /**
          *  Returns all registered patterns.
          */
-        RouteConfig.prototype.getRoutes = function () {
+        DefaultRouteConfig.prototype.getRoutes = function () {
             return this.routes.map(function (route) { return route.pattern; });
         };
         /**
          *  Determines if there are any registered routes.
          */
-        RouteConfig.prototype.hasRoutes = function () {
+        DefaultRouteConfig.prototype.hasRoutes = function () {
             return this.routes.length > 0;
         };
-        RouteConfig.prototype.findRoute = function () {
+        DefaultRouteConfig.prototype.findRoute = function () {
             for (var i = 0, len = this.routes.length; i < len; i++) {
                 var route = this.routes[i];
                 if (route.equals(this.urlHash)) {
@@ -933,8 +949,8 @@ var spaMVP;
             }
             return null;
         };
-        RouteConfig.prototype.startDefaultRoute = function (invalidHash) {
-            window.history.replaceState(null, null, window.location.pathname + '#' + this.defaultUrl);
+        DefaultRouteConfig.prototype.startDefaultRoute = function (invalidHash) {
+            window.history.replaceState(null, null, window.location.pathname + "#" + this.defaultUrl);
             this.urlHash.value = this.defaultUrl;
             var nextRoute = this.findRoute();
             if (nextRoute) {
@@ -944,13 +960,14 @@ var spaMVP;
                 console.warn("No route handler for " + invalidHash);
             }
         };
-        return RouteConfig;
+        return DefaultRouteConfig;
     }());
-    spaMVP.RouteConfig = RouteConfig;
+    spaMVP.DefaultRouteConfig = DefaultRouteConfig;
 })(spaMVP || (spaMVP = {}));
-//# sourceMappingURL=RouteConfig.js.map
+//# sourceMappingURL=DefaultRouteConfig.js.map
 var spaMVP;
 (function (spaMVP) {
+    "use strict";
     /**
      *  @class Sandbox - Connects all modules to the outside world.
      *  @property {String} moduleInstanceId - Id of the module it serves for.
@@ -982,6 +999,7 @@ var spaMVP;
 //# sourceMappingURL=Sandbox.js.map
 var spaMVP;
 (function (spaMVP) {
+    "use strict";
     function initialize(ev) {
         var _this = this;
         document.removeEventListener("DOMContentLoaded", this.onDomReady);
@@ -990,14 +1008,14 @@ var spaMVP;
         }
         if (this.routeConfig.hasRoutes()) {
             this.routeConfig.startRoute(window.location.hash.substring(1));
-            window.addEventListener('hashchange', function () {
+            window.addEventListener("hashchange", function () {
                 _this.routeConfig.startRoute(window.location.hash.substring(1));
             });
         }
     }
     var Core = (function () {
         function Core(routeConfig) {
-            if (routeConfig === void 0) { routeConfig = new spaMVP.RouteConfig(); }
+            if (routeConfig === void 0) { routeConfig = new spaMVP.DefaultRouteConfig(); }
             this.onDomReady = initialize.bind(this);
             this.subscribers = {};
             this.modules = {};
@@ -1043,8 +1061,8 @@ var spaMVP;
          *  @param {Object} context - Handler's context.
          */
         Core.prototype.subscribe = function (eventTypes, handler, context) {
-            if (typeof handler !== 'function') {
-                throw new TypeError('Event type handler should be a function');
+            if (typeof handler !== "function") {
+                throw new TypeError("Event type handler should be a function");
             }
             if (Array.isArray(eventTypes)) {
                 for (var i = 0, len = eventTypes.length; i < len; i++) {
@@ -1084,22 +1102,22 @@ var spaMVP;
          *  @param {function} moduleFactory - function which provides an instance of the module.
          */
         Core.prototype.register = function (moduleId, moduleFactory) {
-            if (moduleId === '' || typeof moduleId !== 'string') {
-                throw new TypeError(moduleId + ' Module registration FAILED: ID must be a non empty string.');
+            if (moduleId === "" || typeof moduleId !== "string") {
+                throw new TypeError(moduleId + " Module registration FAILED: ID must be a non empty string.");
             }
             if (this.modules[moduleId]) {
-                throw new TypeError(moduleId + ' Module registration FAILED: a module with such id has been already registered.');
+                throw new TypeError(moduleId + " Module registration FAILED: a module with such id has been already registered.");
             }
             var tempModule = moduleFactory(new spaMVP.Sandbox(this, moduleId));
-            if (typeof tempModule.init !== 'function' || typeof tempModule.destroy !== 'function') {
-                throw new TypeError(moduleId + ' Module registration FAILED: Module has no init or destroy methods.');
+            if (typeof tempModule.init !== "function" || typeof tempModule.destroy !== "function") {
+                throw new TypeError(moduleId + " Module registration FAILED: Module has no init or destroy methods.");
             }
             this.modules[moduleId] = { create: moduleFactory, instances: null };
             return this;
         };
         /**
          *  Returns all registered module ids.
-         *  @returns {Array<string>}
+         *  @returns {string[]}
          */
         Core.prototype.getAllModules = function () {
             return Object.keys(this.modules);
@@ -1112,14 +1130,14 @@ var spaMVP;
         Core.prototype.start = function (moduleId, options) {
             var module = this.modules[moduleId];
             if (!module) {
-                throw new ReferenceError(moduleId + ' Module not found.');
+                throw new ReferenceError(moduleId + " Module not found.");
             }
             options = options || {};
-            if (typeof options !== 'object') {
-                throw new TypeError(moduleId + ' Module\'s options must be an object.');
+            if (typeof options !== "object") {
+                throw new TypeError(moduleId + " Module's options must be an object.");
             }
             module.instances = module.instances || {};
-            var instanceId = options['instanceId'] || moduleId;
+            var instanceId = options["instanceId"] || moduleId;
             if (module.instances.hasOwnProperty(instanceId)) {
                 return this;
             }
@@ -1148,11 +1166,11 @@ var spaMVP;
          *  @param {Function} factory - function which provides an instance of the service.
          */
         Core.prototype.addService = function (id, factory) {
-            if (typeof id !== 'string' || id === '') {
-                throw new TypeError(id + ' Service registration FAILED: ID must be non empty string.');
+            if (typeof id !== "string" || id === "") {
+                throw new TypeError(id + " Service registration FAILED: ID must be non empty string.");
             }
             if (this.services[id]) {
-                throw new TypeError(id + ' Service registration FAILED: a service with such id has been already added.');
+                throw new TypeError(id + " Service registration FAILED: a service with such id has been already added.");
             }
             this.services[id] = factory;
             return this;
@@ -1165,7 +1183,7 @@ var spaMVP;
         Core.prototype.getService = function (id) {
             var service = this.services[id];
             if (!service) {
-                throw new ReferenceError(id + ' Service was not found.');
+                throw new ReferenceError(id + " Service was not found.");
             }
             return service(new spaMVP.Sandbox(this, id));
         };

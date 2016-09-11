@@ -1,5 +1,6 @@
 var spaMVP;
 (function (spaMVP) {
+    "use strict";
     function initialize(ev) {
         var _this = this;
         document.removeEventListener("DOMContentLoaded", this.onDomReady);
@@ -8,14 +9,14 @@ var spaMVP;
         }
         if (this.routeConfig.hasRoutes()) {
             this.routeConfig.startRoute(window.location.hash.substring(1));
-            window.addEventListener('hashchange', function () {
+            window.addEventListener("hashchange", function () {
                 _this.routeConfig.startRoute(window.location.hash.substring(1));
             });
         }
     }
     var Core = (function () {
         function Core(routeConfig) {
-            if (routeConfig === void 0) { routeConfig = new spaMVP.RouteConfig(); }
+            if (routeConfig === void 0) { routeConfig = new spaMVP.DefaultRouteConfig(); }
             this.onDomReady = initialize.bind(this);
             this.subscribers = {};
             this.modules = {};
@@ -61,8 +62,8 @@ var spaMVP;
          *  @param {Object} context - Handler's context.
          */
         Core.prototype.subscribe = function (eventTypes, handler, context) {
-            if (typeof handler !== 'function') {
-                throw new TypeError('Event type handler should be a function');
+            if (typeof handler !== "function") {
+                throw new TypeError("Event type handler should be a function");
             }
             if (Array.isArray(eventTypes)) {
                 for (var i = 0, len = eventTypes.length; i < len; i++) {
@@ -102,22 +103,22 @@ var spaMVP;
          *  @param {function} moduleFactory - function which provides an instance of the module.
          */
         Core.prototype.register = function (moduleId, moduleFactory) {
-            if (moduleId === '' || typeof moduleId !== 'string') {
-                throw new TypeError(moduleId + ' Module registration FAILED: ID must be a non empty string.');
+            if (moduleId === "" || typeof moduleId !== "string") {
+                throw new TypeError(moduleId + " Module registration FAILED: ID must be a non empty string.");
             }
             if (this.modules[moduleId]) {
-                throw new TypeError(moduleId + ' Module registration FAILED: a module with such id has been already registered.');
+                throw new TypeError(moduleId + " Module registration FAILED: a module with such id has been already registered.");
             }
             var tempModule = moduleFactory(new spaMVP.Sandbox(this, moduleId));
-            if (typeof tempModule.init !== 'function' || typeof tempModule.destroy !== 'function') {
-                throw new TypeError(moduleId + ' Module registration FAILED: Module has no init or destroy methods.');
+            if (typeof tempModule.init !== "function" || typeof tempModule.destroy !== "function") {
+                throw new TypeError(moduleId + " Module registration FAILED: Module has no init or destroy methods.");
             }
             this.modules[moduleId] = { create: moduleFactory, instances: null };
             return this;
         };
         /**
          *  Returns all registered module ids.
-         *  @returns {Array<string>}
+         *  @returns {string[]}
          */
         Core.prototype.getAllModules = function () {
             return Object.keys(this.modules);
@@ -130,14 +131,14 @@ var spaMVP;
         Core.prototype.start = function (moduleId, options) {
             var module = this.modules[moduleId];
             if (!module) {
-                throw new ReferenceError(moduleId + ' Module not found.');
+                throw new ReferenceError(moduleId + " Module not found.");
             }
             options = options || {};
-            if (typeof options !== 'object') {
-                throw new TypeError(moduleId + ' Module\'s options must be an object.');
+            if (typeof options !== "object") {
+                throw new TypeError(moduleId + " Module's options must be an object.");
             }
             module.instances = module.instances || {};
-            var instanceId = options['instanceId'] || moduleId;
+            var instanceId = options["instanceId"] || moduleId;
             if (module.instances.hasOwnProperty(instanceId)) {
                 return this;
             }
@@ -166,11 +167,11 @@ var spaMVP;
          *  @param {Function} factory - function which provides an instance of the service.
          */
         Core.prototype.addService = function (id, factory) {
-            if (typeof id !== 'string' || id === '') {
-                throw new TypeError(id + ' Service registration FAILED: ID must be non empty string.');
+            if (typeof id !== "string" || id === "") {
+                throw new TypeError(id + " Service registration FAILED: ID must be non empty string.");
             }
             if (this.services[id]) {
-                throw new TypeError(id + ' Service registration FAILED: a service with such id has been already added.');
+                throw new TypeError(id + " Service registration FAILED: a service with such id has been already added.");
             }
             this.services[id] = factory;
             return this;
@@ -183,7 +184,7 @@ var spaMVP;
         Core.prototype.getService = function (id) {
             var service = this.services[id];
             if (!service) {
-                throw new ReferenceError(id + ' Service was not found.');
+                throw new ReferenceError(id + " Service was not found.");
             }
             return service(new spaMVP.Sandbox(this, id));
         };

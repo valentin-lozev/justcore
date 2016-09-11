@@ -1,9 +1,12 @@
 var spaMVP;
 (function (spaMVP) {
-    // Polyfill for older browsers
-    if (typeof Object.create !== 'function') {
+    "use strict";
+    // polyfill for older browsers
+    if (typeof Object.create !== "function") {
         Object.create = function (o) {
-            function F() { }
+            function F() {
+                //
+            }
             F.prototype = o;
             return new F();
         };
@@ -20,8 +23,8 @@ var spaMVP;
     }
     function subclassFactory(getInheritorFunc) {
         var inheritor = getInheritorFunc();
-        if (!inheritor || typeof inheritor !== 'function') {
-            throw new Error('Inheritor\'s function constructor must be supplied.');
+        if (!inheritor || typeof inheritor !== "function") {
+            throw new Error("Inheritor's function constructor must be supplied.");
         }
         return subclass.call(this, inheritor);
     }

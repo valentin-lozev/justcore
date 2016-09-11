@@ -3,7 +3,39 @@
   "TestHarnessLocationMode": "SettingsFileAdjacent",
   "Compile": { "Mode": "External" },
   "References": [
-    { "Path": "dist/js/spaMVP-2.0.0.min.js" }
+    {
+      "Path": "src/routing/UrlHash.js"
+    },
+    {
+      "Path": "src/routing/Route.js"
+    },
+    {
+      "Path": "src/routing/DefaultRouteConfig.js"
+    },
+    {
+      "Path": "src/mvp/Model.js"
+    },
+    {
+      "Path": "src/mvp/HashSet.js"
+    },
+    {
+      "Path": "src/mvp/Collection.js"
+    },
+    {
+      "Path": "src/lib/UIEvent.js"
+    },
+    {
+      "Path": "src/mvp/View.js"
+    },
+    {
+      "Path": "src/mvp/Presenter.js"
+    },
+    {
+      "Path": "src/core/Core.js"
+    },
+    {
+      "Path": "src/core/Sandbox.js"
+    }
   ],
   "Tests": [
     {

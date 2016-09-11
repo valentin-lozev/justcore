@@ -1,24 +1,30 @@
 ﻿namespace spaMVP {
+    "use strict";
+
+    export interface RouteConfig {
+        defaultUrl: string;
+        registerRoute(pattern: string, callback: (routeParams: any) => void): void;
+        startRoute(hash: string): void;
+        getRoutes(): string[];
+        hasRoutes(): boolean;
+    }
 
     /**
      *  @class RouteConfig - Handles spa application route changes.
      */
-    export class RouteConfig {
-        private routes: Array<Route> = [];
+    export class DefaultRouteConfig implements RouteConfig {
+        private routes: Route[] = [];
         private urlHash: UrlHash = new UrlHash();
         public defaultUrl: string = null;
-
-        constructor() {
-        }
 
         /**
          *  Registers a route by given url pattern.
          *  When url's hash is changed it executes a callback with populated dynamic routes and query parameters.
          *  Dynamic route param can be registered with {yourParam}.
          */
-        registerRoute(pattern: string, callback: (routeParams: any) => void) {
+        registerRoute(pattern: string, callback: (routeParams: any) => void): void {
             if (this.routes.some(r => r.pattern === pattern)) {
-                throw new Error('Route ' + pattern + ' has been already registered.');
+                throw new Error("Route " + pattern + " has been already registered.");
             }
 
             this.routes.push(new Route(pattern, callback));
@@ -27,7 +33,7 @@
         /**
          *  Starts hash url if such is registered, if not, it starts the default one.
          */
-        startRoute(hash: string) {
+        startRoute(hash: string): void {
             this.urlHash.value = hash;
             let nextRoute = this.findRoute();
             if (nextRoute) {
@@ -45,7 +51,7 @@
         /**
          *  Returns all registered patterns.
          */
-        getRoutes(): Array<string> {
+        getRoutes(): string[] {
             return this.routes.map(route => route.pattern);
         }
 
@@ -67,11 +73,11 @@
             return null;
         }
 
-        private startDefaultRoute(invalidHash: string) {
+        private startDefaultRoute(invalidHash: string): void {
             window.history.replaceState(
                 null,
                 null,
-                window.location.pathname + '#' + this.defaultUrl
+                window.location.pathname + "#" + this.defaultUrl
             );
 
             this.urlHash.value = this.defaultUrl;

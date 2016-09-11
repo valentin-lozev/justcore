@@ -27,7 +27,7 @@ describe('Core', () => {
         });
 
         it('should register a route by delegating to its route config', () => {
-            let config = new spaMVP.RouteConfig();
+            let config = new spaMVP.DefaultRouteConfig();
             let core = getOne(config);
             spyOn(config, 'registerRoute');
             let pattern = 'home';
@@ -38,7 +38,7 @@ describe('Core', () => {
         });
 
         it('should start a route by delegating to its route config', () => {
-            let config = new spaMVP.RouteConfig();
+            let config = new spaMVP.DefaultRouteConfig();
             let core = getOne(config);
             spyOn(config, 'startRoute');
             let pattern = 'home';
@@ -49,7 +49,7 @@ describe('Core', () => {
         });
 
         it('should start the current hash route on DOMContentLoaded', () => {
-            let config = new spaMVP.RouteConfig();
+            let config = new spaMVP.DefaultRouteConfig();
             let core = getOne(config);
             core.registerRoute('', null);
             spyOn(config, 'startRoute');
@@ -61,7 +61,7 @@ describe('Core', () => {
         });
 
         it('should start listening for hashchange on DOMContentLoaded', () => {
-            let config = new spaMVP.RouteConfig();
+            let config = new spaMVP.DefaultRouteConfig();
             let core = getOne(config);
             core.registerRoute('', null);
             spyOn(config, 'startRoute');
@@ -74,7 +74,7 @@ describe('Core', () => {
         });
 
         it('should set default url on its route config', () => {
-            let config = new spaMVP.RouteConfig();
+            let config = new spaMVP.DefaultRouteConfig();
             let core = getOne(config);
             let url = 'home';
 
@@ -268,11 +268,14 @@ describe('Core', () => {
         it('should add service', function () {
             let core = getOne();
             let id = 'testService';
-            let creator = (sb: spaMVP.Sandbox): any => { return { id: id }; };
+            interface Service {
+                id: string;
+            }
+            let creator = (sb: spaMVP.Sandbox): Service => { return { id: id }; };
 
             core.addService(id, creator);
 
-            let service = core.getService(id);
+            let service = core.getService<Service>(id);
             expect(service).toBeDefined();
             expect(service.id).toEqual(id);
         });

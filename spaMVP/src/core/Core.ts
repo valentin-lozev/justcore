@@ -1,6 +1,7 @@
 ﻿namespace spaMVP {
+    "use strict";
 
-    function initialize(ev: Event) {
+    function initialize(ev: Event): void {
         document.removeEventListener("DOMContentLoaded", this.onDomReady);
         if (this.onAppStart) {
             this.onAppStart();
@@ -8,26 +9,26 @@
 
         if (this.routeConfig.hasRoutes()) {
             this.routeConfig.startRoute(window.location.hash.substring(1));
-            window.addEventListener('hashchange', () => {
+            window.addEventListener("hashchange", () => {
                 this.routeConfig.startRoute(window.location.hash.substring(1));
             });
         }
     }
 
     export interface Module {
-        init(options: any);
-        destroy();
+        init(options: any): void;
+        destroy(): void;
     }
 
     export class Core {
-        private onDomReady = initialize.bind(this);
+        private onDomReady: (ev: Event) => void = initialize.bind(this);
         private onAppStart: Function;
         private routeConfig: RouteConfig;
         private subscribers: Object = {};
         private modules: Object = {};
         private services: Object = {};
 
-        constructor(routeConfig = new RouteConfig()) {
+        constructor(routeConfig: RouteConfig = new DefaultRouteConfig()) {
             this.routeConfig = routeConfig;
         }
 
@@ -73,9 +74,9 @@
          *  @param {Function} handler - The events' handler.
          *  @param {Object} context - Handler's context.
          */
-        subscribe(eventTypes: Array<string>, handler: (type: string, data: any) => void, context?: Object) {
-            if (typeof handler !== 'function') {
-                throw new TypeError('Event type handler should be a function');
+        subscribe(eventTypes: string[], handler: (type: string, data: any) => void, context?: Object): void {
+            if (typeof handler !== "function") {
+                throw new TypeError("Event type handler should be a function");
             }
 
             if (Array.isArray(eventTypes)) {
@@ -91,7 +92,7 @@
          *  @param {Function} handler - The handler which must be unsubscribed.
          *  @param {Object} context - Handler's context.
          */
-        unsubscribe(eventTypes: Array<string>, handler: (type: string, data: any) => void, context?: Object) {
+        unsubscribe(eventTypes: string[], handler: (type: string, data: any) => void, context?: Object): void {
             if (Array.isArray(eventTypes)) {
                 for (let i = 0, len = eventTypes.length; i < len; i++) {
                     this.removeSubscriber(eventTypes[i], handler, context);
@@ -104,7 +105,7 @@
          *  @param {String} type - Type of the event.
          *  @param {*} [data] - Optional data.
          */
-        publish(type: string, data: any) {
+        publish(type: string, data: any): void {
             if (!Array.isArray(this.subscribers[type])) {
                 return;
             }
@@ -120,17 +121,17 @@
          *  @param {function} moduleFactory - function which provides an instance of the module.
          */
         register(moduleId: string, moduleFactory: (sb: Sandbox) => Module): this {
-            if (moduleId === '' || typeof moduleId !== 'string') {
-                throw new TypeError(moduleId + ' Module registration FAILED: ID must be a non empty string.');
+            if (moduleId === "" || typeof moduleId !== "string") {
+                throw new TypeError(moduleId + " Module registration FAILED: ID must be a non empty string.");
             }
 
             if (this.modules[moduleId]) {
-                throw new TypeError(moduleId + ' Module registration FAILED: a module with such id has been already registered.');
+                throw new TypeError(moduleId + " Module registration FAILED: a module with such id has been already registered.");
             }
 
             let tempModule = moduleFactory(new spaMVP.Sandbox(this, moduleId));
-            if (typeof tempModule.init !== 'function' || typeof tempModule.destroy !== 'function') {
-                throw new TypeError(moduleId + ' Module registration FAILED: Module has no init or destroy methods.');
+            if (typeof tempModule.init !== "function" || typeof tempModule.destroy !== "function") {
+                throw new TypeError(moduleId + " Module registration FAILED: Module has no init or destroy methods.");
             }
 
             this.modules[moduleId] = { create: moduleFactory, instances: null };
@@ -139,9 +140,9 @@
 
         /**
          *  Returns all registered module ids.
-         *  @returns {Array<string>}
+         *  @returns {string[]}
          */
-        getAllModules(): Array<string> {
+        getAllModules(): string[] {
             return Object.keys(this.modules);
         }
 
@@ -153,16 +154,16 @@
         start(moduleId: string, options?: Object): this {
             let module = this.modules[moduleId];
             if (!module) {
-                throw new ReferenceError(moduleId + ' Module not found.');
+                throw new ReferenceError(moduleId + " Module not found.");
             }
 
             options = options || {};
-            if (typeof options !== 'object') {
-                throw new TypeError(moduleId + ' Module\'s options must be an object.');
+            if (typeof options !== "object") {
+                throw new TypeError(moduleId + " Module's options must be an object.");
             }
 
             module.instances = module.instances || {};
-            let instanceId = options['instanceId'] || moduleId;
+            let instanceId = options["instanceId"] || moduleId;
             if (module.instances.hasOwnProperty(instanceId)) {
                 return this;
             }
@@ -195,12 +196,12 @@
          *  @param {Function} factory - function which provides an instance of the service.
          */
         addService(id: string, factory: (sb: Sandbox) => any): this {
-            if (typeof id !== 'string' || id === '') {
-                throw new TypeError(id + ' Service registration FAILED: ID must be non empty string.');
+            if (typeof id !== "string" || id === "") {
+                throw new TypeError(id + " Service registration FAILED: ID must be non empty string.");
             }
 
             if (this.services[id]) {
-                throw new TypeError(id + ' Service registration FAILED: a service with such id has been already added.');
+                throw new TypeError(id + " Service registration FAILED: a service with such id has been already added.");
             }
 
             this.services[id] = factory;
@@ -212,16 +213,16 @@
          *  @param {String} id
          *  @returns {*}
          */
-        getService(id: string) {
+        getService<T>(id: string): T {
             let service = this.services[id];
             if (!service) {
-                throw new ReferenceError(id + ' Service was not found.');
+                throw new ReferenceError(id + " Service was not found.");
             }
 
             return service(new spaMVP.Sandbox(this, id));
         }
 
-        private addSubscriber(eventType: string, handler: Function, context?: Object) {
+        private addSubscriber(eventType: string, handler: Function, context?: Object): void {
             this.subscribers[eventType] = this.subscribers[eventType] || [];
             this.subscribers[eventType].push({
                 handler: handler,
@@ -229,7 +230,7 @@
             });
         }
 
-        private removeSubscriber(eventType: string, handler: Function, context?: Object) {
+        private removeSubscriber(eventType: string, handler: Function, context?: Object): void {
             let subscribers = this.subscribers[eventType] || [];
             for (let i = 0, len = subscribers.length; i < len; i++) {
                 let subscriber = subscribers[i];

@@ -1,4 +1,5 @@
 ﻿namespace spaMVP {
+    "use strict";
 
     export interface QueryParam {
         key: string;
@@ -6,28 +7,25 @@
     }
 
     /**
-     *  @class UrlHash - Represents the string after '#' in a url.
+     *  @class UrlHash - Represents the string after "#" in a url.
      *  @property {String} value - The string after # in a url.
      *  @property {Array} tokens - The array of string tokens after splitint its value by / (slash).
      *  @property {Array} queryParams - The array of key-value pairs parsed from the query string in its value.
      */
     export class UrlHash {
         private questionMarkIndex: number = -1;
-        private url: string = '';
-        public tokens: Array<string> = [];
-        public queryParams: Array<QueryParam> = [];
-
-        constructor() {
-        }
+        private url: string = "";
+        public tokens: string[] = [];
+        public queryParams: QueryParam[] = [];
 
         get value(): string {
             return this.url;
         }
 
         set value(url: string) {
-            url = url || '';
+            url = url || "";
             this.url = url;
-            this.questionMarkIndex = url.indexOf('?');
+            this.questionMarkIndex = url.indexOf("?");
             this.queryParams = [];
             this.tokens = [];
             this.populateQueryParams();
@@ -38,30 +36,30 @@
             return this.questionMarkIndex > -1;
         }
 
-        private populateQueryParams() {
+        private populateQueryParams(): void {
             if (!this.anyQueryParams()) {
                 return;
             }
 
             this.queryParams = this.value
                 .substring(this.questionMarkIndex + 1)
-                .split('&')
+                .split("&")
                 .map(keyValuePairString => this.parseQueryParam(keyValuePairString));
         }
 
         private parseQueryParam(keyValuePair: string): QueryParam {
-            let args = keyValuePair.split('=');
+            let args = keyValuePair.split("=");
             return {
                 key: args[0],
-                value: args[1] || ''
+                value: args[1] || ""
             };
         }
 
-        private populateTokens() {
+        private populateTokens(): void {
             let valueWithoutQuery = this.getValueWithoutQuery();
             this.tokens = valueWithoutQuery
-                .split('/')
-                .filter(token => token !== '');
+                .split("/")
+                .filter(token => token !== "");
         }
 
         private getValueWithoutQuery(): string {

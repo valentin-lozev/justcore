@@ -1,5 +1,6 @@
 var spaMVP;
 (function (spaMVP) {
+    "use strict";
     function eventHandler(ev) {
         var target = ev.target;
         var dataset = target.dataset;
@@ -7,7 +8,7 @@ var spaMVP;
             return;
         }
         var callbackName = dataset[ev.type];
-        if (typeof this[callbackName] === 'function') {
+        if (typeof this[callbackName] === "function") {
             this[callbackName](dataset, target, ev);
             return;
         }
@@ -42,7 +43,7 @@ var spaMVP;
          */
         View.prototype.map = function (eventType, useCapture, selector) {
             if (useCapture === void 0) { useCapture = false; }
-            new spaMVP.UIEvent({
+            spaMVP.UIEvent({
                 name: eventType,
                 htmlElement: !selector ? this.domNode : this.domNode.querySelector(selector),
                 handler: eventHandler,
@@ -66,7 +67,7 @@ var spaMVP;
          *  Removes all elements and mapped events.
          */
         View.prototype.destroy = function () {
-            if (typeof this.domNode.detach === 'function') {
+            if (typeof this.domNode.detach === "function") {
                 this.domNode.detach();
             }
             this.removeAllElements();

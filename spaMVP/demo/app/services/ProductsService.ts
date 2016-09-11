@@ -2,7 +2,7 @@
     constructor() {
     }
 
-    getAll(onSuccess, onError) {
+    getAll(onSuccess: (data: Product[]) => void) {
         let result = [
             new Product(1, 'Red', 'http://www.technopolis.bg/medias/sys_master/hff/he8/9594025213982.jpg'),
             new Product(2, 'Blue', 'http://www.technopolis.bg/medias/sys_master/h50/h6e/9575018463262.jpg'),

@@ -1,7 +1,8 @@
 var spaMVP;
 (function (spaMVP) {
+    "use strict";
     /**
-     *  @class UrlHash - Represents the string after '#' in a url.
+     *  @class UrlHash - Represents the string after "#" in a url.
      *  @property {String} value - The string after # in a url.
      *  @property {Array} tokens - The array of string tokens after splitint its value by / (slash).
      *  @property {Array} queryParams - The array of key-value pairs parsed from the query string in its value.
@@ -9,7 +10,7 @@ var spaMVP;
     var UrlHash = (function () {
         function UrlHash() {
             this.questionMarkIndex = -1;
-            this.url = '';
+            this.url = "";
             this.tokens = [];
             this.queryParams = [];
         }
@@ -18,9 +19,9 @@ var spaMVP;
                 return this.url;
             },
             set: function (url) {
-                url = url || '';
+                url = url || "";
                 this.url = url;
-                this.questionMarkIndex = url.indexOf('?');
+                this.questionMarkIndex = url.indexOf("?");
                 this.queryParams = [];
                 this.tokens = [];
                 this.populateQueryParams();
@@ -39,21 +40,21 @@ var spaMVP;
             }
             this.queryParams = this.value
                 .substring(this.questionMarkIndex + 1)
-                .split('&')
+                .split("&")
                 .map(function (keyValuePairString) { return _this.parseQueryParam(keyValuePairString); });
         };
         UrlHash.prototype.parseQueryParam = function (keyValuePair) {
-            var args = keyValuePair.split('=');
+            var args = keyValuePair.split("=");
             return {
                 key: args[0],
-                value: args[1] || ''
+                value: args[1] || ""
             };
         };
         UrlHash.prototype.populateTokens = function () {
             var valueWithoutQuery = this.getValueWithoutQuery();
             this.tokens = valueWithoutQuery
-                .split('/')
-                .filter(function (token) { return token !== ''; });
+                .split("/")
+                .filter(function (token) { return token !== ""; });
         };
         UrlHash.prototype.getValueWithoutQuery = function () {
             if (!this.anyQueryParams()) {

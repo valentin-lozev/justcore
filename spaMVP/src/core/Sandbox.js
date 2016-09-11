@@ -1,5 +1,6 @@
 var spaMVP;
 (function (spaMVP) {
+    "use strict";
     /**
      *  @class Sandbox - Connects all modules to the outside world.
      *  @property {String} moduleInstanceId - Id of the module it serves for.

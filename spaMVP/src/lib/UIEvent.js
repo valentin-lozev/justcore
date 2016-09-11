@@ -43,6 +43,9 @@ var spaMVP;
         return false;
     }
     function UIEvent(config) {
+        if (!(this instanceof UIEvent)) {
+            return new UIEvent(config);
+        }
         this.htmlElement = config.htmlElement;
         this.eventConfig = {
             name: config.name,

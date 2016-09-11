@@ -1,4 +1,4 @@
-﻿function getModules() : Array<string> {
+﻿function getModules() : string[] {
     let result = [];
     let modules = document.querySelectorAll('#container [data-module]');
     for (let i = 0, len = modules.length; i < len; i++) {
@@ -9,14 +9,14 @@
 }
 
 function onRouteChanged(templateName: string) {
-    getModules().forEach(moduleId => App.stop(moduleId));
+    getModules().forEach(moduleId => app.stop(moduleId));
 
     document.getElementById('container').innerHTML = templates[templateName]();
 
-    getModules().forEach(moduleId => App.start(moduleId));
+    getModules().forEach(moduleId => app.start(moduleId));
 }
 
-let App = spaMVP.createAppCore()
+let app = spaMVP.createAppCore()
     .defaultUrl('/')
     .registerRoute('/', routeParams => onRouteChanged('homePage'))
     .registerRoute('/products', routeParams => onRouteChanged('productsPage'))

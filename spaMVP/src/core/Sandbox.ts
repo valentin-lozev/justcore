@@ -1,4 +1,5 @@
 ﻿namespace spaMVP {
+    "use strict";
 
     /**
      *  @class Sandbox - Connects all modules to the outside world.
@@ -17,20 +18,20 @@
             this.moduleInstanceId = moduleInstanceId;
         }
 
-        subscribe(eventTypes: Array<string>, handler: (type: string, data: any) => void, context?: Object) {
+        subscribe(eventTypes: string[], handler: (type: string, data: any) => void, context?: Object): void {
             this.core.subscribe(eventTypes, handler, context);
         }
 
-        unsubscribe(eventTypes: Array<string>, handler: (type: string, data: any) => void, context?: Object) {
+        unsubscribe(eventTypes: string[], handler: (type: string, data: any) => void, context?: Object): void {
             this.core.unsubscribe(eventTypes, handler, context);
         }
 
-        publish(eventType: string, data: any) {
+        publish(eventType: string, data: any): void {
             this.core.publish(eventType, data);
         }
 
-        getService(id: string) : any {
-            return this.core.getService(id);
+        getService<T>(id: string): T {
+            return this.core.getService<T>(id);
         }
     }
 }

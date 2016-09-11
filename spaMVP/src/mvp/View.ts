@@ -1,6 +1,7 @@
 ﻿namespace spaMVP {
+    "use strict";
 
-    function eventHandler(ev: Event) {
+    function eventHandler(ev: Event): void {
         let target = <HTMLElement>ev.target;
         let dataset = target.dataset;
         if (!dataset.hasOwnProperty(ev.type)) {
@@ -8,7 +9,7 @@
         }
 
         let callbackName = dataset[ev.type];
-        if (typeof this[callbackName] === 'function') {
+        if (typeof this[callbackName] === "function") {
             this[callbackName](dataset, target, ev);
             return;
         }
@@ -33,7 +34,7 @@
             this._template = template;
         }
 
-        static subclass = subclassFactory;
+        static subclass: (getInheritorFunc: () => Function) => Function = subclassFactory;
 
         get domNode(): HTMLElement {
             return this._domNode;
@@ -47,7 +48,7 @@
          * @param selector
          */
         map(eventType: string, useCapture: boolean = false, selector?: string): this {
-            new UIEvent({
+            UIEvent({
                 name: eventType,
                 htmlElement: !selector ? this.domNode : this.domNode.querySelector(selector),
                 handler: eventHandler,
@@ -75,7 +76,7 @@
          *  Removes all elements and mapped events.
          */
         destroy(): this {
-            if (typeof this.domNode.detach === 'function') {
+            if (typeof this.domNode.detach === "function") {
                 this.domNode.detach();
             }
 

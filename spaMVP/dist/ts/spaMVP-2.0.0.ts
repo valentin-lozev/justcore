@@ -5,11 +5,14 @@
  *  Source code: http://github.com/valentin-lozev/spaMVP
  */
 namespace spaMVP {
+    "use strict";
 
-    // Polyfill for older browsers
-    if (typeof Object.create !== 'function') {
-        Object.create = function (o) {
-            function F() { }
+    // polyfill for older browsers
+    if (typeof Object.create !== "function") {
+        Object.create = function (o: Object): Function {
+            function F(): void {
+                //
+            }
             F.prototype = o;
             return new F();
         };
@@ -26,18 +29,18 @@ namespace spaMVP {
         inheritor.BaseClass = BaseClass;
         inheritor.subclass = subclassFactory;
         return inheritor;
-    }    
+    }
 
     export function subclassFactory(getInheritorFunc: () => Function): Function {
         let inheritor = getInheritorFunc();
-        if (!inheritor || typeof inheritor !== 'function') {
-            throw new Error('Inheritor\'s function constructor must be supplied.');
+        if (!inheritor || typeof inheritor !== "function") {
+            throw new Error("Inheritor's function constructor must be supplied.");
         }
 
         return subclass.call(this, inheritor);
     }
 
-    export function extend(target, object) {
+    export function extend(target: Object, object: Object): void {
         for (let prop in object) {
             if (object[prop]) {
                 target[prop] = object[prop];
@@ -46,10 +49,11 @@ namespace spaMVP {
     }
 }
 namespace spaMVP {
+    "use strict";
 
     export let ModelEvents = {
-        Change: 'change',
-        Destroy: 'destroy'
+        Change: "change",
+        Destroy: "destroy"
     };
 
     /**
@@ -58,10 +62,7 @@ namespace spaMVP {
     export abstract class Model {
         private listeners: Object = {};
 
-        constructor() {
-        }
-
-        static subclass = subclassFactory;
+        static subclass: (getInheritorFunc: () => Function) => Function = subclassFactory;
 
         /**
          *  Attaches an event handler to model raised events.
@@ -106,7 +107,7 @@ namespace spaMVP {
         /**
          *  Notifies the listeners attached for specific event.
          */
-        notify(type: string, data?: any) {
+        notify(type: string, data?: any): void {
             if (!Array.isArray(this.listeners[type])) {
                 return;
             }
@@ -119,19 +120,20 @@ namespace spaMVP {
         /**
          *  Notifies for change event.
          */
-        change() {
+        change(): void {
             this.notify(ModelEvents.Change, this);
         }
 
         /**
          *  Notifies for destroy event.
          */
-        destroy() {
+        destroy(): void {
             this.notify(ModelEvents.Destroy, this);
         }
     }
 }
 namespace spaMVP {
+    "use strict";
 
     export interface Equatable<T> {
         equals(other: T): boolean;
@@ -146,9 +148,6 @@ namespace spaMVP {
     export class HashSet<T extends Equatable<T>> {
         private items: Object = {};
         public size: number = 0;
-
-        constructor() {
-        }
 
         /**
          *  Determines whether an item is in the set.
@@ -188,13 +187,11 @@ namespace spaMVP {
             // the first item with this hash
             if (!Object.prototype.hasOwnProperty.call(this.items, hashCode)) {
                 this.items[hashCode] = item;
-            }
-            // the second item with this hash
-            else if (!Array.isArray(this.items[hashCode])) {
+            } else if (!Array.isArray(this.items[hashCode])) {
+                // the second item with this hash
                 this.items[hashCode] = [this.items[hashCode], item];
-            }
-            // there are already two or more items with this hash
-            else {
+            } else {
+                // there are already two or more items with this hash
                 this.items[hashCode].push(item);
             }
 
@@ -222,8 +219,7 @@ namespace spaMVP {
                         break;
                     }
                 }
-            }
-            else {
+            } else {
                 delete this.items[hashCode];
             }
 
@@ -250,7 +246,7 @@ namespace spaMVP {
          *  @param {Function} action
          *  @param {Object} [context] The action's context.
          */
-        forEach(action: (item: T, index: number) => void, context?: Object) {
+        forEach(action: (item: T, index: number) => void, context?: Object): void {
             let index = 0;
             let hashes = Object.keys(this.items);
             for (let i = 0, len = hashes.length; i < len; i++) {
@@ -272,7 +268,7 @@ namespace spaMVP {
          *  Converts the set to Array.
          *  @returns {Array}
          */
-        toArray(): Array<T> {
+        toArray(): T[] {
             let result = new Array(this.size);
             let index = 0;
             let hashes = Object.keys(this.items);
@@ -296,11 +292,12 @@ namespace spaMVP {
 
 }
 namespace spaMVP {
+    "use strict";
 
     export let CollectionEvents = {
-        AddedItems: 'added-items',
-        DeletedItems: 'deleted-items',
-        UpdatedItem: 'updated-item'
+        AddedItems: "added-items",
+        DeletedItems: "deleted-items",
+        UpdatedItem: "updated-item"
     };
 
     /**
@@ -320,7 +317,7 @@ namespace spaMVP {
             return this.models.size;
         }
 
-        static subclass = subclassFactory;
+        static subclass: (getInheritorFunc: () => Function) => Function = subclassFactory;
 
         equals(other: TModel): boolean {
             return false;
@@ -342,7 +339,7 @@ namespace spaMVP {
          *  Adds range of models to the set.
          *  @returns {Boolean}
          */
-        addRange(models: Array<TModel>): boolean {
+        addRange(models: TModel[]): boolean {
             let added = [];
             for (let i = 0, len = models.length; i < len; i++) {
                 let model = models[i];
@@ -375,7 +372,7 @@ namespace spaMVP {
          *  Removes range of models.
          *  @returns {Boolean}
          */
-        removeRange(models: Array<TModel>): boolean {
+        removeRange(models: TModel[]): boolean {
             let deleted = [];
             for (let i = 0, len = models.length; i < len; i++) {
                 let model = models[i];
@@ -424,22 +421,22 @@ namespace spaMVP {
          *  Returns the models as Array.
          *  @returns {Array}
          */
-        toArray(): Array<TModel> {
+        toArray(): TModel[] {
             return this.models.toArray();
         }
 
         /**
          *  Performs an action on each model in the set.
          */
-        forEach(action: (item: TModel, index: number) => void, context: Object) {
+        forEach(action: (item: TModel, index: number) => void, context: Object): void {
             this.models.forEach(action, context);
         }
 
-        private onItemChange(item: TModel) {
+        private onItemChange(item: TModel): void {
             this.notify(CollectionEvents.UpdatedItem, item);
         }
 
-        private onItemDestroy(item: TModel) {
+        private onItemDestroy(item: TModel): void {
             this.removeRange([item]);
         }
     }
@@ -506,7 +503,11 @@ namespace spaMVP {
         return false;
     }
 
-    export function UIEvent(config) {
+    export function UIEvent(config): void {
+        if (!(this instanceof UIEvent)) {
+            return new UIEvent(config);
+        }
+
         this.htmlElement = config.htmlElement;
 
         this.eventConfig = {
@@ -589,8 +590,9 @@ namespace spaMVP {
     });
 }
 namespace spaMVP {
+    "use strict";
 
-    function eventHandler(ev: Event) {
+    function eventHandler(ev: Event): void {
         let target = <HTMLElement>ev.target;
         let dataset = target.dataset;
         if (!dataset.hasOwnProperty(ev.type)) {
@@ -598,7 +600,7 @@ namespace spaMVP {
         }
 
         let callbackName = dataset[ev.type];
-        if (typeof this[callbackName] === 'function') {
+        if (typeof this[callbackName] === "function") {
             this[callbackName](dataset, target, ev);
             return;
         }
@@ -623,7 +625,7 @@ namespace spaMVP {
             this._template = template;
         }
 
-        static subclass = subclassFactory;
+        static subclass: (getInheritorFunc: () => Function) => Function = subclassFactory;
 
         get domNode(): HTMLElement {
             return this._domNode;
@@ -637,7 +639,7 @@ namespace spaMVP {
          * @param selector
          */
         map(eventType: string, useCapture: boolean = false, selector?: string): this {
-            new UIEvent({
+            UIEvent({
                 name: eventType,
                 htmlElement: !selector ? this.domNode : this.domNode.querySelector(selector),
                 handler: eventHandler,
@@ -665,7 +667,7 @@ namespace spaMVP {
          *  Removes all elements and mapped events.
          */
         destroy(): this {
-            if (typeof this.domNode.detach === 'function') {
+            if (typeof this.domNode.detach === "function") {
                 this.domNode.detach();
             }
 
@@ -711,6 +713,7 @@ namespace spaMVP {
 
 }
 namespace spaMVP {
+    "use strict";
 
     /**
      *  @class spaMVP.Presenter
@@ -718,10 +721,7 @@ namespace spaMVP {
     export class Presenter<TView extends View, TModel extends Model> {
         private _view: TView = null;
         private _model: TModel = null;
-        private _modelHandlers = {};
-
-        constructor() {
-        }
+        private _modelHandlers: Object = {};
 
         get view(): TView {
             return this._view;
@@ -763,7 +763,7 @@ namespace spaMVP {
             this.render();
         }
 
-        static subclass = subclassFactory;
+        static subclass: (getInheritorFunc: () => Function) => Function = subclassFactory;
 
         /**
          *  Determins which events to handle when model notifies. 
@@ -790,7 +790,7 @@ namespace spaMVP {
         /**
          *  Destroys its view and model.
          */
-        destroy() {
+        destroy(): void {
             this.view = null;
             this.model = null;
         }
@@ -798,6 +798,7 @@ namespace spaMVP {
 
 }
 namespace spaMVP {
+    "use strict";
 
     export interface QueryParam {
         key: string;
@@ -805,28 +806,25 @@ namespace spaMVP {
     }
 
     /**
-     *  @class UrlHash - Represents the string after '#' in a url.
+     *  @class UrlHash - Represents the string after "#" in a url.
      *  @property {String} value - The string after # in a url.
      *  @property {Array} tokens - The array of string tokens after splitint its value by / (slash).
      *  @property {Array} queryParams - The array of key-value pairs parsed from the query string in its value.
      */
     export class UrlHash {
         private questionMarkIndex: number = -1;
-        private url: string = '';
-        public tokens: Array<string> = [];
-        public queryParams: Array<QueryParam> = [];
-
-        constructor() {
-        }
+        private url: string = "";
+        public tokens: string[] = [];
+        public queryParams: QueryParam[] = [];
 
         get value(): string {
             return this.url;
         }
 
         set value(url: string) {
-            url = url || '';
+            url = url || "";
             this.url = url;
-            this.questionMarkIndex = url.indexOf('?');
+            this.questionMarkIndex = url.indexOf("?");
             this.queryParams = [];
             this.tokens = [];
             this.populateQueryParams();
@@ -837,30 +835,30 @@ namespace spaMVP {
             return this.questionMarkIndex > -1;
         }
 
-        private populateQueryParams() {
+        private populateQueryParams(): void {
             if (!this.anyQueryParams()) {
                 return;
             }
 
             this.queryParams = this.value
                 .substring(this.questionMarkIndex + 1)
-                .split('&')
+                .split("&")
                 .map(keyValuePairString => this.parseQueryParam(keyValuePairString));
         }
 
         private parseQueryParam(keyValuePair: string): QueryParam {
-            let args = keyValuePair.split('=');
+            let args = keyValuePair.split("=");
             return {
                 key: args[0],
-                value: args[1] || ''
+                value: args[1] || ""
             };
         }
 
-        private populateTokens() {
+        private populateTokens(): void {
             let valueWithoutQuery = this.getValueWithoutQuery();
             this.tokens = valueWithoutQuery
-                .split('/')
-                .filter(token => token !== '');
+                .split("/")
+                .filter(token => token !== "");
         }
 
         private getValueWithoutQuery(): string {
@@ -873,6 +871,7 @@ namespace spaMVP {
     }
 }
 namespace spaMVP {
+    "use strict";
 
     let routeParamRegex = /{([a-zA-Z]+)}/; // e.g {id}
 
@@ -888,14 +887,14 @@ namespace spaMVP {
      */
     export class Route {
         private callback: (routeParams: any) => void;
-        private tokens: Array<RouteToken> = [];
+        private tokens: RouteToken[] = [];
         public pattern: string;
 
         constructor(pattern: string, onStart: (routeParams: any) => void) {
-            if (typeof pattern === 'undefined' ||
-                typeof pattern !== 'string' ||
+            if (typeof pattern === "undefined" ||
+                typeof pattern !== "string" ||
                 pattern === null) {
-                throw new Error('Route pattern should be non empty string.');
+                throw new Error("Route pattern should be non empty string.");
             }
 
             this.pattern = pattern;
@@ -906,7 +905,7 @@ namespace spaMVP {
         /**
          *  The array of tokens after its pattern is splitted by / (slash).
          */
-        getTokens(): Array<RouteToken> {
+        getTokens(): RouteToken[] {
             return this.tokens.slice(0);
         }
 
@@ -937,17 +936,17 @@ namespace spaMVP {
          *  Populate the dynamic params from the UrlHash if such exist
          *  and executes the registered callback.
          */
-        start(urlHash: UrlHash) {
+        start(urlHash: UrlHash): void {
             let queryParams = this.getParamsFromUrl(urlHash);
             if (this.callback) {
                 this.callback(queryParams);
             }
         }
 
-        private populateTokens() {
+        private populateTokens(): void {
             this.tokens = [];
-            this.pattern.split('/').forEach(urlFragment => {
-                if (urlFragment !== '') {
+            this.pattern.split("/").forEach((urlFragment: string) => {
+                if (urlFragment !== "") {
                     this.tokens.push(this.parseToken(urlFragment));
                 }
             });
@@ -976,32 +975,38 @@ namespace spaMVP {
 
         private getQueryParamsFromUrl(url: UrlHash): Object {
             let result = {};
-            url.queryParams.forEach(param => result[param.key] = param.value);
+            url.queryParams.forEach((param: QueryParam) => result[param.key] = param.value);
             return result;
         }
     }
 }
 namespace spaMVP {
+    "use strict";
+
+    export interface RouteConfig {
+        defaultUrl: string;
+        registerRoute(pattern: string, callback: (routeParams: any) => void): void;
+        startRoute(hash: string): void;
+        getRoutes(): string[];
+        hasRoutes(): boolean;
+    }
 
     /**
      *  @class RouteConfig - Handles spa application route changes.
      */
-    export class RouteConfig {
-        private routes: Array<Route> = [];
+    export class DefaultRouteConfig implements RouteConfig {
+        private routes: Route[] = [];
         private urlHash: UrlHash = new UrlHash();
         public defaultUrl: string = null;
-
-        constructor() {
-        }
 
         /**
          *  Registers a route by given url pattern.
          *  When url's hash is changed it executes a callback with populated dynamic routes and query parameters.
          *  Dynamic route param can be registered with {yourParam}.
          */
-        registerRoute(pattern: string, callback: (routeParams: any) => void) {
+        registerRoute(pattern: string, callback: (routeParams: any) => void): void {
             if (this.routes.some(r => r.pattern === pattern)) {
-                throw new Error('Route ' + pattern + ' has been already registered.');
+                throw new Error("Route " + pattern + " has been already registered.");
             }
 
             this.routes.push(new Route(pattern, callback));
@@ -1010,7 +1015,7 @@ namespace spaMVP {
         /**
          *  Starts hash url if such is registered, if not, it starts the default one.
          */
-        startRoute(hash: string) {
+        startRoute(hash: string): void {
             this.urlHash.value = hash;
             let nextRoute = this.findRoute();
             if (nextRoute) {
@@ -1028,7 +1033,7 @@ namespace spaMVP {
         /**
          *  Returns all registered patterns.
          */
-        getRoutes(): Array<string> {
+        getRoutes(): string[] {
             return this.routes.map(route => route.pattern);
         }
 
@@ -1050,11 +1055,11 @@ namespace spaMVP {
             return null;
         }
 
-        private startDefaultRoute(invalidHash: string) {
+        private startDefaultRoute(invalidHash: string): void {
             window.history.replaceState(
                 null,
                 null,
-                window.location.pathname + '#' + this.defaultUrl
+                window.location.pathname + "#" + this.defaultUrl
             );
 
             this.urlHash.value = this.defaultUrl;
@@ -1068,6 +1073,7 @@ namespace spaMVP {
     }
 }
 namespace spaMVP {
+    "use strict";
 
     /**
      *  @class Sandbox - Connects all modules to the outside world.
@@ -1086,26 +1092,27 @@ namespace spaMVP {
             this.moduleInstanceId = moduleInstanceId;
         }
 
-        subscribe(eventTypes: Array<string>, handler: (type: string, data: any) => void, context?: Object) {
+        subscribe(eventTypes: string[], handler: (type: string, data: any) => void, context?: Object): void {
             this.core.subscribe(eventTypes, handler, context);
         }
 
-        unsubscribe(eventTypes: Array<string>, handler: (type: string, data: any) => void, context?: Object) {
+        unsubscribe(eventTypes: string[], handler: (type: string, data: any) => void, context?: Object): void {
             this.core.unsubscribe(eventTypes, handler, context);
         }
 
-        publish(eventType: string, data: any) {
+        publish(eventType: string, data: any): void {
             this.core.publish(eventType, data);
         }
 
-        getService(id: string) : any {
-            return this.core.getService(id);
+        getService<T>(id: string): T {
+            return this.core.getService<T>(id);
         }
     }
 }
 namespace spaMVP {
+    "use strict";
 
-    function initialize(ev: Event) {
+    function initialize(ev: Event): void {
         document.removeEventListener("DOMContentLoaded", this.onDomReady);
         if (this.onAppStart) {
             this.onAppStart();
@@ -1113,26 +1120,26 @@ namespace spaMVP {
 
         if (this.routeConfig.hasRoutes()) {
             this.routeConfig.startRoute(window.location.hash.substring(1));
-            window.addEventListener('hashchange', () => {
+            window.addEventListener("hashchange", () => {
                 this.routeConfig.startRoute(window.location.hash.substring(1));
             });
         }
     }
 
     export interface Module {
-        init(options: any);
-        destroy();
+        init(options: any): void;
+        destroy(): void;
     }
 
     export class Core {
-        private onDomReady = initialize.bind(this);
+        private onDomReady: (ev: Event) => void = initialize.bind(this);
         private onAppStart: Function;
         private routeConfig: RouteConfig;
         private subscribers: Object = {};
         private modules: Object = {};
         private services: Object = {};
 
-        constructor(routeConfig = new RouteConfig()) {
+        constructor(routeConfig: RouteConfig = new DefaultRouteConfig()) {
             this.routeConfig = routeConfig;
         }
 
@@ -1178,9 +1185,9 @@ namespace spaMVP {
          *  @param {Function} handler - The events' handler.
          *  @param {Object} context - Handler's context.
          */
-        subscribe(eventTypes: Array<string>, handler: (type: string, data: any) => void, context?: Object) {
-            if (typeof handler !== 'function') {
-                throw new TypeError('Event type handler should be a function');
+        subscribe(eventTypes: string[], handler: (type: string, data: any) => void, context?: Object): void {
+            if (typeof handler !== "function") {
+                throw new TypeError("Event type handler should be a function");
             }
 
             if (Array.isArray(eventTypes)) {
@@ -1196,7 +1203,7 @@ namespace spaMVP {
          *  @param {Function} handler - The handler which must be unsubscribed.
          *  @param {Object} context - Handler's context.
          */
-        unsubscribe(eventTypes: Array<string>, handler: (type: string, data: any) => void, context?: Object) {
+        unsubscribe(eventTypes: string[], handler: (type: string, data: any) => void, context?: Object): void {
             if (Array.isArray(eventTypes)) {
                 for (let i = 0, len = eventTypes.length; i < len; i++) {
                     this.removeSubscriber(eventTypes[i], handler, context);
@@ -1209,7 +1216,7 @@ namespace spaMVP {
          *  @param {String} type - Type of the event.
          *  @param {*} [data] - Optional data.
          */
-        publish(type: string, data: any) {
+        publish(type: string, data: any): void {
             if (!Array.isArray(this.subscribers[type])) {
                 return;
             }
@@ -1225,17 +1232,17 @@ namespace spaMVP {
          *  @param {function} moduleFactory - function which provides an instance of the module.
          */
         register(moduleId: string, moduleFactory: (sb: Sandbox) => Module): this {
-            if (moduleId === '' || typeof moduleId !== 'string') {
-                throw new TypeError(moduleId + ' Module registration FAILED: ID must be a non empty string.');
+            if (moduleId === "" || typeof moduleId !== "string") {
+                throw new TypeError(moduleId + " Module registration FAILED: ID must be a non empty string.");
             }
 
             if (this.modules[moduleId]) {
-                throw new TypeError(moduleId + ' Module registration FAILED: a module with such id has been already registered.');
+                throw new TypeError(moduleId + " Module registration FAILED: a module with such id has been already registered.");
             }
 
             let tempModule = moduleFactory(new spaMVP.Sandbox(this, moduleId));
-            if (typeof tempModule.init !== 'function' || typeof tempModule.destroy !== 'function') {
-                throw new TypeError(moduleId + ' Module registration FAILED: Module has no init or destroy methods.');
+            if (typeof tempModule.init !== "function" || typeof tempModule.destroy !== "function") {
+                throw new TypeError(moduleId + " Module registration FAILED: Module has no init or destroy methods.");
             }
 
             this.modules[moduleId] = { create: moduleFactory, instances: null };
@@ -1244,9 +1251,9 @@ namespace spaMVP {
 
         /**
          *  Returns all registered module ids.
-         *  @returns {Array<string>}
+         *  @returns {string[]}
          */
-        getAllModules(): Array<string> {
+        getAllModules(): string[] {
             return Object.keys(this.modules);
         }
 
@@ -1258,16 +1265,16 @@ namespace spaMVP {
         start(moduleId: string, options?: Object): this {
             let module = this.modules[moduleId];
             if (!module) {
-                throw new ReferenceError(moduleId + ' Module not found.');
+                throw new ReferenceError(moduleId + " Module not found.");
             }
 
             options = options || {};
-            if (typeof options !== 'object') {
-                throw new TypeError(moduleId + ' Module\'s options must be an object.');
+            if (typeof options !== "object") {
+                throw new TypeError(moduleId + " Module's options must be an object.");
             }
 
             module.instances = module.instances || {};
-            let instanceId = options['instanceId'] || moduleId;
+            let instanceId = options["instanceId"] || moduleId;
             if (module.instances.hasOwnProperty(instanceId)) {
                 return this;
             }
@@ -1300,12 +1307,12 @@ namespace spaMVP {
          *  @param {Function} factory - function which provides an instance of the service.
          */
         addService(id: string, factory: (sb: Sandbox) => any): this {
-            if (typeof id !== 'string' || id === '') {
-                throw new TypeError(id + ' Service registration FAILED: ID must be non empty string.');
+            if (typeof id !== "string" || id === "") {
+                throw new TypeError(id + " Service registration FAILED: ID must be non empty string.");
             }
 
             if (this.services[id]) {
-                throw new TypeError(id + ' Service registration FAILED: a service with such id has been already added.');
+                throw new TypeError(id + " Service registration FAILED: a service with such id has been already added.");
             }
 
             this.services[id] = factory;
@@ -1317,16 +1324,16 @@ namespace spaMVP {
          *  @param {String} id
          *  @returns {*}
          */
-        getService(id: string) {
+        getService<T>(id: string): T {
             let service = this.services[id];
             if (!service) {
-                throw new ReferenceError(id + ' Service was not found.');
+                throw new ReferenceError(id + " Service was not found.");
             }
 
             return service(new spaMVP.Sandbox(this, id));
         }
 
-        private addSubscriber(eventType: string, handler: Function, context?: Object) {
+        private addSubscriber(eventType: string, handler: Function, context?: Object): void {
             this.subscribers[eventType] = this.subscribers[eventType] || [];
             this.subscribers[eventType].push({
                 handler: handler,
@@ -1334,7 +1341,7 @@ namespace spaMVP {
             });
         }
 
-        private removeSubscriber(eventType: string, handler: Function, context?: Object) {
+        private removeSubscriber(eventType: string, handler: Function, context?: Object): void {
             let subscribers = this.subscribers[eventType] || [];
             for (let i = 0, len = subscribers.length; i < len; i++) {
                 let subscriber = subscribers[i];

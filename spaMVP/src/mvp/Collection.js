@@ -5,10 +5,11 @@ var __extends = (this && this.__extends) || function (d, b) {
 };
 var spaMVP;
 (function (spaMVP) {
+    "use strict";
     spaMVP.CollectionEvents = {
-        AddedItems: 'added-items',
-        DeletedItems: 'deleted-items',
-        UpdatedItem: 'updated-item'
+        AddedItems: "added-items",
+        DeletedItems: "deleted-items",
+        UpdatedItem: "updated-item"
     };
     /**
      *  Composite pattern on spaMVP.Model.

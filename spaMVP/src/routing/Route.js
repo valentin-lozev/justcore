@@ -1,5 +1,6 @@
 var spaMVP;
 (function (spaMVP) {
+    "use strict";
     var routeParamRegex = /{([a-zA-Z]+)}/; // e.g {id}
     /**
      *  @class Route - Accepts a pattern and split it by / (slash).
@@ -9,10 +10,10 @@ var spaMVP;
     var Route = (function () {
         function Route(pattern, onStart) {
             this.tokens = [];
-            if (typeof pattern === 'undefined' ||
-                typeof pattern !== 'string' ||
+            if (typeof pattern === "undefined" ||
+                typeof pattern !== "string" ||
                 pattern === null) {
-                throw new Error('Route pattern should be non empty string.');
+                throw new Error("Route pattern should be non empty string.");
             }
             this.pattern = pattern;
             this.callback = onStart;
@@ -56,8 +57,8 @@ var spaMVP;
         Route.prototype.populateTokens = function () {
             var _this = this;
             this.tokens = [];
-            this.pattern.split('/').forEach(function (urlFragment) {
-                if (urlFragment !== '') {
+            this.pattern.split("/").forEach(function (urlFragment) {
+                if (urlFragment !== "") {
                     _this.tokens.push(_this.parseToken(urlFragment));
                 }
             });

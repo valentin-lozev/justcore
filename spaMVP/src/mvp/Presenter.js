@@ -1,5 +1,6 @@
 var spaMVP;
 (function (spaMVP) {
+    "use strict";
     /**
      *  @class spaMVP.Presenter
      */

@@ -1,8 +1,9 @@
 var spaMVP;
 (function (spaMVP) {
+    "use strict";
     spaMVP.ModelEvents = {
-        Change: 'change',
-        Destroy: 'destroy'
+        Change: "change",
+        Destroy: "destroy"
     };
     /**
      *  @class spaMVP.Model

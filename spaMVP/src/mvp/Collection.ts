@@ -1,9 +1,10 @@
 ﻿namespace spaMVP {
+    "use strict";
 
     export let CollectionEvents = {
-        AddedItems: 'added-items',
-        DeletedItems: 'deleted-items',
-        UpdatedItem: 'updated-item'
+        AddedItems: "added-items",
+        DeletedItems: "deleted-items",
+        UpdatedItem: "updated-item"
     };
 
     /**
@@ -23,7 +24,7 @@
             return this.models.size;
         }
 
-        static subclass = subclassFactory;
+        static subclass: (getInheritorFunc: () => Function) => Function = subclassFactory;
 
         equals(other: TModel): boolean {
             return false;
@@ -45,7 +46,7 @@
          *  Adds range of models to the set.
          *  @returns {Boolean}
          */
-        addRange(models: Array<TModel>): boolean {
+        addRange(models: TModel[]): boolean {
             let added = [];
             for (let i = 0, len = models.length; i < len; i++) {
                 let model = models[i];
@@ -78,7 +79,7 @@
          *  Removes range of models.
          *  @returns {Boolean}
          */
-        removeRange(models: Array<TModel>): boolean {
+        removeRange(models: TModel[]): boolean {
             let deleted = [];
             for (let i = 0, len = models.length; i < len; i++) {
                 let model = models[i];
@@ -127,22 +128,22 @@
          *  Returns the models as Array.
          *  @returns {Array}
          */
-        toArray(): Array<TModel> {
+        toArray(): TModel[] {
             return this.models.toArray();
         }
 
         /**
          *  Performs an action on each model in the set.
          */
-        forEach(action: (item: TModel, index: number) => void, context: Object) {
+        forEach(action: (item: TModel, index: number) => void, context: Object): void {
             this.models.forEach(action, context);
         }
 
-        private onItemChange(item: TModel) {
+        private onItemChange(item: TModel): void {
             this.notify(CollectionEvents.UpdatedItem, item);
         }
 
-        private onItemDestroy(item: TModel) {
+        private onItemDestroy(item: TModel): void {
             this.removeRange([item]);
         }
     }

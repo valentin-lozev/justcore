@@ -1,7 +1,7 @@
 var ProductService = (function () {
     function ProductService() {
     }
-    ProductService.prototype.getAll = function (onSuccess, onError) {
+    ProductService.prototype.getAll = function (onSuccess) {
         var result = [
             new Product(1, 'Red', 'http://www.technopolis.bg/medias/sys_master/hff/he8/9594025213982.jpg'),
             new Product(2, 'Blue', 'http://www.technopolis.bg/medias/sys_master/h50/h6e/9575018463262.jpg'),

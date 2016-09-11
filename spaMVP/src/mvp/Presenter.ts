@@ -1,4 +1,5 @@
 ﻿namespace spaMVP {
+    "use strict";
 
     /**
      *  @class spaMVP.Presenter
@@ -6,10 +7,7 @@
     export class Presenter<TView extends View, TModel extends Model> {
         private _view: TView = null;
         private _model: TModel = null;
-        private _modelHandlers = {};
-
-        constructor() {
-        }
+        private _modelHandlers: Object = {};
 
         get view(): TView {
             return this._view;
@@ -51,7 +49,7 @@
             this.render();
         }
 
-        static subclass = subclassFactory;
+        static subclass: (getInheritorFunc: () => Function) => Function = subclassFactory;
 
         /**
          *  Determins which events to handle when model notifies. 
@@ -78,7 +76,7 @@
         /**
          *  Destroys its view and model.
          */
-        destroy() {
+        destroy(): void {
             this.view = null;
             this.model = null;
         }

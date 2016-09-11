@@ -19,7 +19,7 @@ describe('Collection', function () {
         }
     }
 
-    function getBooks(count: number): Array<Book> {
+    function getBooks(count: number): Book[] {
         let result = new Array(count);
         for (let i = 0; i < count; i++) {
             result[i] = new Book(i);

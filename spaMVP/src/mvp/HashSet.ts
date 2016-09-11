@@ -1,4 +1,5 @@
 namespace spaMVP {
+    "use strict";
 
     export interface Equatable<T> {
         equals(other: T): boolean;
@@ -13,9 +14,6 @@ namespace spaMVP {
     export class HashSet<T extends Equatable<T>> {
         private items: Object = {};
         public size: number = 0;
-
-        constructor() {
-        }
 
         /**
          *  Determines whether an item is in the set.
@@ -55,13 +53,11 @@ namespace spaMVP {
             // the first item with this hash
             if (!Object.prototype.hasOwnProperty.call(this.items, hashCode)) {
                 this.items[hashCode] = item;
-            }
-            // the second item with this hash
-            else if (!Array.isArray(this.items[hashCode])) {
+            } else if (!Array.isArray(this.items[hashCode])) {
+                // the second item with this hash
                 this.items[hashCode] = [this.items[hashCode], item];
-            }
-            // there are already two or more items with this hash
-            else {
+            } else {
+                // there are already two or more items with this hash
                 this.items[hashCode].push(item);
             }
 
@@ -89,8 +85,7 @@ namespace spaMVP {
                         break;
                     }
                 }
-            }
-            else {
+            } else {
                 delete this.items[hashCode];
             }
 
@@ -117,7 +112,7 @@ namespace spaMVP {
          *  @param {Function} action
          *  @param {Object} [context] The action's context.
          */
-        forEach(action: (item: T, index: number) => void, context?: Object) {
+        forEach(action: (item: T, index: number) => void, context?: Object): void {
             let index = 0;
             let hashes = Object.keys(this.items);
             for (let i = 0, len = hashes.length; i < len; i++) {
@@ -139,7 +134,7 @@ namespace spaMVP {
          *  Converts the set to Array.
          *  @returns {Array}
          */
-        toArray(): Array<T> {
+        toArray(): T[] {
             let result = new Array(this.size);
             let index = 0;
             let hashes = Object.keys(this.items);

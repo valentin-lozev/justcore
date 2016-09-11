@@ -59,7 +59,11 @@ namespace spaMVP {
         return false;
     }
 
-    export function UIEvent(config) {
+    export function UIEvent(config): void {
+        if (!(this instanceof UIEvent)) {
+            return new UIEvent(config);
+        }
+
         this.htmlElement = config.htmlElement;
 
         this.eventConfig = {

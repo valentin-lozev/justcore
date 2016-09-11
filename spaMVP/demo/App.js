@@ -7,11 +7,11 @@ function getModules() {
     return result;
 }
 function onRouteChanged(templateName) {
-    getModules().forEach(function (moduleId) { return App.stop(moduleId); });
+    getModules().forEach(function (moduleId) { return app.stop(moduleId); });
     document.getElementById('container').innerHTML = templates[templateName]();
-    getModules().forEach(function (moduleId) { return App.start(moduleId); });
+    getModules().forEach(function (moduleId) { return app.start(moduleId); });
 }
-var App = spaMVP.createAppCore()
+var app = spaMVP.createAppCore()
     .defaultUrl('/')
     .registerRoute('/', function (routeParams) { return onRouteChanged('homePage'); })
     .registerRoute('/products', function (routeParams) { return onRouteChanged('productsPage'); })

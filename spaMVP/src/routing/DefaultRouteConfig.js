@@ -1,10 +1,11 @@
 var spaMVP;
 (function (spaMVP) {
+    "use strict";
     /**
      *  @class RouteConfig - Handles spa application route changes.
      */
-    var RouteConfig = (function () {
-        function RouteConfig() {
+    var DefaultRouteConfig = (function () {
+        function DefaultRouteConfig() {
             this.routes = [];
             this.urlHash = new spaMVP.UrlHash();
             this.defaultUrl = null;
@@ -14,16 +15,16 @@ var spaMVP;
          *  When url's hash is changed it executes a callback with populated dynamic routes and query parameters.
          *  Dynamic route param can be registered with {yourParam}.
          */
-        RouteConfig.prototype.registerRoute = function (pattern, callback) {
+        DefaultRouteConfig.prototype.registerRoute = function (pattern, callback) {
             if (this.routes.some(function (r) { return r.pattern === pattern; })) {
-                throw new Error('Route ' + pattern + ' has been already registered.');
+                throw new Error("Route " + pattern + " has been already registered.");
             }
             this.routes.push(new spaMVP.Route(pattern, callback));
         };
         /**
          *  Starts hash url if such is registered, if not, it starts the default one.
          */
-        RouteConfig.prototype.startRoute = function (hash) {
+        DefaultRouteConfig.prototype.startRoute = function (hash) {
             this.urlHash.value = hash;
             var nextRoute = this.findRoute();
             if (nextRoute) {
@@ -40,16 +41,16 @@ var spaMVP;
         /**
          *  Returns all registered patterns.
          */
-        RouteConfig.prototype.getRoutes = function () {
+        DefaultRouteConfig.prototype.getRoutes = function () {
             return this.routes.map(function (route) { return route.pattern; });
         };
         /**
          *  Determines if there are any registered routes.
          */
-        RouteConfig.prototype.hasRoutes = function () {
+        DefaultRouteConfig.prototype.hasRoutes = function () {
             return this.routes.length > 0;
         };
-        RouteConfig.prototype.findRoute = function () {
+        DefaultRouteConfig.prototype.findRoute = function () {
             for (var i = 0, len = this.routes.length; i < len; i++) {
                 var route = this.routes[i];
                 if (route.equals(this.urlHash)) {
@@ -58,8 +59,8 @@ var spaMVP;
             }
             return null;
         };
-        RouteConfig.prototype.startDefaultRoute = function (invalidHash) {
-            window.history.replaceState(null, null, window.location.pathname + '#' + this.defaultUrl);
+        DefaultRouteConfig.prototype.startDefaultRoute = function (invalidHash) {
+            window.history.replaceState(null, null, window.location.pathname + "#" + this.defaultUrl);
             this.urlHash.value = this.defaultUrl;
             var nextRoute = this.findRoute();
             if (nextRoute) {
@@ -69,8 +70,8 @@ var spaMVP;
                 console.warn("No route handler for " + invalidHash);
             }
         };
-        return RouteConfig;
+        return DefaultRouteConfig;
     }());
-    spaMVP.RouteConfig = RouteConfig;
+    spaMVP.DefaultRouteConfig = DefaultRouteConfig;
 })(spaMVP || (spaMVP = {}));
-//# sourceMappingURL=RouteConfig.js.map
+//# sourceMappingURL=DefaultRouteConfig.js.map

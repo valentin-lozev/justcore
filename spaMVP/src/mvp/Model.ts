@@ -1,8 +1,9 @@
 ﻿namespace spaMVP {
+    "use strict";
 
     export let ModelEvents = {
-        Change: 'change',
-        Destroy: 'destroy'
+        Change: "change",
+        Destroy: "destroy"
     };
 
     /**
@@ -11,10 +12,7 @@
     export abstract class Model {
         private listeners: Object = {};
 
-        constructor() {
-        }
-
-        static subclass = subclassFactory;
+        static subclass: (getInheritorFunc: () => Function) => Function = subclassFactory;
 
         /**
          *  Attaches an event handler to model raised events.
@@ -59,7 +57,7 @@
         /**
          *  Notifies the listeners attached for specific event.
          */
-        notify(type: string, data?: any) {
+        notify(type: string, data?: any): void {
             if (!Array.isArray(this.listeners[type])) {
                 return;
             }
@@ -72,14 +70,14 @@
         /**
          *  Notifies for change event.
          */
-        change() {
+        change(): void {
             this.notify(ModelEvents.Change, this);
         }
 
         /**
          *  Notifies for destroy event.
          */
-        destroy() {
+        destroy(): void {
             this.notify(ModelEvents.Destroy, this);
         }
     }

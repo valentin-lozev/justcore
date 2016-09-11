@@ -1,5 +1,6 @@
 var spaMVP;
 (function (spaMVP) {
+    "use strict";
     /**
      *  Creates a collection of unique items.
      *  @class spaMVP.HashSet
@@ -44,9 +45,11 @@ var spaMVP;
                 this.items[hashCode] = item;
             }
             else if (!Array.isArray(this.items[hashCode])) {
+                // the second item with this hash
                 this.items[hashCode] = [this.items[hashCode], item];
             }
             else {
+                // there are already two or more items with this hash
                 this.items[hashCode].push(item);
             }
             this.size++;

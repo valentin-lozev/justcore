@@ -32,7 +32,7 @@
         this.view.reset();
     }
 
-    onProductsAdded(data: Array<Product>) {
+    onProductsAdded(data: Product[]) {
         data.forEach(product => this.view.addProduct(product));
     }
 }

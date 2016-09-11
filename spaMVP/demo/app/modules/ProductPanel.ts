@@ -23,7 +23,7 @@ class ProductPanel implements spaMVP.Module {
         document.querySelector('div[data-module="ProductPanel"]').appendChild(this.presenter.render());
 
         this.sandbox
-            .getService('products')
+            .getService<ProductService>('products')
             .getAll(result => this.products.addRange(result));
 
         this.sandbox.subscribe([

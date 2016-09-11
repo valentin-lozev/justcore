@@ -1,8 +1,8 @@
 /// <reference path="../../jasmine.d.ts" />
 /// <chutzpah_reference path="jasmine.js" />
-describe('RouteConfig', function () {
+describe('DefaultRouteConfig', function () {
     function getConfig() {
-        return new spaMVP.RouteConfig();
+        return new spaMVP.DefaultRouteConfig();
     }
     it('should has null default url by default', function () {
         var config = getConfig();
