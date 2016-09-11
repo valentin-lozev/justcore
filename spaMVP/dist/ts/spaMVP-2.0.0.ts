@@ -1,5 +1,5 @@
 /** 
- *  spaMVP - v2.0.0
+ *  @license spaMVP - v2.0.0
  *  Copyright © 2016 Valentin Lozev 
  *  Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
  *  Source code: http://github.com/valentin-lozev/spaMVP
@@ -132,13 +132,8 @@ namespace spaMVP {
         }
     }
 }
-namespace spaMVP {
+namespace spaMVP.Hidden {
     "use strict";
-
-    export interface Equatable<T> {
-        equals(other: T): boolean;
-        hash(): number;
-    }
 
     /**
      *  Creates a collection of unique items.
@@ -294,11 +289,21 @@ namespace spaMVP {
 namespace spaMVP {
     "use strict";
 
+    import hidden = Hidden;
+
     export let CollectionEvents = {
         AddedItems: "added-items",
         DeletedItems: "deleted-items",
         UpdatedItem: "updated-item"
     };
+
+    function onItemChange(item): void {
+        this.notify(CollectionEvents.UpdatedItem, item);
+    }
+
+    function onItemDestroy(item): void {
+        this.removeRange([item]);
+    }
 
     /**
      *  Composite pattern on spaMVP.Model.
@@ -307,7 +312,7 @@ namespace spaMVP {
      *  @augments spaMVP.Model
      */
     export class Collection<TModel extends Model & Equatable<TModel>> extends Model {
-        private models: HashSet<TModel> = new HashSet<TModel>();
+        private models: hidden.HashSet<TModel> = new hidden.HashSet<TModel>();
 
         constructor() {
             super();
@@ -347,8 +352,8 @@ namespace spaMVP {
                     continue;
                 }
 
-                model.on(ModelEvents.Change, this.onItemChange, this);
-                model.on(ModelEvents.Destroy, this.onItemDestroy, this);
+                model.on(ModelEvents.Change, onItemChange, this);
+                model.on(ModelEvents.Destroy, onItemDestroy, this);
                 added.push(model);
             }
 
@@ -380,8 +385,8 @@ namespace spaMVP {
                     continue;
                 }
 
-                model.off(ModelEvents.Change, this.onItemChange, this);
-                model.off(ModelEvents.Destroy, this.onItemDestroy, this);
+                model.off(ModelEvents.Change, onItemChange, this);
+                model.off(ModelEvents.Destroy, onItemDestroy, this);
                 deleted.push(model);
             }
 
@@ -431,25 +436,11 @@ namespace spaMVP {
         forEach(action: (item: TModel, index: number) => void, context: Object): void {
             this.models.forEach(action, context);
         }
-
-        private onItemChange(item: TModel): void {
-            this.notify(CollectionEvents.UpdatedItem, item);
-        }
-
-        private onItemDestroy(item: TModel): void {
-            this.removeRange([item]);
-        }
     }
 
 }
-interface Element {
-    trigger(): boolean;
-    hasEvent(name: string): boolean;
-    detach(): boolean;
-    events: boolean;
-}
-
-namespace spaMVP {
+namespace spaMVP.Hidden {
+    "use strict";
 
     /**
      *  Author: Martin Chaov
@@ -592,6 +583,8 @@ namespace spaMVP {
 namespace spaMVP {
     "use strict";
 
+    import hidden = Hidden;
+
     function eventHandler(ev: Event): void {
         let target = <HTMLElement>ev.target;
         let dataset = target.dataset;
@@ -639,7 +632,7 @@ namespace spaMVP {
          * @param selector
          */
         map(eventType: string, useCapture: boolean = false, selector?: string): this {
-            UIEvent({
+            hidden.UIEvent({
                 name: eventType,
                 htmlElement: !selector ? this.domNode : this.domNode.querySelector(selector),
                 handler: eventHandler,
@@ -797,13 +790,8 @@ namespace spaMVP {
     }
 
 }
-namespace spaMVP {
+namespace spaMVP.Hidden {
     "use strict";
-
-    export interface QueryParam {
-        key: string;
-        value: string;
-    }
 
     /**
      *  @class UrlHash - Represents the string after "#" in a url.
@@ -870,15 +858,10 @@ namespace spaMVP {
         }
     }
 }
-namespace spaMVP {
+namespace spaMVP.Hidden {
     "use strict";
 
     let routeParamRegex = /{([a-zA-Z]+)}/; // e.g {id}
-
-    export interface RouteToken {
-        name: string;
-        isDynamic: boolean;
-    }
 
     /**
      *  @class Route - Accepts a pattern and split it by / (slash).
@@ -980,16 +963,8 @@ namespace spaMVP {
         }
     }
 }
-namespace spaMVP {
+namespace spaMVP.Hidden {
     "use strict";
-
-    export interface RouteConfig {
-        defaultUrl: string;
-        registerRoute(pattern: string, callback: (routeParams: any) => void): void;
-        startRoute(hash: string): void;
-        getRoutes(): string[];
-        hasRoutes(): boolean;
-    }
 
     /**
      *  @class RouteConfig - Handles spa application route changes.
@@ -1112,6 +1087,8 @@ namespace spaMVP {
 namespace spaMVP {
     "use strict";
 
+    import hidden = Hidden;
+
     function initialize(ev: Event): void {
         document.removeEventListener("DOMContentLoaded", this.onDomReady);
         if (this.onAppStart) {
@@ -1126,9 +1103,25 @@ namespace spaMVP {
         }
     }
 
-    export interface Module {
-        init(options: any): void;
-        destroy(): void;
+    function addSubscriber(eventType: string, handler: Function, context?: Object): void {
+        this.subscribers[eventType] = this.subscribers[eventType] || [];
+        this.subscribers[eventType].push({
+            handler: handler,
+            context: context
+        });
+    }
+
+    function removeSubscriber(eventType: string, handler: Function, context?: Object): void {
+        let subscribers = this.subscribers[eventType] || [];
+        for (let i = 0, len = subscribers.length; i < len; i++) {
+            let subscriber = subscribers[i];
+            if (subscriber.handler === handler &&
+                subscriber.context === context) {
+                subscribers[i] = subscribers[len - 1];
+                subscribers.length--;
+                return;
+            }
+        }
     }
 
     export class Core {
@@ -1139,7 +1132,7 @@ namespace spaMVP {
         private modules: Object = {};
         private services: Object = {};
 
-        constructor(routeConfig: RouteConfig = new DefaultRouteConfig()) {
+        constructor(routeConfig: RouteConfig = new hidden.DefaultRouteConfig()) {
             this.routeConfig = routeConfig;
         }
 
@@ -1192,7 +1185,7 @@ namespace spaMVP {
 
             if (Array.isArray(eventTypes)) {
                 for (let i = 0, len = eventTypes.length; i < len; i++) {
-                    this.addSubscriber(eventTypes[i], handler, context);
+                    addSubscriber.call(this, eventTypes[i], handler, context);
                 }
             }
         }
@@ -1206,7 +1199,7 @@ namespace spaMVP {
         unsubscribe(eventTypes: string[], handler: (type: string, data: any) => void, context?: Object): void {
             if (Array.isArray(eventTypes)) {
                 for (let i = 0, len = eventTypes.length; i < len; i++) {
-                    this.removeSubscriber(eventTypes[i], handler, context);
+                    removeSubscriber.call(this, eventTypes[i], handler, context);
                 }
             }
         }
@@ -1332,27 +1325,6 @@ namespace spaMVP {
 
             return service(new spaMVP.Sandbox(this, id));
         }
-
-        private addSubscriber(eventType: string, handler: Function, context?: Object): void {
-            this.subscribers[eventType] = this.subscribers[eventType] || [];
-            this.subscribers[eventType].push({
-                handler: handler,
-                context: context
-            });
-        }
-
-        private removeSubscriber(eventType: string, handler: Function, context?: Object): void {
-            let subscribers = this.subscribers[eventType] || [];
-            for (let i = 0, len = subscribers.length; i < len; i++) {
-                let subscriber = subscribers[i];
-                if (subscriber.handler === handler &&
-                    subscriber.context === context) {
-                    subscribers[i] = subscribers[len - 1];
-                    subscribers.length--;
-                    return;
-                }
-            }
-        }
     }
 
     /**
@@ -1363,4 +1335,7 @@ namespace spaMVP {
     export function createAppCore(routeConfig?: RouteConfig): Core {
         return new Core(routeConfig);
     }
+}
+namespace spaMVP {
+    delete spaMVP.Hidden;
 }

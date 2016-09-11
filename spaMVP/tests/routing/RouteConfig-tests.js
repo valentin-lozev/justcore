@@ -2,7 +2,7 @@
 /// <chutzpah_reference path="jasmine.js" />
 describe('DefaultRouteConfig', function () {
     function getConfig() {
-        return new spaMVP.DefaultRouteConfig();
+        return new spaMVP.Hidden.DefaultRouteConfig();
     }
     it('should has null default url by default', function () {
         var config = getConfig();

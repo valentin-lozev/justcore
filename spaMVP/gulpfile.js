@@ -7,7 +7,6 @@ var version = 'spaMVP-2.0.0';
 var files = [
           "src/license",
           "src/helpers",
-          "src/interfaces/Interfaces",
           "src/mvp/Model",
           "src/mvp/HashSet",
           "src/mvp/Collection",
@@ -18,7 +17,8 @@ var files = [
           "src/routing/Route",
           "src/routing/DefaultRouteConfig",
           "src/core/Sandbox",
-          "src/core/Core"
+          "src/core/Core",
+          "src/encapsulate"
 ];
 
 gulp.task('scripts', function () {
@@ -26,9 +26,14 @@ gulp.task('scripts', function () {
         gulp.src(files.map(file => file + '.ts'))
             .pipe(concat(version + '.ts'))
             .pipe(gulp.dest('dist/ts')),
+
         gulp.src(files.map(file => file + '.js'))
         .pipe(concat(version + '.js'))
-        .pipe(minify({ ext: { min: '.min.js' } }))
+        .pipe(minify({
+            ext: { min: '.min.js' },
+            mangle: false,
+            preserveComments: 'some'
+        }))
         .pipe(gulp.dest('dist/js'))
     );
 });

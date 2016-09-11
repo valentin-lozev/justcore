@@ -1,11 +1,21 @@
 ﻿namespace spaMVP {
     "use strict";
 
+    import hidden = Hidden;
+
     export let CollectionEvents = {
         AddedItems: "added-items",
         DeletedItems: "deleted-items",
         UpdatedItem: "updated-item"
     };
+
+    function onItemChange(item): void {
+        this.notify(CollectionEvents.UpdatedItem, item);
+    }
+
+    function onItemDestroy(item): void {
+        this.removeRange([item]);
+    }
 
     /**
      *  Composite pattern on spaMVP.Model.
@@ -14,7 +24,7 @@
      *  @augments spaMVP.Model
      */
     export class Collection<TModel extends Model & Equatable<TModel>> extends Model {
-        private models: HashSet<TModel> = new HashSet<TModel>();
+        private models: hidden.HashSet<TModel> = new hidden.HashSet<TModel>();
 
         constructor() {
             super();
@@ -54,8 +64,8 @@
                     continue;
                 }
 
-                model.on(ModelEvents.Change, this.onItemChange, this);
-                model.on(ModelEvents.Destroy, this.onItemDestroy, this);
+                model.on(ModelEvents.Change, onItemChange, this);
+                model.on(ModelEvents.Destroy, onItemDestroy, this);
                 added.push(model);
             }
 
@@ -87,8 +97,8 @@
                     continue;
                 }
 
-                model.off(ModelEvents.Change, this.onItemChange, this);
-                model.off(ModelEvents.Destroy, this.onItemDestroy, this);
+                model.off(ModelEvents.Change, onItemChange, this);
+                model.off(ModelEvents.Destroy, onItemDestroy, this);
                 deleted.push(model);
             }
 
@@ -137,14 +147,6 @@
          */
         forEach(action: (item: TModel, index: number) => void, context: Object): void {
             this.models.forEach(action, context);
-        }
-
-        private onItemChange(item: TModel): void {
-            this.notify(CollectionEvents.UpdatedItem, item);
-        }
-
-        private onItemDestroy(item: TModel): void {
-            this.removeRange([item]);
         }
     }
 

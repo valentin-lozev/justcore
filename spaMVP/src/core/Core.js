@@ -1,6 +1,7 @@
 var spaMVP;
 (function (spaMVP) {
     "use strict";
+    var hidden = spaMVP.Hidden;
     function initialize(ev) {
         var _this = this;
         document.removeEventListener("DOMContentLoaded", this.onDomReady);
@@ -14,9 +15,28 @@ var spaMVP;
             });
         }
     }
+    function addSubscriber(eventType, handler, context) {
+        this.subscribers[eventType] = this.subscribers[eventType] || [];
+        this.subscribers[eventType].push({
+            handler: handler,
+            context: context
+        });
+    }
+    function removeSubscriber(eventType, handler, context) {
+        var subscribers = this.subscribers[eventType] || [];
+        for (var i = 0, len = subscribers.length; i < len; i++) {
+            var subscriber = subscribers[i];
+            if (subscriber.handler === handler &&
+                subscriber.context === context) {
+                subscribers[i] = subscribers[len - 1];
+                subscribers.length--;
+                return;
+            }
+        }
+    }
     var Core = (function () {
         function Core(routeConfig) {
-            if (routeConfig === void 0) { routeConfig = new spaMVP.DefaultRouteConfig(); }
+            if (routeConfig === void 0) { routeConfig = new hidden.DefaultRouteConfig(); }
             this.onDomReady = initialize.bind(this);
             this.subscribers = {};
             this.modules = {};
@@ -67,7 +87,7 @@ var spaMVP;
             }
             if (Array.isArray(eventTypes)) {
                 for (var i = 0, len = eventTypes.length; i < len; i++) {
-                    this.addSubscriber(eventTypes[i], handler, context);
+                    addSubscriber.call(this, eventTypes[i], handler, context);
                 }
             }
         };
@@ -80,7 +100,7 @@ var spaMVP;
         Core.prototype.unsubscribe = function (eventTypes, handler, context) {
             if (Array.isArray(eventTypes)) {
                 for (var i = 0, len = eventTypes.length; i < len; i++) {
-                    this.removeSubscriber(eventTypes[i], handler, context);
+                    removeSubscriber.call(this, eventTypes[i], handler, context);
                 }
             }
         };
@@ -187,25 +207,6 @@ var spaMVP;
                 throw new ReferenceError(id + " Service was not found.");
             }
             return service(new spaMVP.Sandbox(this, id));
-        };
-        Core.prototype.addSubscriber = function (eventType, handler, context) {
-            this.subscribers[eventType] = this.subscribers[eventType] || [];
-            this.subscribers[eventType].push({
-                handler: handler,
-                context: context
-            });
-        };
-        Core.prototype.removeSubscriber = function (eventType, handler, context) {
-            var subscribers = this.subscribers[eventType] || [];
-            for (var i = 0, len = subscribers.length; i < len; i++) {
-                var subscriber = subscribers[i];
-                if (subscriber.handler === handler &&
-                    subscriber.context === context) {
-                    subscribers[i] = subscribers[len - 1];
-                    subscribers.length--;
-                    return;
-                }
-            }
         };
         return Core;
     }());

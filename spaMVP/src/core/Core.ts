@@ -1,6 +1,8 @@
 ﻿namespace spaMVP {
     "use strict";
 
+    import hidden = Hidden;
+
     function initialize(ev: Event): void {
         document.removeEventListener("DOMContentLoaded", this.onDomReady);
         if (this.onAppStart) {
@@ -15,6 +17,27 @@
         }
     }
 
+    function addSubscriber(eventType: string, handler: Function, context?: Object): void {
+        this.subscribers[eventType] = this.subscribers[eventType] || [];
+        this.subscribers[eventType].push({
+            handler: handler,
+            context: context
+        });
+    }
+
+    function removeSubscriber(eventType: string, handler: Function, context?: Object): void {
+        let subscribers = this.subscribers[eventType] || [];
+        for (let i = 0, len = subscribers.length; i < len; i++) {
+            let subscriber = subscribers[i];
+            if (subscriber.handler === handler &&
+                subscriber.context === context) {
+                subscribers[i] = subscribers[len - 1];
+                subscribers.length--;
+                return;
+            }
+        }
+    }
+
     export class Core {
         private onDomReady: (ev: Event) => void = initialize.bind(this);
         private onAppStart: Function;
@@ -23,7 +46,7 @@
         private modules: Object = {};
         private services: Object = {};
 
-        constructor(routeConfig: RouteConfig = new DefaultRouteConfig()) {
+        constructor(routeConfig: RouteConfig = new hidden.DefaultRouteConfig()) {
             this.routeConfig = routeConfig;
         }
 
@@ -76,7 +99,7 @@
 
             if (Array.isArray(eventTypes)) {
                 for (let i = 0, len = eventTypes.length; i < len; i++) {
-                    this.addSubscriber(eventTypes[i], handler, context);
+                    addSubscriber.call(this, eventTypes[i], handler, context);
                 }
             }
         }
@@ -90,7 +113,7 @@
         unsubscribe(eventTypes: string[], handler: (type: string, data: any) => void, context?: Object): void {
             if (Array.isArray(eventTypes)) {
                 for (let i = 0, len = eventTypes.length; i < len; i++) {
-                    this.removeSubscriber(eventTypes[i], handler, context);
+                    removeSubscriber.call(this, eventTypes[i], handler, context);
                 }
             }
         }
@@ -215,27 +238,6 @@
             }
 
             return service(new spaMVP.Sandbox(this, id));
-        }
-
-        private addSubscriber(eventType: string, handler: Function, context?: Object): void {
-            this.subscribers[eventType] = this.subscribers[eventType] || [];
-            this.subscribers[eventType].push({
-                handler: handler,
-                context: context
-            });
-        }
-
-        private removeSubscriber(eventType: string, handler: Function, context?: Object): void {
-            let subscribers = this.subscribers[eventType] || [];
-            for (let i = 0, len = subscribers.length; i < len; i++) {
-                let subscriber = subscribers[i];
-                if (subscriber.handler === handler &&
-                    subscriber.context === context) {
-                    subscribers[i] = subscribers[len - 1];
-                    subscribers.length--;
-                    return;
-                }
-            }
         }
     }
 

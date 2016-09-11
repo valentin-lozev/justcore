@@ -1,4 +1,4 @@
-﻿namespace spaMVP {
+﻿namespace spaMVP.Hidden {
     "use strict";
 
     /**

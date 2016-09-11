@@ -6,11 +6,18 @@ var __extends = (this && this.__extends) || function (d, b) {
 var spaMVP;
 (function (spaMVP) {
     "use strict";
+    var hidden = spaMVP.Hidden;
     spaMVP.CollectionEvents = {
         AddedItems: "added-items",
         DeletedItems: "deleted-items",
         UpdatedItem: "updated-item"
     };
+    function onItemChange(item) {
+        this.notify(spaMVP.CollectionEvents.UpdatedItem, item);
+    }
+    function onItemDestroy(item) {
+        this.removeRange([item]);
+    }
     /**
      *  Composite pattern on spaMVP.Model.
      *  It is usefull when you want to listen for collection of models.
@@ -21,7 +28,7 @@ var spaMVP;
         __extends(Collection, _super);
         function Collection() {
             _super.call(this);
-            this.models = new spaMVP.HashSet();
+            this.models = new hidden.HashSet();
         }
         Object.defineProperty(Collection.prototype, "size", {
             get: function () {
@@ -54,8 +61,8 @@ var spaMVP;
                 if (!this.models.add(model)) {
                     continue;
                 }
-                model.on(spaMVP.ModelEvents.Change, this.onItemChange, this);
-                model.on(spaMVP.ModelEvents.Destroy, this.onItemDestroy, this);
+                model.on(spaMVP.ModelEvents.Change, onItemChange, this);
+                model.on(spaMVP.ModelEvents.Destroy, onItemDestroy, this);
                 added.push(model);
             }
             var isModified = added.length > 0;
@@ -82,8 +89,8 @@ var spaMVP;
                 if (!this.models.remove(model)) {
                     continue;
                 }
-                model.off(spaMVP.ModelEvents.Change, this.onItemChange, this);
-                model.off(spaMVP.ModelEvents.Destroy, this.onItemDestroy, this);
+                model.off(spaMVP.ModelEvents.Change, onItemChange, this);
+                model.off(spaMVP.ModelEvents.Destroy, onItemDestroy, this);
                 deleted.push(model);
             }
             var isModified = deleted.length > 0;
@@ -125,12 +132,6 @@ var spaMVP;
          */
         Collection.prototype.forEach = function (action, context) {
             this.models.forEach(action, context);
-        };
-        Collection.prototype.onItemChange = function (item) {
-            this.notify(spaMVP.CollectionEvents.UpdatedItem, item);
-        };
-        Collection.prototype.onItemDestroy = function (item) {
-            this.removeRange([item]);
         };
         Collection.subclass = spaMVP.subclassFactory;
         return Collection;

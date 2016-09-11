@@ -1,5 +1,5 @@
 /**
- *  spaMVP - v2.0.0
+ *  @license spaMVP - v2.0.0
  *  Copyright © 2016 Valentin Lozev
  *  Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
  *  Source code: http://github.com/valentin-lozev/spaMVP
@@ -127,144 +127,147 @@ var spaMVP;
 //# sourceMappingURL=Model.js.map
 var spaMVP;
 (function (spaMVP) {
-    "use strict";
-    /**
-     *  Creates a collection of unique items.
-     *  @class spaMVP.HashSet
-     *  @property {Number} size
-     */
-    var HashSet = (function () {
-        function HashSet() {
-            this.items = {};
-            this.size = 0;
-        }
+    var Hidden;
+    (function (Hidden) {
+        "use strict";
         /**
-         *  Determines whether an item is in the set.
-         *  @returns {Boolean}
+         *  Creates a collection of unique items.
+         *  @class spaMVP.HashSet
+         *  @property {Number} size
          */
-        HashSet.prototype.contains = function (item) {
-            var hashCode = item.hash();
-            if (!Object.prototype.hasOwnProperty.call(this.items, hashCode)) {
-                return false;
+        var HashSet = (function () {
+            function HashSet() {
+                this.items = {};
+                this.size = 0;
             }
-            var hashedItems = this.items[hashCode];
-            if (!Array.isArray(hashedItems)) {
-                return hashedItems.equals(item);
-            }
-            for (var i = 0, len = hashedItems.length; i < len; i++) {
-                if (hashedItems[i].equals(item)) {
-                    return true;
+            /**
+             *  Determines whether an item is in the set.
+             *  @returns {Boolean}
+             */
+            HashSet.prototype.contains = function (item) {
+                var hashCode = item.hash();
+                if (!Object.prototype.hasOwnProperty.call(this.items, hashCode)) {
+                    return false;
                 }
-            }
-            return false;
-        };
-        /**
-         *  Adds a new item to the set.
-         *  @returns {Boolean}
-         */
-        HashSet.prototype.add = function (item) {
-            if (this.contains(item)) {
-                return false;
-            }
-            var hashCode = item.hash();
-            // the first item with this hash
-            if (!Object.prototype.hasOwnProperty.call(this.items, hashCode)) {
-                this.items[hashCode] = item;
-            }
-            else if (!Array.isArray(this.items[hashCode])) {
-                // the second item with this hash
-                this.items[hashCode] = [this.items[hashCode], item];
-            }
-            else {
-                // there are already two or more items with this hash
-                this.items[hashCode].push(item);
-            }
-            this.size++;
-            return true;
-        };
-        /**
-         *  Removes an item from the set.
-         *  @returns {Boolean}
-         */
-        HashSet.prototype.remove = function (item) {
-            if (!this.contains(item)) {
-                return false;
-            }
-            var hashCode = item.hash();
-            if (Array.isArray(this.items[hashCode])) {
-                var hashCodeItems = this.items[hashCode];
-                for (var i = 0, len = hashCodeItems.length; i < len; i++) {
-                    if (hashCodeItems[i].equals(item)) {
-                        hashCodeItems[i] = hashCodeItems[len - 1];
-                        hashCodeItems.length--;
-                        break;
+                var hashedItems = this.items[hashCode];
+                if (!Array.isArray(hashedItems)) {
+                    return hashedItems.equals(item);
+                }
+                for (var i = 0, len = hashedItems.length; i < len; i++) {
+                    if (hashedItems[i].equals(item)) {
+                        return true;
                     }
                 }
-            }
-            else {
-                delete this.items[hashCode];
-            }
-            this.size--;
-            return true;
-        };
-        /**
-         *  Removes all items from the set.
-         *  @returns {Boolean}
-         */
-        HashSet.prototype.clear = function () {
-            if (this.size <= 0) {
                 return false;
-            }
-            this.items = {};
-            this.size = 0;
-            return true;
-        };
-        /**
-         *  Performs a an action on each item in the set.
-         *  @param {Function} action
-         *  @param {Object} [context] The action's context.
-         */
-        HashSet.prototype.forEach = function (action, context) {
-            var index = 0;
-            var hashes = Object.keys(this.items);
-            for (var i = 0, len = hashes.length; i < len; i++) {
-                var hashIndexItem = this.items[hashes[i]];
-                if (!Array.isArray(hashIndexItem)) {
-                    action.call(context, hashIndexItem, index);
-                    index++;
-                    continue;
+            };
+            /**
+             *  Adds a new item to the set.
+             *  @returns {Boolean}
+             */
+            HashSet.prototype.add = function (item) {
+                if (this.contains(item)) {
+                    return false;
                 }
-                for (var j = 0, hashLength = hashIndexItem.length; j < hashLength; j++) {
-                    action.call(context, hashIndexItem[j], index);
-                    index++;
+                var hashCode = item.hash();
+                // the first item with this hash
+                if (!Object.prototype.hasOwnProperty.call(this.items, hashCode)) {
+                    this.items[hashCode] = item;
                 }
-            }
-        };
-        /**
-         *  Converts the set to Array.
-         *  @returns {Array}
-         */
-        HashSet.prototype.toArray = function () {
-            var result = new Array(this.size);
-            var index = 0;
-            var hashes = Object.keys(this.items);
-            for (var i = 0, hashesLen = hashes.length; i < hashesLen; i++) {
-                var hashIndexItem = this.items[hashes[i]];
-                if (!Array.isArray(hashIndexItem)) {
-                    result[index] = hashIndexItem;
-                    index++;
-                    continue;
+                else if (!Array.isArray(this.items[hashCode])) {
+                    // the second item with this hash
+                    this.items[hashCode] = [this.items[hashCode], item];
                 }
-                for (var j = 0, len = hashIndexItem.length; j < len; j++) {
-                    result[index] = hashIndexItem[j];
-                    index++;
+                else {
+                    // there are already two or more items with this hash
+                    this.items[hashCode].push(item);
                 }
-            }
-            return result;
-        };
-        return HashSet;
-    }());
-    spaMVP.HashSet = HashSet;
+                this.size++;
+                return true;
+            };
+            /**
+             *  Removes an item from the set.
+             *  @returns {Boolean}
+             */
+            HashSet.prototype.remove = function (item) {
+                if (!this.contains(item)) {
+                    return false;
+                }
+                var hashCode = item.hash();
+                if (Array.isArray(this.items[hashCode])) {
+                    var hashCodeItems = this.items[hashCode];
+                    for (var i = 0, len = hashCodeItems.length; i < len; i++) {
+                        if (hashCodeItems[i].equals(item)) {
+                            hashCodeItems[i] = hashCodeItems[len - 1];
+                            hashCodeItems.length--;
+                            break;
+                        }
+                    }
+                }
+                else {
+                    delete this.items[hashCode];
+                }
+                this.size--;
+                return true;
+            };
+            /**
+             *  Removes all items from the set.
+             *  @returns {Boolean}
+             */
+            HashSet.prototype.clear = function () {
+                if (this.size <= 0) {
+                    return false;
+                }
+                this.items = {};
+                this.size = 0;
+                return true;
+            };
+            /**
+             *  Performs a an action on each item in the set.
+             *  @param {Function} action
+             *  @param {Object} [context] The action's context.
+             */
+            HashSet.prototype.forEach = function (action, context) {
+                var index = 0;
+                var hashes = Object.keys(this.items);
+                for (var i = 0, len = hashes.length; i < len; i++) {
+                    var hashIndexItem = this.items[hashes[i]];
+                    if (!Array.isArray(hashIndexItem)) {
+                        action.call(context, hashIndexItem, index);
+                        index++;
+                        continue;
+                    }
+                    for (var j = 0, hashLength = hashIndexItem.length; j < hashLength; j++) {
+                        action.call(context, hashIndexItem[j], index);
+                        index++;
+                    }
+                }
+            };
+            /**
+             *  Converts the set to Array.
+             *  @returns {Array}
+             */
+            HashSet.prototype.toArray = function () {
+                var result = new Array(this.size);
+                var index = 0;
+                var hashes = Object.keys(this.items);
+                for (var i = 0, hashesLen = hashes.length; i < hashesLen; i++) {
+                    var hashIndexItem = this.items[hashes[i]];
+                    if (!Array.isArray(hashIndexItem)) {
+                        result[index] = hashIndexItem;
+                        index++;
+                        continue;
+                    }
+                    for (var j = 0, len = hashIndexItem.length; j < len; j++) {
+                        result[index] = hashIndexItem[j];
+                        index++;
+                    }
+                }
+                return result;
+            };
+            return HashSet;
+        }());
+        Hidden.HashSet = HashSet;
+    })(Hidden = spaMVP.Hidden || (spaMVP.Hidden = {}));
 })(spaMVP || (spaMVP = {}));
 //# sourceMappingURL=HashSet.js.map
 var __extends = (this && this.__extends) || function (d, b) {
@@ -275,11 +278,18 @@ var __extends = (this && this.__extends) || function (d, b) {
 var spaMVP;
 (function (spaMVP) {
     "use strict";
+    var hidden = spaMVP.Hidden;
     spaMVP.CollectionEvents = {
         AddedItems: "added-items",
         DeletedItems: "deleted-items",
         UpdatedItem: "updated-item"
     };
+    function onItemChange(item) {
+        this.notify(spaMVP.CollectionEvents.UpdatedItem, item);
+    }
+    function onItemDestroy(item) {
+        this.removeRange([item]);
+    }
     /**
      *  Composite pattern on spaMVP.Model.
      *  It is usefull when you want to listen for collection of models.
@@ -290,7 +300,7 @@ var spaMVP;
         __extends(Collection, _super);
         function Collection() {
             _super.call(this);
-            this.models = new spaMVP.HashSet();
+            this.models = new hidden.HashSet();
         }
         Object.defineProperty(Collection.prototype, "size", {
             get: function () {
@@ -323,8 +333,8 @@ var spaMVP;
                 if (!this.models.add(model)) {
                     continue;
                 }
-                model.on(spaMVP.ModelEvents.Change, this.onItemChange, this);
-                model.on(spaMVP.ModelEvents.Destroy, this.onItemDestroy, this);
+                model.on(spaMVP.ModelEvents.Change, onItemChange, this);
+                model.on(spaMVP.ModelEvents.Destroy, onItemDestroy, this);
                 added.push(model);
             }
             var isModified = added.length > 0;
@@ -351,8 +361,8 @@ var spaMVP;
                 if (!this.models.remove(model)) {
                     continue;
                 }
-                model.off(spaMVP.ModelEvents.Change, this.onItemChange, this);
-                model.off(spaMVP.ModelEvents.Destroy, this.onItemDestroy, this);
+                model.off(spaMVP.ModelEvents.Change, onItemChange, this);
+                model.off(spaMVP.ModelEvents.Destroy, onItemDestroy, this);
                 deleted.push(model);
             }
             var isModified = deleted.length > 0;
@@ -395,12 +405,6 @@ var spaMVP;
         Collection.prototype.forEach = function (action, context) {
             this.models.forEach(action, context);
         };
-        Collection.prototype.onItemChange = function (item) {
-            this.notify(spaMVP.CollectionEvents.UpdatedItem, item);
-        };
-        Collection.prototype.onItemDestroy = function (item) {
-            this.removeRange([item]);
-        };
         Collection.subclass = spaMVP.subclassFactory;
         return Collection;
     }(spaMVP.Model));
@@ -409,132 +413,137 @@ var spaMVP;
 //# sourceMappingURL=Collection.js.map
 var spaMVP;
 (function (spaMVP) {
-    /**
-     *  Author: Martin Chaov
-     *  github: https://github.com/mchaov/JSEventsManager
-     *  Smart events managing by altering the properties of a HTML element
-     */
-    // 'use strict'; -> issues with iOS Safari on tablet devices: 09.11.2015
-    Element.prototype.trigger = function () { return false; };
-    Element.prototype.hasEvent = function () { return false; };
-    Element.prototype.detach = function () { return false; };
-    Element.prototype.events = false;
-    function removeEvent(name) {
-        var ev, type, handler, useCapture;
-        ev = this.events[name];
-        useCapture = ev.useCapture;
-        type = ev.eventType;
-        handler = ev.handler;
-        this.removeEventListener(type, handler, useCapture);
-        delete this.eventsList[name];
-    }
-    function detachEvent(name) {
-        var i;
-        if (name === undefined || name === '') {
-            for (i in this.eventsList) {
-                removeEvent.call(this, i);
-            }
-            this.eventsList = {};
+    var Hidden;
+    (function (Hidden) {
+        "use strict";
+        /**
+         *  Author: Martin Chaov
+         *  github: https://github.com/mchaov/JSEventsManager
+         *  Smart events managing by altering the properties of a HTML element
+         */
+        // 'use strict'; -> issues with iOS Safari on tablet devices: 09.11.2015
+        Element.prototype.trigger = function () { return false; };
+        Element.prototype.hasEvent = function () { return false; };
+        Element.prototype.detach = function () { return false; };
+        Element.prototype.events = false;
+        function removeEvent(name) {
+            var ev, type, handler, useCapture;
+            ev = this.events[name];
+            useCapture = ev.useCapture;
+            type = ev.eventType;
+            handler = ev.handler;
+            this.removeEventListener(type, handler, useCapture);
+            delete this.eventsList[name];
         }
-        else if (this.hasEvent(name)) {
-            removeEvent.call(this, name);
-        }
-        return this.eventsList;
-    }
-    function hasEvent(name) {
-        return typeof this.eventsList[name] === 'object' ? this.eventsList[name] : false;
-    }
-    function triggerEvent(name) {
-        var evt = this.hasEvent(name);
-        if (typeof evt.handler === 'function') {
-            return evt.handler();
-        }
-        return false;
-    }
-    function UIEvent(config) {
-        if (!(this instanceof UIEvent)) {
-            return new UIEvent(config);
-        }
-        this.htmlElement = config.htmlElement;
-        this.eventConfig = {
-            name: config.name,
-            eventType: config.eventType,
-            handler: config.handler === undefined ? false : config.handler,
-            useCapture: config.useCapture === undefined ? false : config.useCapture,
-            context: config.context === undefined ? null : config.context
-        };
-        this.init();
-    }
-    spaMVP.UIEvent = UIEvent;
-    UIEvent.prototype.init = function () {
-        if (this.htmlElement.eventsList === undefined) {
-            Object.defineProperties(this.htmlElement, {
-                'eventsList': {
-                    writable: true,
-                    enumerable: false,
-                    configurable: false,
-                    value: {}
-                },
-                'events': {
-                    enumerable: false,
-                    configurable: false,
-                    get: function () {
-                        return this.eventsList;
-                    },
-                    set: function (e) {
-                        return this.eventsList[e.name] = e;
-                    }
-                },
-                'trigger': {
-                    writable: false,
-                    enumerable: false,
-                    configurable: false,
-                    value: triggerEvent
-                },
-                'hasEvent': {
-                    writable: false,
-                    enumerable: false,
-                    configurable: false,
-                    value: hasEvent
-                },
-                'detach': {
-                    writable: false,
-                    enumerable: false,
-                    configurable: false,
-                    value: detachEvent
+        function detachEvent(name) {
+            var i;
+            if (name === undefined || name === '') {
+                for (i in this.eventsList) {
+                    removeEvent.call(this, i);
                 }
-            });
+                this.eventsList = {};
+            }
+            else if (this.hasEvent(name)) {
+                removeEvent.call(this, name);
+            }
+            return this.eventsList;
         }
-        else if (this.htmlElement.hasEvent(this.eventConfig.name)) {
+        function hasEvent(name) {
+            return typeof this.eventsList[name] === 'object' ? this.eventsList[name] : false;
+        }
+        function triggerEvent(name) {
+            var evt = this.hasEvent(name);
+            if (typeof evt.handler === 'function') {
+                return evt.handler();
+            }
             return false;
         }
-        this.eventConfig.handler = this.eventConfig.handler.bind(this.eventConfig.context || this);
-        this.htmlElement.addEventListener(this.eventConfig.eventType, this.eventConfig.handler, this.eventConfig.useCapture);
-        this.htmlElement.events = this.eventConfig;
-    };
-    Object.defineProperties(UIEvent.prototype, {
-        'detach': {
-            writable: false,
-            enumerable: false,
-            configurable: false,
-            value: function (name) {
-                return detachEvent.call(this.htmlElement, name);
+        function UIEvent(config) {
+            if (!(this instanceof UIEvent)) {
+                return new UIEvent(config);
             }
-        },
-        'trigger': {
-            writable: false,
-            enumerable: false,
-            configurable: false,
-            value: function (name) {
-                return triggerEvent.call(this.htmlElement, name || this.eventConfig.name);
-            }
+            this.htmlElement = config.htmlElement;
+            this.eventConfig = {
+                name: config.name,
+                eventType: config.eventType,
+                handler: config.handler === undefined ? false : config.handler,
+                useCapture: config.useCapture === undefined ? false : config.useCapture,
+                context: config.context === undefined ? null : config.context
+            };
+            this.init();
         }
-    });
+        Hidden.UIEvent = UIEvent;
+        UIEvent.prototype.init = function () {
+            if (this.htmlElement.eventsList === undefined) {
+                Object.defineProperties(this.htmlElement, {
+                    'eventsList': {
+                        writable: true,
+                        enumerable: false,
+                        configurable: false,
+                        value: {}
+                    },
+                    'events': {
+                        enumerable: false,
+                        configurable: false,
+                        get: function () {
+                            return this.eventsList;
+                        },
+                        set: function (e) {
+                            return this.eventsList[e.name] = e;
+                        }
+                    },
+                    'trigger': {
+                        writable: false,
+                        enumerable: false,
+                        configurable: false,
+                        value: triggerEvent
+                    },
+                    'hasEvent': {
+                        writable: false,
+                        enumerable: false,
+                        configurable: false,
+                        value: hasEvent
+                    },
+                    'detach': {
+                        writable: false,
+                        enumerable: false,
+                        configurable: false,
+                        value: detachEvent
+                    }
+                });
+            }
+            else if (this.htmlElement.hasEvent(this.eventConfig.name)) {
+                return false;
+            }
+            this.eventConfig.handler = this.eventConfig.handler.bind(this.eventConfig.context || this);
+            this.htmlElement.addEventListener(this.eventConfig.eventType, this.eventConfig.handler, this.eventConfig.useCapture);
+            this.htmlElement.events = this.eventConfig;
+        };
+        Object.defineProperties(UIEvent.prototype, {
+            'detach': {
+                writable: false,
+                enumerable: false,
+                configurable: false,
+                value: function (name) {
+                    return detachEvent.call(this.htmlElement, name);
+                }
+            },
+            'trigger': {
+                writable: false,
+                enumerable: false,
+                configurable: false,
+                value: function (name) {
+                    return triggerEvent.call(this.htmlElement, name || this.eventConfig.name);
+                }
+            }
+        });
+    })(Hidden = spaMVP.Hidden || (spaMVP.Hidden = {}));
 })(spaMVP || (spaMVP = {}));
 //# sourceMappingURL=UIEvent.js.map
 var spaMVP;
 (function (spaMVP) {
     "use strict";
+    var hidden = spaMVP.Hidden;
     function eventHandler(ev) {
         var target = ev.target;
         var dataset = target.dataset;
@@ -577,7 +586,7 @@ var spaMVP;
          */
         View.prototype.map = function (eventType, useCapture, selector) {
             if (useCapture === void 0) { useCapture = false; }
-            spaMVP.UIEvent({
+            hidden.UIEvent({
                 name: eventType,
                 htmlElement: !selector ? this.domNode : this.domNode.querySelector(selector),
                 handler: eventHandler,
@@ -728,241 +737,250 @@ var spaMVP;
 //# sourceMappingURL=Presenter.js.map
 var spaMVP;
 (function (spaMVP) {
-    "use strict";
-    /**
-     *  @class UrlHash - Represents the string after "#" in a url.
-     *  @property {String} value - The string after # in a url.
-     *  @property {Array} tokens - The array of string tokens after splitint its value by / (slash).
-     *  @property {Array} queryParams - The array of key-value pairs parsed from the query string in its value.
-     */
-    var UrlHash = (function () {
-        function UrlHash() {
-            this.questionMarkIndex = -1;
-            this.url = "";
-            this.tokens = [];
-            this.queryParams = [];
-        }
-        Object.defineProperty(UrlHash.prototype, "value", {
-            get: function () {
-                return this.url;
-            },
-            set: function (url) {
-                url = url || "";
-                this.url = url;
-                this.questionMarkIndex = url.indexOf("?");
-                this.queryParams = [];
+    var Hidden;
+    (function (Hidden) {
+        "use strict";
+        /**
+         *  @class UrlHash - Represents the string after "#" in a url.
+         *  @property {String} value - The string after # in a url.
+         *  @property {Array} tokens - The array of string tokens after splitint its value by / (slash).
+         *  @property {Array} queryParams - The array of key-value pairs parsed from the query string in its value.
+         */
+        var UrlHash = (function () {
+            function UrlHash() {
+                this.questionMarkIndex = -1;
+                this.url = "";
                 this.tokens = [];
-                this.populateQueryParams();
-                this.populateTokens();
-            },
-            enumerable: true,
-            configurable: true
-        });
-        UrlHash.prototype.anyQueryParams = function () {
-            return this.questionMarkIndex > -1;
-        };
-        UrlHash.prototype.populateQueryParams = function () {
-            var _this = this;
-            if (!this.anyQueryParams()) {
-                return;
+                this.queryParams = [];
             }
-            this.queryParams = this.value
-                .substring(this.questionMarkIndex + 1)
-                .split("&")
-                .map(function (keyValuePairString) { return _this.parseQueryParam(keyValuePairString); });
-        };
-        UrlHash.prototype.parseQueryParam = function (keyValuePair) {
-            var args = keyValuePair.split("=");
-            return {
-                key: args[0],
-                value: args[1] || ""
+            Object.defineProperty(UrlHash.prototype, "value", {
+                get: function () {
+                    return this.url;
+                },
+                set: function (url) {
+                    url = url || "";
+                    this.url = url;
+                    this.questionMarkIndex = url.indexOf("?");
+                    this.queryParams = [];
+                    this.tokens = [];
+                    this.populateQueryParams();
+                    this.populateTokens();
+                },
+                enumerable: true,
+                configurable: true
+            });
+            UrlHash.prototype.anyQueryParams = function () {
+                return this.questionMarkIndex > -1;
             };
-        };
-        UrlHash.prototype.populateTokens = function () {
-            var valueWithoutQuery = this.getValueWithoutQuery();
-            this.tokens = valueWithoutQuery
-                .split("/")
-                .filter(function (token) { return token !== ""; });
-        };
-        UrlHash.prototype.getValueWithoutQuery = function () {
-            if (!this.anyQueryParams()) {
-                return this.value;
-            }
-            return this.value.substring(0, this.value.length - (this.value.length - this.questionMarkIndex));
-        };
-        return UrlHash;
-    }());
-    spaMVP.UrlHash = UrlHash;
+            UrlHash.prototype.populateQueryParams = function () {
+                var _this = this;
+                if (!this.anyQueryParams()) {
+                    return;
+                }
+                this.queryParams = this.value
+                    .substring(this.questionMarkIndex + 1)
+                    .split("&")
+                    .map(function (keyValuePairString) { return _this.parseQueryParam(keyValuePairString); });
+            };
+            UrlHash.prototype.parseQueryParam = function (keyValuePair) {
+                var args = keyValuePair.split("=");
+                return {
+                    key: args[0],
+                    value: args[1] || ""
+                };
+            };
+            UrlHash.prototype.populateTokens = function () {
+                var valueWithoutQuery = this.getValueWithoutQuery();
+                this.tokens = valueWithoutQuery
+                    .split("/")
+                    .filter(function (token) { return token !== ""; });
+            };
+            UrlHash.prototype.getValueWithoutQuery = function () {
+                if (!this.anyQueryParams()) {
+                    return this.value;
+                }
+                return this.value.substring(0, this.value.length - (this.value.length - this.questionMarkIndex));
+            };
+            return UrlHash;
+        }());
+        Hidden.UrlHash = UrlHash;
+    })(Hidden = spaMVP.Hidden || (spaMVP.Hidden = {}));
 })(spaMVP || (spaMVP = {}));
 //# sourceMappingURL=UrlHash.js.map
 var spaMVP;
 (function (spaMVP) {
-    "use strict";
-    var routeParamRegex = /{([a-zA-Z]+)}/; // e.g {id}
-    /**
-     *  @class Route - Accepts a pattern and split it by / (slash).
-     *  It also supports dynamic params - {yourDynamicParam}.
-     *  @property {String} pattern
-     */
-    var Route = (function () {
-        function Route(pattern, onStart) {
-            this.tokens = [];
-            if (typeof pattern === "undefined" ||
-                typeof pattern !== "string" ||
-                pattern === null) {
-                throw new Error("Route pattern should be non empty string.");
-            }
-            this.pattern = pattern;
-            this.callback = onStart;
-            this.populateTokens();
-        }
+    var Hidden;
+    (function (Hidden) {
+        "use strict";
+        var routeParamRegex = /{([a-zA-Z]+)}/; // e.g {id}
         /**
-         *  The array of tokens after its pattern is splitted by / (slash).
+         *  @class Route - Accepts a pattern and split it by / (slash).
+         *  It also supports dynamic params - {yourDynamicParam}.
+         *  @property {String} pattern
          */
-        Route.prototype.getTokens = function () {
-            return this.tokens.slice(0);
-        };
-        /**
-         *  Determines whether it equals UrlHash.
-         */
-        Route.prototype.equals = function (hashUrl) {
-            if (this.tokens.length !== hashUrl.tokens.length) {
-                return false;
-            }
-            for (var i = 0, len = this.tokens.length; i < len; i++) {
-                var token = this.tokens[i];
-                var urlToken = hashUrl.tokens[i];
-                if (token.isDynamic) {
-                    continue;
+        var Route = (function () {
+            function Route(pattern, onStart) {
+                this.tokens = [];
+                if (typeof pattern === "undefined" ||
+                    typeof pattern !== "string" ||
+                    pattern === null) {
+                    throw new Error("Route pattern should be non empty string.");
                 }
-                if (token.name.toLowerCase() !== urlToken.toLowerCase()) {
+                this.pattern = pattern;
+                this.callback = onStart;
+                this.populateTokens();
+            }
+            /**
+             *  The array of tokens after its pattern is splitted by / (slash).
+             */
+            Route.prototype.getTokens = function () {
+                return this.tokens.slice(0);
+            };
+            /**
+             *  Determines whether it equals UrlHash.
+             */
+            Route.prototype.equals = function (hashUrl) {
+                if (this.tokens.length !== hashUrl.tokens.length) {
                     return false;
                 }
-            }
-            return true;
-        };
-        /**
-         *  Populate the dynamic params from the UrlHash if such exist
-         *  and executes the registered callback.
-         */
-        Route.prototype.start = function (urlHash) {
-            var queryParams = this.getParamsFromUrl(urlHash);
-            if (this.callback) {
-                this.callback(queryParams);
-            }
-        };
-        Route.prototype.populateTokens = function () {
-            var _this = this;
-            this.tokens = [];
-            this.pattern.split("/").forEach(function (urlFragment) {
-                if (urlFragment !== "") {
-                    _this.tokens.push(_this.parseToken(urlFragment));
+                for (var i = 0, len = this.tokens.length; i < len; i++) {
+                    var token = this.tokens[i];
+                    var urlToken = hashUrl.tokens[i];
+                    if (token.isDynamic) {
+                        continue;
+                    }
+                    if (token.name.toLowerCase() !== urlToken.toLowerCase()) {
+                        return false;
+                    }
                 }
-            });
-        };
-        Route.prototype.parseToken = function (urlFragment) {
-            var paramMatchGroups = routeParamRegex.exec(urlFragment);
-            var isDynamic = !!paramMatchGroups;
-            return {
-                name: isDynamic ? paramMatchGroups[1] : urlFragment,
-                isDynamic: isDynamic
+                return true;
             };
-        };
-        Route.prototype.getParamsFromUrl = function (url) {
-            var result = this.getQueryParamsFromUrl(url);
-            // route params are with higher priority than query params
-            this.tokens.forEach(function (token, index) {
-                if (token.isDynamic) {
-                    result[token.name] = url.tokens[index];
+            /**
+             *  Populate the dynamic params from the UrlHash if such exist
+             *  and executes the registered callback.
+             */
+            Route.prototype.start = function (urlHash) {
+                var queryParams = this.getParamsFromUrl(urlHash);
+                if (this.callback) {
+                    this.callback(queryParams);
                 }
-            });
-            return result;
-        };
-        Route.prototype.getQueryParamsFromUrl = function (url) {
-            var result = {};
-            url.queryParams.forEach(function (param) { return result[param.key] = param.value; });
-            return result;
-        };
-        return Route;
-    }());
-    spaMVP.Route = Route;
+            };
+            Route.prototype.populateTokens = function () {
+                var _this = this;
+                this.tokens = [];
+                this.pattern.split("/").forEach(function (urlFragment) {
+                    if (urlFragment !== "") {
+                        _this.tokens.push(_this.parseToken(urlFragment));
+                    }
+                });
+            };
+            Route.prototype.parseToken = function (urlFragment) {
+                var paramMatchGroups = routeParamRegex.exec(urlFragment);
+                var isDynamic = !!paramMatchGroups;
+                return {
+                    name: isDynamic ? paramMatchGroups[1] : urlFragment,
+                    isDynamic: isDynamic
+                };
+            };
+            Route.prototype.getParamsFromUrl = function (url) {
+                var result = this.getQueryParamsFromUrl(url);
+                // route params are with higher priority than query params
+                this.tokens.forEach(function (token, index) {
+                    if (token.isDynamic) {
+                        result[token.name] = url.tokens[index];
+                    }
+                });
+                return result;
+            };
+            Route.prototype.getQueryParamsFromUrl = function (url) {
+                var result = {};
+                url.queryParams.forEach(function (param) { return result[param.key] = param.value; });
+                return result;
+            };
+            return Route;
+        }());
+        Hidden.Route = Route;
+    })(Hidden = spaMVP.Hidden || (spaMVP.Hidden = {}));
 })(spaMVP || (spaMVP = {}));
 //# sourceMappingURL=Route.js.map
 var spaMVP;
 (function (spaMVP) {
-    "use strict";
-    /**
-     *  @class RouteConfig - Handles spa application route changes.
-     */
-    var DefaultRouteConfig = (function () {
-        function DefaultRouteConfig() {
-            this.routes = [];
-            this.urlHash = new spaMVP.UrlHash();
-            this.defaultUrl = null;
-        }
+    var Hidden;
+    (function (Hidden) {
+        "use strict";
         /**
-         *  Registers a route by given url pattern.
-         *  When url's hash is changed it executes a callback with populated dynamic routes and query parameters.
-         *  Dynamic route param can be registered with {yourParam}.
+         *  @class RouteConfig - Handles spa application route changes.
          */
-        DefaultRouteConfig.prototype.registerRoute = function (pattern, callback) {
-            if (this.routes.some(function (r) { return r.pattern === pattern; })) {
-                throw new Error("Route " + pattern + " has been already registered.");
+        var DefaultRouteConfig = (function () {
+            function DefaultRouteConfig() {
+                this.routes = [];
+                this.urlHash = new Hidden.UrlHash();
+                this.defaultUrl = null;
             }
-            this.routes.push(new spaMVP.Route(pattern, callback));
-        };
-        /**
-         *  Starts hash url if such is registered, if not, it starts the default one.
-         */
-        DefaultRouteConfig.prototype.startRoute = function (hash) {
-            this.urlHash.value = hash;
-            var nextRoute = this.findRoute();
-            if (nextRoute) {
-                nextRoute.start(this.urlHash);
-                return;
-            }
-            if (this.defaultUrl) {
-                this.startDefaultRoute(hash);
-            }
-            else {
-                console.warn("No route handler for " + hash);
-            }
-        };
-        /**
-         *  Returns all registered patterns.
-         */
-        DefaultRouteConfig.prototype.getRoutes = function () {
-            return this.routes.map(function (route) { return route.pattern; });
-        };
-        /**
-         *  Determines if there are any registered routes.
-         */
-        DefaultRouteConfig.prototype.hasRoutes = function () {
-            return this.routes.length > 0;
-        };
-        DefaultRouteConfig.prototype.findRoute = function () {
-            for (var i = 0, len = this.routes.length; i < len; i++) {
-                var route = this.routes[i];
-                if (route.equals(this.urlHash)) {
-                    return route;
+            /**
+             *  Registers a route by given url pattern.
+             *  When url's hash is changed it executes a callback with populated dynamic routes and query parameters.
+             *  Dynamic route param can be registered with {yourParam}.
+             */
+            DefaultRouteConfig.prototype.registerRoute = function (pattern, callback) {
+                if (this.routes.some(function (r) { return r.pattern === pattern; })) {
+                    throw new Error("Route " + pattern + " has been already registered.");
                 }
-            }
-            return null;
-        };
-        DefaultRouteConfig.prototype.startDefaultRoute = function (invalidHash) {
-            window.history.replaceState(null, null, window.location.pathname + "#" + this.defaultUrl);
-            this.urlHash.value = this.defaultUrl;
-            var nextRoute = this.findRoute();
-            if (nextRoute) {
-                nextRoute.start(this.urlHash);
-            }
-            else {
-                console.warn("No route handler for " + invalidHash);
-            }
-        };
-        return DefaultRouteConfig;
-    }());
-    spaMVP.DefaultRouteConfig = DefaultRouteConfig;
+                this.routes.push(new Hidden.Route(pattern, callback));
+            };
+            /**
+             *  Starts hash url if such is registered, if not, it starts the default one.
+             */
+            DefaultRouteConfig.prototype.startRoute = function (hash) {
+                this.urlHash.value = hash;
+                var nextRoute = this.findRoute();
+                if (nextRoute) {
+                    nextRoute.start(this.urlHash);
+                    return;
+                }
+                if (this.defaultUrl) {
+                    this.startDefaultRoute(hash);
+                }
+                else {
+                    console.warn("No route handler for " + hash);
+                }
+            };
+            /**
+             *  Returns all registered patterns.
+             */
+            DefaultRouteConfig.prototype.getRoutes = function () {
+                return this.routes.map(function (route) { return route.pattern; });
+            };
+            /**
+             *  Determines if there are any registered routes.
+             */
+            DefaultRouteConfig.prototype.hasRoutes = function () {
+                return this.routes.length > 0;
+            };
+            DefaultRouteConfig.prototype.findRoute = function () {
+                for (var i = 0, len = this.routes.length; i < len; i++) {
+                    var route = this.routes[i];
+                    if (route.equals(this.urlHash)) {
+                        return route;
+                    }
+                }
+                return null;
+            };
+            DefaultRouteConfig.prototype.startDefaultRoute = function (invalidHash) {
+                window.history.replaceState(null, null, window.location.pathname + "#" + this.defaultUrl);
+                this.urlHash.value = this.defaultUrl;
+                var nextRoute = this.findRoute();
+                if (nextRoute) {
+                    nextRoute.start(this.urlHash);
+                }
+                else {
+                    console.warn("No route handler for " + invalidHash);
+                }
+            };
+            return DefaultRouteConfig;
+        }());
+        Hidden.DefaultRouteConfig = DefaultRouteConfig;
+    })(Hidden = spaMVP.Hidden || (spaMVP.Hidden = {}));
 })(spaMVP || (spaMVP = {}));
 //# sourceMappingURL=DefaultRouteConfig.js.map
 var spaMVP;
@@ -1000,6 +1018,7 @@ var spaMVP;
 var spaMVP;
 (function (spaMVP) {
     "use strict";
+    var hidden = spaMVP.Hidden;
     function initialize(ev) {
         var _this = this;
         document.removeEventListener("DOMContentLoaded", this.onDomReady);
@@ -1013,9 +1032,28 @@ var spaMVP;
             });
         }
     }
+    function addSubscriber(eventType, handler, context) {
+        this.subscribers[eventType] = this.subscribers[eventType] || [];
+        this.subscribers[eventType].push({
+            handler: handler,
+            context: context
+        });
+    }
+    function removeSubscriber(eventType, handler, context) {
+        var subscribers = this.subscribers[eventType] || [];
+        for (var i = 0, len = subscribers.length; i < len; i++) {
+            var subscriber = subscribers[i];
+            if (subscriber.handler === handler &&
+                subscriber.context === context) {
+                subscribers[i] = subscribers[len - 1];
+                subscribers.length--;
+                return;
+            }
+        }
+    }
     var Core = (function () {
         function Core(routeConfig) {
-            if (routeConfig === void 0) { routeConfig = new spaMVP.DefaultRouteConfig(); }
+            if (routeConfig === void 0) { routeConfig = new hidden.DefaultRouteConfig(); }
             this.onDomReady = initialize.bind(this);
             this.subscribers = {};
             this.modules = {};
@@ -1066,7 +1104,7 @@ var spaMVP;
             }
             if (Array.isArray(eventTypes)) {
                 for (var i = 0, len = eventTypes.length; i < len; i++) {
-                    this.addSubscriber(eventTypes[i], handler, context);
+                    addSubscriber.call(this, eventTypes[i], handler, context);
                 }
             }
         };
@@ -1079,7 +1117,7 @@ var spaMVP;
         Core.prototype.unsubscribe = function (eventTypes, handler, context) {
             if (Array.isArray(eventTypes)) {
                 for (var i = 0, len = eventTypes.length; i < len; i++) {
-                    this.removeSubscriber(eventTypes[i], handler, context);
+                    removeSubscriber.call(this, eventTypes[i], handler, context);
                 }
             }
         };
@@ -1187,25 +1225,6 @@ var spaMVP;
             }
             return service(new spaMVP.Sandbox(this, id));
         };
-        Core.prototype.addSubscriber = function (eventType, handler, context) {
-            this.subscribers[eventType] = this.subscribers[eventType] || [];
-            this.subscribers[eventType].push({
-                handler: handler,
-                context: context
-            });
-        };
-        Core.prototype.removeSubscriber = function (eventType, handler, context) {
-            var subscribers = this.subscribers[eventType] || [];
-            for (var i = 0, len = subscribers.length; i < len; i++) {
-                var subscriber = subscribers[i];
-                if (subscriber.handler === handler &&
-                    subscriber.context === context) {
-                    subscribers[i] = subscribers[len - 1];
-                    subscribers.length--;
-                    return;
-                }
-            }
-        };
         return Core;
     }());
     spaMVP.Core = Core;
@@ -1220,3 +1239,8 @@ var spaMVP;
     spaMVP.createAppCore = createAppCore;
 })(spaMVP || (spaMVP = {}));
 //# sourceMappingURL=Core.js.map
+var spaMVP;
+(function (spaMVP) {
+    delete spaMVP.Hidden;
+})(spaMVP || (spaMVP = {}));
+//# sourceMappingURL=encapsulate.js.map

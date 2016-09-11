@@ -3,8 +3,8 @@
 
 describe('DefaultRouteConfig', () => {
 
-    function getConfig(): spaMVP.DefaultRouteConfig {
-        return new spaMVP.DefaultRouteConfig();
+    function getConfig(): spaMVP.RouteConfig {
+        return new spaMVP.Hidden.DefaultRouteConfig();
     }
 
     it('should has null default url by default', function () {

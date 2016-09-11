@@ -20,7 +20,7 @@ describe('Core', function () {
             expect(spy.action).toHaveBeenCalled();
         });
         it('should register a route by delegating to its route config', function () {
-            var config = new spaMVP.DefaultRouteConfig();
+            var config = new spaMVP.Hidden.DefaultRouteConfig();
             var core = getOne(config);
             spyOn(config, 'registerRoute');
             var pattern = 'home';
@@ -28,7 +28,7 @@ describe('Core', function () {
             expect(config.registerRoute).toHaveBeenCalledWith(pattern, null);
         });
         it('should start a route by delegating to its route config', function () {
-            var config = new spaMVP.DefaultRouteConfig();
+            var config = new spaMVP.Hidden.DefaultRouteConfig();
             var core = getOne(config);
             spyOn(config, 'startRoute');
             var pattern = 'home';
@@ -36,7 +36,7 @@ describe('Core', function () {
             expect(config.startRoute).toHaveBeenCalledWith(pattern);
         });
         it('should start the current hash route on DOMContentLoaded', function () {
-            var config = new spaMVP.DefaultRouteConfig();
+            var config = new spaMVP.Hidden.DefaultRouteConfig();
             var core = getOne(config);
             core.registerRoute('', null);
             spyOn(config, 'startRoute');
@@ -45,7 +45,7 @@ describe('Core', function () {
             expect(config.startRoute).toHaveBeenCalled();
         });
         it('should start listening for hashchange on DOMContentLoaded', function () {
-            var config = new spaMVP.DefaultRouteConfig();
+            var config = new spaMVP.Hidden.DefaultRouteConfig();
             var core = getOne(config);
             core.registerRoute('', null);
             spyOn(config, 'startRoute');
@@ -55,7 +55,7 @@ describe('Core', function () {
             expect(config.startRoute).toHaveBeenCalledTimes(2);
         });
         it('should set default url on its route config', function () {
-            var config = new spaMVP.DefaultRouteConfig();
+            var config = new spaMVP.Hidden.DefaultRouteConfig();
             var core = getOne(config);
             var url = 'home';
             core.defaultUrl(url);

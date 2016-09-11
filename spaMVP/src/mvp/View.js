@@ -1,6 +1,7 @@
 var spaMVP;
 (function (spaMVP) {
     "use strict";
+    var hidden = spaMVP.Hidden;
     function eventHandler(ev) {
         var target = ev.target;
         var dataset = target.dataset;
@@ -43,7 +44,7 @@ var spaMVP;
          */
         View.prototype.map = function (eventType, useCapture, selector) {
             if (useCapture === void 0) { useCapture = false; }
-            spaMVP.UIEvent({
+            hidden.UIEvent({
                 name: eventType,
                 htmlElement: !selector ? this.domNode : this.domNode.querySelector(selector),
                 handler: eventHandler,

@@ -2,10 +2,10 @@
 /// <chutzpah_reference path="jasmine.js" />
 describe('Route', function () {
     function getRoute(pattern, callback) {
-        return new spaMVP.Route(pattern, callback);
+        return new spaMVP.Hidden.Route(pattern, callback);
     }
     function getHash(value) {
-        var result = new spaMVP.UrlHash();
+        var result = new spaMVP.Hidden.UrlHash();
         result.value = value;
         return result;
     }

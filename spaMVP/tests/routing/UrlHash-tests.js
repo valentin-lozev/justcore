@@ -2,7 +2,7 @@
 /// <chutzpah_reference path="jasmine.js" />
 describe('UrlHash', function () {
     function getIt() {
-        return new spaMVP.UrlHash();
+        return new spaMVP.Hidden.UrlHash();
     }
     it('should have empty string set as default value', function () {
         var hash = getIt();

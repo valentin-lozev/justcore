@@ -4,11 +4,11 @@
 describe('Route', () => {
 
     function getRoute(pattern: string, callback?: (routeParams: any) => void) {
-        return new spaMVP.Route(pattern, callback);
+        return new spaMVP.Hidden.Route(pattern, callback);
     }
 
-    function getHash(value: string): spaMVP.UrlHash {
-        let result = new spaMVP.UrlHash();
+    function getHash(value: string): spaMVP.Hidden.UrlHash {
+        let result = new spaMVP.Hidden.UrlHash();
         result.value = value;
         return result;
     }

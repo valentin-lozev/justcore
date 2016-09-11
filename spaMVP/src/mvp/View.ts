@@ -1,6 +1,8 @@
 ﻿namespace spaMVP {
     "use strict";
 
+    import hidden = Hidden;
+
     function eventHandler(ev: Event): void {
         let target = <HTMLElement>ev.target;
         let dataset = target.dataset;
@@ -48,7 +50,7 @@
          * @param selector
          */
         map(eventType: string, useCapture: boolean = false, selector?: string): this {
-            UIEvent({
+            hidden.UIEvent({
                 name: eventType,
                 htmlElement: !selector ? this.domNode : this.domNode.querySelector(selector),
                 handler: eventHandler,

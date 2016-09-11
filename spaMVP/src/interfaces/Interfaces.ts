@@ -21,18 +21,20 @@ namespace spaMVP {
         hasRoutes(): boolean;
     }
 
-    export interface RouteToken {
-        name: string;
-        isDynamic: boolean;
-    }
-
-    export interface QueryParam {
-        key: string;
-        value: string;
-    }
-
     export interface Equatable<T> {
         equals(other: T): boolean;
         hash(): number;
+    }
+
+    export namespace Hidden {
+        export interface RouteToken {
+            name: string;
+            isDynamic: boolean;
+        }
+
+        export interface QueryParam {
+            key: string;
+            value: string;
+        }
     }
 }
