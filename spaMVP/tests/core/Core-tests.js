@@ -199,7 +199,7 @@ describe('Core', function () {
         it('should have id validation when add', function () {
             var core = getOne();
             var validId = 'testService';
-            var validCreator = function (sb) { return {}; };
+            var validCreator = function () { return {}; };
             var tests = [
                 function emptyString() { core.addService('', validCreator); },
                 function nullString() { core.addService(null, validCreator); },
@@ -212,7 +212,7 @@ describe('Core', function () {
         it('should add service', function () {
             var core = getOne();
             var id = 'testService';
-            var creator = function (sb) { return { id: id }; };
+            var creator = function () { return { id: id }; };
             core.addService(id, creator);
             var service = core.getService(id);
             expect(service).toBeDefined();
@@ -220,7 +220,7 @@ describe('Core', function () {
         });
         it('should throw when add service twice', function () {
             var core = getOne();
-            var creator = function (sb) { return Object.create({}); };
+            var creator = function () { return Object.create({}); };
             core.addService('asd', creator);
             expect(function () { return core.addService('asd', creator); }).toThrow();
         });

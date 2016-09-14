@@ -253,7 +253,7 @@ describe('Core', () => {
         it('should have id validation when add', function () {
             let core = getOne();
             let validId = 'testService';
-            let validCreator = (sb: spaMVP.Sandbox): any => { return {}; };
+            let validCreator = (): Object => { return {}; };
             let tests = [
                 function emptyString() { core.addService('', validCreator); },
                 function nullString() { core.addService(null, validCreator); },
@@ -271,7 +271,7 @@ describe('Core', () => {
             interface Service {
                 id: string;
             }
-            let creator = (sb: spaMVP.Sandbox): Service => { return { id: id }; };
+            let creator = (): Service => { return { id: id }; };
 
             core.addService(id, creator);
 
@@ -282,7 +282,7 @@ describe('Core', () => {
 
         it('should throw when add service twice', function () {
             let core = getOne();
-            let creator = (sb: spaMVP.Sandbox) => Object.create({});
+            let creator = (): Object => Object.create({});
             core.addService('asd', creator);
 
             expect(() => core.addService('asd', creator)).toThrow();

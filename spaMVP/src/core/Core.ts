@@ -10,9 +10,9 @@
         }
 
         if (this.routeConfig.hasRoutes()) {
-            this.routeConfig.startRoute(window.location.hash.substring(1));
+            this.startRoute(window.location.hash.substring(1));
             window.addEventListener("hashchange", () => {
-                this.routeConfig.startRoute(window.location.hash.substring(1));
+                this.startRoute(window.location.hash.substring(1));
             });
         }
     }
@@ -213,7 +213,7 @@
          *  @param {String} id
          *  @param {Function} factory - function which provides an instance of the service.
          */
-        addService(id: string, factory: (sb: Sandbox) => any): this {
+        addService<T>(id: string, factory: () => T): this {
             if (typeof id !== "string" || id === "") {
                 throw new TypeError(id + " Service registration FAILED: ID must be non empty string.");
             }
@@ -232,12 +232,12 @@
          *  @returns {*}
          */
         getService<T>(id: string): T {
-            let service = this.services[id];
-            if (!service) {
+            let creator = this.services[id];
+            if (!creator) {
                 throw new ReferenceError(id + " Service was not found.");
             }
 
-            return service(new spaMVP.Sandbox(this, id));
+            return creator();
         }
     }
 

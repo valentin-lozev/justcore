@@ -9,9 +9,9 @@ var spaMVP;
             this.onAppStart();
         }
         if (this.routeConfig.hasRoutes()) {
-            this.routeConfig.startRoute(window.location.hash.substring(1));
+            this.startRoute(window.location.hash.substring(1));
             window.addEventListener("hashchange", function () {
-                _this.routeConfig.startRoute(window.location.hash.substring(1));
+                _this.startRoute(window.location.hash.substring(1));
             });
         }
     }
@@ -202,11 +202,11 @@ var spaMVP;
          *  @returns {*}
          */
         Core.prototype.getService = function (id) {
-            var service = this.services[id];
-            if (!service) {
+            var creator = this.services[id];
+            if (!creator) {
                 throw new ReferenceError(id + " Service was not found.");
             }
-            return service(new spaMVP.Sandbox(this, id));
+            return creator();
         };
         return Core;
     }());
