@@ -8,7 +8,7 @@
      * @param {function} [sandboxType] - Optional. Sandbox type which the application will use.
      * @returns {Core}
      */
-    export function createCore(sandboxType: SandboxConstructor): Core {
+    export function createCore(sandboxType?: SandboxConstructor): Core {
         return new Core(sandboxType);
     }
 }

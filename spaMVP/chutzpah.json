@@ -7,10 +7,10 @@
       "Path": "src/helpers.js"
     },
     {
-      "Path": "src/core/Core.js"
+      "Path": "src/Core.js"
     },
     {
-      "Path": "src/core/Sandbox.js"
+      "Path": "src/Sandbox.js"
     },
     {
       "Path": "plugins/routing/UrlHash.js"

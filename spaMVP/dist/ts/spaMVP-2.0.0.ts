@@ -121,8 +121,8 @@ namespace spaMVP {
 
     function onDomReady(ev: Event): void {
         document.removeEventListener("DOMContentLoaded", onDomReady);
-        onApplicationStart();
         onApplicationStartCustom();
+        onApplicationStart();
     }
 
     function runPlugins(hookType: HookType, ...params: any[]): void {
@@ -1120,14 +1120,14 @@ namespace spaMVP {
     }
 
     export interface Core {
-        useMVP(): void;
+        useMVP(): this;
         mvp: MVPPlugin;
     }
 
-    Core.prototype.useMVP = function (): void {
+    Core.prototype.useMVP = function (): this {
         let that = <Core>this;
         if (that.mvp) {
-            return;
+            return that;
         }
 
         let mvp: MVPPlugin = {
@@ -1137,6 +1137,7 @@ namespace spaMVP {
             Presenter: hidden.Presenter,
         };
         that.mvp = mvp;
+        return that;
     };
 }
 namespace spaMVP.Hidden {
@@ -1535,7 +1536,7 @@ namespace spaMVP {
      * @param {function} [sandboxType] - Optional. Sandbox type which the application will use.
      * @returns {Core}
      */
-    export function createCore(sandboxType: SandboxConstructor): Core {
+    export function createCore(sandboxType?: SandboxConstructor): Core {
         return new Core(sandboxType);
     }
 }

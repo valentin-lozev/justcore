@@ -90,8 +90,8 @@ var spaMVP;
     }
     function onDomReady(ev) {
         document.removeEventListener("DOMContentLoaded", onDomReady);
-        onApplicationStart();
         onApplicationStartCustom();
+        onApplicationStart();
     }
     function runPlugins(hookType) {
         var params = [];

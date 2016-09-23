@@ -7,8 +7,8 @@ var version = 'spaMVP-2.0.0';
 var files = [
     "src/license",
     "src/helpers",
-    "src/core/Sandbox",
-    "src/core/Core",
+    "src/Sandbox",
+    "src/Core",
     "plugins/mvp/Model",
     "plugins/mvp/HashSet",
     "plugins/mvp/Collection",

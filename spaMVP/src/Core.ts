@@ -40,8 +40,8 @@
 
     function onDomReady(ev: Event): void {
         document.removeEventListener("DOMContentLoaded", onDomReady);
-        onApplicationStart();
         onApplicationStartCustom();
+        onApplicationStart();
     }
 
     function runPlugins(hookType: HookType, ...params: any[]): void {
