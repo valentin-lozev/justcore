@@ -4,37 +4,49 @@
   "Compile": { "Mode": "External" },
   "References": [
     {
-      "Path": "src/routing/UrlHash.js"
+      "Path": "src/helpers.js"
     },
     {
-      "Path": "src/routing/Route.js"
+      "Path": "src/Core.js"
     },
     {
-      "Path": "src/routing/DefaultRouteConfig.js"
+      "Path": "src/Sandbox.js"
     },
     {
-      "Path": "src/mvp/Model.js"
+      "Path": "plugins/routing/UrlHash.js"
     },
     {
-      "Path": "src/mvp/HashSet.js"
+      "Path": "plugins/routing/Route.js"
     },
     {
-      "Path": "src/mvp/Collection.js"
+      "Path": "plugins/routing/RouteConfig.js"
     },
     {
-      "Path": "src/lib/UIEvent.js"
+      "Path": "plugins/routing/routing.js"
     },
     {
-      "Path": "src/mvp/View.js"
+      "Path": "plugins/mvp/Model.js"
     },
     {
-      "Path": "src/mvp/Presenter.js"
+      "Path": "plugins/mvp/HashSet.js"
     },
     {
-      "Path": "src/core/Core.js"
+      "Path": "plugins/mvp/Collection.js"
     },
     {
-      "Path": "src/core/Sandbox.js"
+      "Path": "plugins/mvp/lib/UIEvent.js"
+    },
+    {
+      "Path": "plugins/mvp/View.js"
+    },
+    {
+      "Path": "plugins/mvp/Presenter.js"
+    },
+    {
+      "Path": "plugins/mvp/mvp.js"
+    },
+    {
+      "Path": "plugins/services/services.js"
     }
   ],
   "Tests": [
