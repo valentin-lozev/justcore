@@ -5,20 +5,23 @@ var es = require('event-stream');
 
 var version = 'spaMVP-2.0.0';
 var files = [
-          "src/license",
-          "src/helpers",
-          "src/mvp/Model",
-          "src/mvp/HashSet",
-          "src/mvp/Collection",
-          "src/lib/UIEvent",
-          "src/mvp/View",
-          "src/mvp/Presenter",
-          "src/routing/UrlHash",
-          "src/routing/Route",
-          "src/routing/DefaultRouteConfig",
-          "src/core/Sandbox",
-          "src/core/Core",
-          "src/encapsulate"
+    "src/license",
+    "src/helpers",
+    "src/core/Sandbox",
+    "src/core/Core",
+    "plugins/mvp/Model",
+    "plugins/mvp/HashSet",
+    "plugins/mvp/Collection",
+    "plugins/mvp/lib/UIEvent",
+    "plugins/mvp/View",
+    "plugins/mvp/Presenter",
+    "plugins/mvp/mvp",
+    "plugins/routing/UrlHash",
+    "plugins/routing/Route",
+    "plugins/routing/RouteConfig",
+    "plugins/routing/routing",
+    "plugins/services/services",
+    "src/spaMVP"
 ];
 
 gulp.task('scripts', function () {

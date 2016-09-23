@@ -8,22 +8,30 @@ var spaMVP;
     var Sandbox = (function () {
         function Sandbox(core, moduleInstanceId) {
             if (!core || !moduleInstanceId) {
-                throw new Error("Missing core or module instance ID");
+                throw new Error("Missing core or module instance ID.");
             }
             this.core = core;
             this.moduleInstanceId = moduleInstanceId;
         }
         Sandbox.prototype.subscribe = function (eventTypes, handler, context) {
             this.core.subscribe(eventTypes, handler, context);
+            return this;
         };
         Sandbox.prototype.unsubscribe = function (eventTypes, handler, context) {
             this.core.unsubscribe(eventTypes, handler, context);
+            return this;
         };
         Sandbox.prototype.publish = function (eventType, data) {
             this.core.publish(eventType, data);
+            return this;
         };
-        Sandbox.prototype.getService = function (id) {
-            return this.core.getService(id);
+        Sandbox.prototype.start = function (moduleId, options) {
+            this.core.start(moduleId, options);
+            return this;
+        };
+        Sandbox.prototype.stop = function (moduleId, instanceId) {
+            this.core.stop(moduleId, instanceId);
+            return this;
         };
         return Sandbox;
     }());

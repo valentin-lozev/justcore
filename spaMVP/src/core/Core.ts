@@ -1,20 +1,20 @@
 ﻿namespace spaMVP {
     "use strict";
 
-    import hidden = Hidden;
+    interface HookList {
+        [name: string]: Function[];
+    }
 
-    function initialize(ev: Event): void {
-        document.removeEventListener("DOMContentLoaded", this.onDomReady);
-        if (this.onAppStart) {
-            this.onAppStart();
-        }
+    interface SubscriberList {
+        [type: string]: { handler: Function, context: any }[];
+    }
 
-        if (this.routeConfig.hasRoutes()) {
-            this.startRoute(window.location.hash.substring(1));
-            window.addEventListener("hashchange", () => {
-                this.startRoute(window.location.hash.substring(1));
-            });
-        }
+    interface ModuleList {
+        [id: string]: { create: (sb: Sandbox) => Module, instances: ModuleHolders };
+    }
+
+    interface ModuleHolders {
+        [instanceId: string]: Module;
     }
 
     function addSubscriber(eventType: string, handler: Function, context?: Object): void {
@@ -38,52 +38,76 @@
         }
     }
 
-    export class Core {
-        private onDomReady: (ev: Event) => void = initialize.bind(this);
-        private onAppStart: Function;
-        private routeConfig: RouteConfig;
-        private subscribers: Object = {};
-        private modules: Object = {};
-        private services: Object = {};
+    function onDomReady(ev: Event): void {
+        document.removeEventListener("DOMContentLoaded", onDomReady);
+        onApplicationStart();
+        onApplicationStartCustom();
+    }
 
-        constructor(routeConfig: RouteConfig = new hidden.DefaultRouteConfig()) {
-            this.routeConfig = routeConfig;
+    function runPlugins(hookType: string, ...params: any[]): void {
+        let plugins = this.hooks[hookType];
+        if (!Array.isArray(plugins)) {
+            return;
         }
 
-        /**
-         *  Start listening for hash change if there are any registered routes.
-         *  @param {Function} action Optional action to be executed on DOMContentLoaded.
-         */
-        run(action?: Function): this {
-            this.onAppStart = action;
-            document.addEventListener("DOMContentLoaded", this.onDomReady);
-            return this;
+        let argumentsLength = arguments.length;
+        let args = new Array(argumentsLength - 1);
+        for (let i = 1; i < argumentsLength; i++) {
+            args[i - 1] = arguments[i];
         }
 
-        /**
-         *  Registers a route by given url pattern.
-         *  When url's hash is changed it executes a callback with populated dynamic routes and query parameters.
-         *  Dynamic route param can be registered with {yourParam}.
-         */
-        registerRoute(pattern: string, callback: (routeParams: any) => void): this {
-            this.routeConfig.registerRoute(pattern, callback);
-            return this;
+        for (let i = 0, len = plugins.length; i < len; i++) {
+            try {
+                plugins[i].apply(null, args);
+            } catch (ex) {
+                let argsDetails = args.length > 0 ? args.join(", ") : "none";
+                console.error(`Plugin execution failed on hook ${hookType}. Arguments: ${argsDetails}. Message: ${ex}`);
+            }
         }
+    }
 
-        /**
-         *  Starts hash url if such is registered, if not, it starts the default one.
-         */
-        startRoute(hash: string): this {
-            this.routeConfig.startRoute(hash);
-            return this;
-        }
+    import hidden = spaMVP.Hidden;
+    let onApplicationStart = function () { };
+    let onApplicationStartCustom = function () { };
 
-        /**
-         *  Sets a default url.
-         */
-        defaultUrl(url: string): this {
-            this.routeConfig.defaultUrl = url;
-            return this;
+    export interface Core {
+        Sandbox: SandboxConstructor;
+
+        subscribe(eventTypes: string[], handler: (type: string, data: any) => void, context?: any): this;
+        unsubscribe(eventTypes: string[], handler: (type: string, data: any) => void, context?: any): this;
+        publish(type: string, data: any): this;
+
+        register(moduleId: string, moduleFactory: (sb: Sandbox) => Module): this;
+        start(moduleId: string, options?: Object): this;
+        stop(moduleId: string, instanceId?: string): this;
+        getModules(): string[];
+
+        hook(hookType: string, plugin: Function): this;
+        run(action?: Function): this;
+    }
+
+    export interface Module {
+        init(options: any): void;
+        destroy(): void;
+    }
+
+    export const HookType = {
+        SPA_DOMReady: "spa-dom-ready",
+        SPA_ModuleDestroy: "spa-module-destroy",
+        SPA_ModuleInit: "spa-module-init",
+        SPA_ModuleRegister: "spa-module-register",
+        SPA_Publish: "spa-publish",
+        SPA_Subscribe: "spa-subscribe",
+        SPA_Unsubscribe: "spa-unsubscribe",
+    }
+
+    export class Core implements Core {
+        private subscribers: SubscriberList = {};
+        private modules: ModuleList = {};
+        private hooks: HookList = {};
+
+        constructor(sandboxType?: SandboxConstructor) {
+            this.Sandbox = typeof sandboxType === "function" ? sandboxType : Sandbox;
         }
 
         /**
@@ -92,16 +116,17 @@
          *  @param {Function} handler - The events' handler.
          *  @param {Object} context - Handler's context.
          */
-        subscribe(eventTypes: string[], handler: (type: string, data: any) => void, context?: Object): void {
-            if (typeof handler !== "function") {
-                throw new TypeError("Event type handler should be a function");
+        subscribe(eventTypes: string[], handler: (type: string, data: any) => void, context?: any): this {
+            let errorMsg = "Subscribing failed:";
+            hidden.typeGuard("function", handler, `${errorMsg} event handler should be a function.`);
+            hidden.typeGuard("array", eventTypes, `${errorMsg} event types should be passed as an array of strings.`);
+
+            runPlugins.call(this, HookType.SPA_Subscribe, eventTypes);
+            for (let i = 0, len = eventTypes.length; i < len; i++) {
+                addSubscriber.call(this, eventTypes[i], handler, context);
             }
 
-            if (Array.isArray(eventTypes)) {
-                for (let i = 0, len = eventTypes.length; i < len; i++) {
-                    addSubscriber.call(this, eventTypes[i], handler, context);
-                }
-            }
+            return this;
         }
 
         /**
@@ -110,12 +135,17 @@
          *  @param {Function} handler - The handler which must be unsubscribed.
          *  @param {Object} context - Handler's context.
          */
-        unsubscribe(eventTypes: string[], handler: (type: string, data: any) => void, context?: Object): void {
-            if (Array.isArray(eventTypes)) {
-                for (let i = 0, len = eventTypes.length; i < len; i++) {
-                    removeSubscriber.call(this, eventTypes[i], handler, context);
-                }
+        unsubscribe(eventTypes: string[], handler: (type: string, data: any) => void, context?: any): this {
+            let errorMsg = "Unsubscribing failed:";
+            hidden.typeGuard("function", handler, `${errorMsg} event handler should be a function.`);
+            hidden.typeGuard("array", eventTypes, `${errorMsg} event types should be passed as an array of strings.`);
+
+            runPlugins.call(this, HookType.SPA_Unsubscribe, eventTypes);
+            for (let i = 0, len = eventTypes.length; i < len; i++) {
+                removeSubscriber.call(this, eventTypes[i], handler, context);
             }
+
+            return this;
         }
 
         /**
@@ -123,11 +153,12 @@
          *  @param {String} type - Type of the event.
          *  @param {*} [data] - Optional data.
          */
-        publish(type: string, data: any): void {
+        publish(type: string, data: any): this {
             if (!Array.isArray(this.subscribers[type])) {
                 return;
             }
 
+            runPlugins.call(this, HookType.SPA_Publish, type, data);
             this.subscribers[type]
                 .slice(0)
                 .forEach(subscriber => subscriber.handler.call(subscriber.context, type, data));
@@ -139,29 +170,20 @@
          *  @param {function} moduleFactory - function which provides an instance of the module.
          */
         register(moduleId: string, moduleFactory: (sb: Sandbox) => Module): this {
-            if (moduleId === "" || typeof moduleId !== "string") {
-                throw new TypeError(moduleId + " Module registration FAILED: ID must be a non empty string.");
-            }
+            let errorMsg = `${moduleId} registration failed:`;
+            hidden.typeGuard("string", moduleId, `${errorMsg} module ID must be a string.`);
+            hidden.typeGuard("string", moduleId, `${errorMsg} module ID must be a string.`);
+            hidden.typeGuard("undefined", this.modules[moduleId], `${errorMsg} module with such id has been already registered.`);
+            let tempModule = moduleFactory(new this.Sandbox(this, moduleId));
+            hidden.typeGuard("function", tempModule.init, `${errorMsg} module does not implement init method.`);
+            hidden.typeGuard("function", tempModule.destroy, `${errorMsg} module does not implement destroy method.`);
 
-            if (this.modules[moduleId]) {
-                throw new TypeError(moduleId + " Module registration FAILED: a module with such id has been already registered.");
-            }
-
-            let tempModule = moduleFactory(new spaMVP.Sandbox(this, moduleId));
-            if (typeof tempModule.init !== "function" || typeof tempModule.destroy !== "function") {
-                throw new TypeError(moduleId + " Module registration FAILED: Module has no init or destroy methods.");
-            }
-
-            this.modules[moduleId] = { create: moduleFactory, instances: null };
+            runPlugins.call(this, HookType.SPA_ModuleRegister, moduleId, moduleFactory);
+            this.modules[moduleId] = {
+                create: moduleFactory,
+                instances: {}
+            };
             return this;
-        }
-
-        /**
-         *  Returns all registered module ids.
-         *  @returns {string[]}
-         */
-        getAllModules(): string[] {
-            return Object.keys(this.modules);
         }
 
         /**
@@ -171,22 +193,21 @@
          */
         start(moduleId: string, options?: Object): this {
             let module = this.modules[moduleId];
-            if (!module) {
-                throw new ReferenceError(moduleId + " Module not found.");
-            }
-
             options = options || {};
-            if (typeof options !== "object") {
-                throw new TypeError(moduleId + " Module's options must be an object.");
-            }
 
-            module.instances = module.instances || {};
+            let errorMsg = `${moduleId} initialization failed:`;
+            hidden.typeGuard("object", module, `${errorMsg} module not found.`);
+            hidden.typeGuard("object", options, `${errorMsg} module options must be an object.`);
+
             let instanceId = options["instanceId"] || moduleId;
             if (module.instances.hasOwnProperty(instanceId)) {
+                // already initialized
                 return this;
             }
 
-            let instance = module.create(new spaMVP.Sandbox(this, instanceId));
+            runPlugins.call(this, HookType.SPA_ModuleInit, moduleId, options);
+
+            let instance = module.create(new this.Sandbox(this, instanceId));
             module.instances[instanceId] = instance;
             instance.init(options);
             return this;
@@ -200,7 +221,9 @@
         stop(moduleId: string, instanceId?: string): this {
             let module = this.modules[moduleId];
             let id = instanceId || moduleId;
-            if (module && module.instances && module.instances.hasOwnProperty(id)) {
+            if (module && module.instances.hasOwnProperty(id)) {
+                runPlugins.call(this, HookType.SPA_ModuleDestroy, moduleId, instanceId);
+
                 module.instances[id].destroy();
                 delete module.instances[id];
             }
@@ -209,44 +232,42 @@
         }
 
         /**
-         *  Add a service.
-         *  @param {String} id
-         *  @param {Function} factory - function which provides an instance of the service.
+         *  Get all registered module ids.
          */
-        addService<T>(id: string, factory: () => T): this {
-            if (typeof id !== "string" || id === "") {
-                throw new TypeError(id + " Service registration FAILED: ID must be non empty string.");
+        getModules(): string[] {
+            return Object.keys(this.modules);
+        }
+
+        /**
+         *  Hooks a given function to specific hook type.
+         *  @param {string} hookType - The hook type.
+         *  @param {function} plugin - The function needs to hook.
+         */
+        hook(hookType: string, plugin: Function): this {
+            let errorMsg = "Hook plugin failed:";
+            hidden.typeGuard("string", hookType, `${errorMsg} hook type should be a non empty string.`);
+            hidden.typeGuard("function", plugin, `${errorMsg} plugin should be a function.`);
+
+            if (!Array.isArray(this.hooks[hookType])) {
+                this.hooks[hookType] = [];
             }
 
-            if (this.services[id]) {
-                throw new TypeError(id + " Service registration FAILED: a service with such id has been already added.");
-            }
-
-            this.services[id] = factory;
+            this.hooks[hookType].push(plugin);
             return this;
         }
 
         /**
-         *  Gets a specific service instance by id.
-         *  @param {String} id
-         *  @returns {*}
+         *  Start listening for hash change if there are any registered routes.
+         *  @param {Function} action Optional action to be executed before core initialization.
          */
-        getService<T>(id: string): T {
-            let creator = this.services[id];
-            if (!creator) {
-                throw new ReferenceError(id + " Service was not found.");
-            }
+        run(action?: () => void): this {
+            onApplicationStartCustom = typeof action === "function" ? action : onApplicationStartCustom;
+            onApplicationStart = () => {
+                runPlugins.call(this, HookType.SPA_DOMReady);
+            };
 
-            return creator();
+            document.addEventListener("DOMContentLoaded", onDomReady);
+            return this;
         }
-    }
-
-    /**
-     *  Returns application core.
-     * @param {RouteConfig} [routeConfig] - Optional. It is usefull if you want to use custom route handling.
-     * @returns {Core}
-     */
-    export function createAppCore(routeConfig?: RouteConfig): Core {
-        return new Core(routeConfig);
     }
 }

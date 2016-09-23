@@ -7,124 +7,376 @@
 //# sourceMappingURL=license.js.map
 var spaMVP;
 (function (spaMVP) {
-    "use strict";
-    // polyfill for older browsers
-    if (typeof Object.create !== "function") {
-        Object.create = function (o) {
-            function F() {
-                //
+    var Hidden;
+    (function (Hidden) {
+        "use strict";
+        function typeGuard(expected, value, errorMsg) {
+            var toThrow = false;
+            switch (expected) {
+                case "array":
+                    toThrow = !Array.isArray(value);
+                    break;
+                default: toThrow = typeof value !== expected || value === null;
             }
-            F.prototype = o;
-            return new F();
-        };
-    }
-    function subclass(inheritor) {
-        var BaseClass = this;
-        var prototype = inheritor.prototype;
-        inheritor.prototype = Object.create(BaseClass.prototype);
-        extend(inheritor.prototype, prototype);
-        inheritor.prototype.constructor = inheritor;
-        inheritor.BaseClass = BaseClass;
-        inheritor.subclass = subclassFactory;
-        return inheritor;
-    }
-    function subclassFactory(getInheritorFunc) {
-        var inheritor = getInheritorFunc();
-        if (!inheritor || typeof inheritor !== "function") {
-            throw new Error("Inheritor's function constructor must be supplied.");
-        }
-        return subclass.call(this, inheritor);
-    }
-    spaMVP.subclassFactory = subclassFactory;
-    function extend(target, object) {
-        for (var prop in object) {
-            if (object[prop]) {
-                target[prop] = object[prop];
+            if (toThrow) {
+                throw new TypeError(errorMsg);
             }
         }
-    }
-    spaMVP.extend = extend;
+        Hidden.typeGuard = typeGuard;
+    })(Hidden = spaMVP.Hidden || (spaMVP.Hidden = {}));
 })(spaMVP || (spaMVP = {}));
 //# sourceMappingURL=helpers.js.map
 var spaMVP;
 (function (spaMVP) {
     "use strict";
-    spaMVP.ModelEvents = {
-        Change: "change",
-        Destroy: "destroy"
-    };
     /**
-     *  @class spaMVP.Model
+     *  @class Sandbox - Connects all modules to the outside world.
+     *  @property {String} moduleInstanceId - Id of the module it serves for.
      */
-    var Model = (function () {
-        function Model() {
-            this.listeners = {};
+    var Sandbox = (function () {
+        function Sandbox(core, moduleInstanceId) {
+            if (!core || !moduleInstanceId) {
+                throw new Error("Missing core or module instance ID.");
+            }
+            this.core = core;
+            this.moduleInstanceId = moduleInstanceId;
         }
-        /**
-         *  Attaches an event handler to model raised events.
-         *  @param {String} eventType The name of the event.
-         *  @param {Function} handler The event's handler.
-         *  @param {Object} [context] The Handler's context.
-         */
-        Model.prototype.on = function (eventType, handler, context) {
-            if (!eventType) {
-                return false;
-            }
-            this.listeners[eventType] = this.listeners[eventType] || [];
-            this.listeners[eventType].push({
-                handler: handler,
-                context: context
-            });
-            return true;
+        Sandbox.prototype.subscribe = function (eventTypes, handler, context) {
+            this.core.subscribe(eventTypes, handler, context);
+            return this;
         };
-        /**
-         *  Detaches an event handler.
-         *  @param {String} eventType The name of the event.
-         *  @param {Function} handler The handler which must be detached.
-         *  @param {Object} [context] The Handler's context.
-         */
-        Model.prototype.off = function (eventType, handler, context) {
-            var listeners = this.listeners[eventType] || [];
-            for (var i = 0, len = listeners.length; i < len; i++) {
-                var listener = listeners[i];
-                if (listener.handler === handler &&
-                    listener.context === context) {
-                    listener = listeners[len - 1];
-                    listeners.length--;
-                    return true;
-                }
-            }
-            return false;
+        Sandbox.prototype.unsubscribe = function (eventTypes, handler, context) {
+            this.core.unsubscribe(eventTypes, handler, context);
+            return this;
         };
-        /**
-         *  Notifies the listeners attached for specific event.
-         */
-        Model.prototype.notify = function (type, data) {
-            if (!Array.isArray(this.listeners[type])) {
+        Sandbox.prototype.publish = function (eventType, data) {
+            this.core.publish(eventType, data);
+            return this;
+        };
+        Sandbox.prototype.start = function (moduleId, options) {
+            this.core.start(moduleId, options);
+            return this;
+        };
+        Sandbox.prototype.stop = function (moduleId, instanceId) {
+            this.core.stop(moduleId, instanceId);
+            return this;
+        };
+        return Sandbox;
+    }());
+    spaMVP.Sandbox = Sandbox;
+})(spaMVP || (spaMVP = {}));
+//# sourceMappingURL=Sandbox.js.map
+var spaMVP;
+(function (spaMVP) {
+    "use strict";
+    function addSubscriber(eventType, handler, context) {
+        this.subscribers[eventType] = this.subscribers[eventType] || [];
+        this.subscribers[eventType].push({
+            handler: handler,
+            context: context
+        });
+    }
+    function removeSubscriber(eventType, handler, context) {
+        var subscribers = this.subscribers[eventType] || [];
+        for (var i = 0, len = subscribers.length; i < len; i++) {
+            var subscriber = subscribers[i];
+            if (subscriber.handler === handler &&
+                subscriber.context === context) {
+                subscribers[i] = subscribers[len - 1];
+                subscribers.length--;
                 return;
             }
-            this.listeners[type]
+        }
+    }
+    function onDomReady(ev) {
+        document.removeEventListener("DOMContentLoaded", onDomReady);
+        onApplicationStart();
+        onApplicationStartCustom();
+    }
+    function runPlugins(hookType) {
+        var params = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            params[_i - 1] = arguments[_i];
+        }
+        var plugins = this.hooks[hookType];
+        if (!Array.isArray(plugins)) {
+            return;
+        }
+        var argumentsLength = arguments.length;
+        var args = new Array(argumentsLength - 1);
+        for (var i = 1; i < argumentsLength; i++) {
+            args[i - 1] = arguments[i];
+        }
+        for (var i = 0, len = plugins.length; i < len; i++) {
+            try {
+                plugins[i].apply(null, args);
+            }
+            catch (ex) {
+                var argsDetails = args.length > 0 ? args.join(", ") : "none";
+                console.error("Plugin execution failed on hook " + hookType + ". Arguments: " + argsDetails + ". Message: " + ex);
+            }
+        }
+    }
+    var hidden = spaMVP.Hidden;
+    var onApplicationStart = function () { };
+    var onApplicationStartCustom = function () { };
+    spaMVP.HookType = {
+        SPA_DOMReady: "spa-dom-ready",
+        SPA_ModuleDestroy: "spa-module-destroy",
+        SPA_ModuleInit: "spa-module-init",
+        SPA_ModuleRegister: "spa-module-register",
+        SPA_Publish: "spa-publish",
+        SPA_Subscribe: "spa-subscribe",
+        SPA_Unsubscribe: "spa-unsubscribe",
+    };
+    var Core = (function () {
+        function Core(sandboxType) {
+            this.subscribers = {};
+            this.modules = {};
+            this.hooks = {};
+            this.Sandbox = typeof sandboxType === "function" ? sandboxType : spaMVP.Sandbox;
+        }
+        /**
+         *  Subscribes for given events.
+         *  @param {Array} eventTypes - Array of events to subscribe for.
+         *  @param {Function} handler - The events' handler.
+         *  @param {Object} context - Handler's context.
+         */
+        Core.prototype.subscribe = function (eventTypes, handler, context) {
+            var errorMsg = "Subscribing failed:";
+            hidden.typeGuard("function", handler, errorMsg + " event handler should be a function.");
+            hidden.typeGuard("array", eventTypes, errorMsg + " event types should be passed as an array of strings.");
+            runPlugins.call(this, spaMVP.HookType.SPA_Subscribe, eventTypes);
+            for (var i = 0, len = eventTypes.length; i < len; i++) {
+                addSubscriber.call(this, eventTypes[i], handler, context);
+            }
+            return this;
+        };
+        /**
+         *  Unsubscribes for specific events.
+         *  @param {Array} eventTypes - Array of events to unsubscribe for.
+         *  @param {Function} handler - The handler which must be unsubscribed.
+         *  @param {Object} context - Handler's context.
+         */
+        Core.prototype.unsubscribe = function (eventTypes, handler, context) {
+            var errorMsg = "Unsubscribing failed:";
+            hidden.typeGuard("function", handler, errorMsg + " event handler should be a function.");
+            hidden.typeGuard("array", eventTypes, errorMsg + " event types should be passed as an array of strings.");
+            runPlugins.call(this, spaMVP.HookType.SPA_Unsubscribe, eventTypes);
+            for (var i = 0, len = eventTypes.length; i < len; i++) {
+                removeSubscriber.call(this, eventTypes[i], handler, context);
+            }
+            return this;
+        };
+        /**
+         *  Publishes an event.
+         *  @param {String} type - Type of the event.
+         *  @param {*} [data] - Optional data.
+         */
+        Core.prototype.publish = function (type, data) {
+            if (!Array.isArray(this.subscribers[type])) {
+                return;
+            }
+            runPlugins.call(this, spaMVP.HookType.SPA_Publish, type, data);
+            this.subscribers[type]
                 .slice(0)
-                .forEach(function (listener) { return listener.handler.call(listener.context, data); });
+                .forEach(function (subscriber) { return subscriber.handler.call(subscriber.context, type, data); });
         };
         /**
-         *  Notifies for change event.
+         *  Registers a module.
+         *  @param {string} moduleId
+         *  @param {function} moduleFactory - function which provides an instance of the module.
          */
-        Model.prototype.change = function () {
-            this.notify(spaMVP.ModelEvents.Change, this);
+        Core.prototype.register = function (moduleId, moduleFactory) {
+            var errorMsg = moduleId + " registration failed:";
+            hidden.typeGuard("string", moduleId, errorMsg + " module ID must be a string.");
+            hidden.typeGuard("string", moduleId, errorMsg + " module ID must be a string.");
+            hidden.typeGuard("undefined", this.modules[moduleId], errorMsg + " module with such id has been already registered.");
+            var tempModule = moduleFactory(new this.Sandbox(this, moduleId));
+            hidden.typeGuard("function", tempModule.init, errorMsg + " module does not implement init method.");
+            hidden.typeGuard("function", tempModule.destroy, errorMsg + " module does not implement destroy method.");
+            runPlugins.call(this, spaMVP.HookType.SPA_ModuleRegister, moduleId, moduleFactory);
+            this.modules[moduleId] = {
+                create: moduleFactory,
+                instances: {}
+            };
+            return this;
         };
         /**
-         *  Notifies for destroy event.
+         *  Starts an instance of given module and initializes it.
+         *  @param {string} moduleId - Id of the module, which must be started.
+         *  @param {object} options
          */
-        Model.prototype.destroy = function () {
-            this.notify(spaMVP.ModelEvents.Destroy, this);
+        Core.prototype.start = function (moduleId, options) {
+            var module = this.modules[moduleId];
+            options = options || {};
+            var errorMsg = moduleId + " initialization failed:";
+            hidden.typeGuard("object", module, errorMsg + " module not found.");
+            hidden.typeGuard("object", options, errorMsg + " module options must be an object.");
+            var instanceId = options["instanceId"] || moduleId;
+            if (module.instances.hasOwnProperty(instanceId)) {
+                // already initialized
+                return this;
+            }
+            runPlugins.call(this, spaMVP.HookType.SPA_ModuleInit, moduleId, options);
+            var instance = module.create(new this.Sandbox(this, instanceId));
+            module.instances[instanceId] = instance;
+            instance.init(options);
+            return this;
         };
-        Model.subclass = spaMVP.subclassFactory;
-        return Model;
+        /**
+         *  Stops a given module.
+         *  @param {string} moduleId - Id of the module, which must be stopped.
+         *  @param {string} [instanceId] - Specific module's instance id.
+         */
+        Core.prototype.stop = function (moduleId, instanceId) {
+            var module = this.modules[moduleId];
+            var id = instanceId || moduleId;
+            if (module && module.instances.hasOwnProperty(id)) {
+                runPlugins.call(this, spaMVP.HookType.SPA_ModuleDestroy, moduleId, instanceId);
+                module.instances[id].destroy();
+                delete module.instances[id];
+            }
+            return this;
+        };
+        /**
+         *  Get all registered module ids.
+         */
+        Core.prototype.getModules = function () {
+            return Object.keys(this.modules);
+        };
+        /**
+         *  Hooks a given function to specific hook type.
+         *  @param {string} hookType - The hook type.
+         *  @param {function} plugin - The function needs to hook.
+         */
+        Core.prototype.hook = function (hookType, plugin) {
+            var errorMsg = "Hook plugin failed:";
+            hidden.typeGuard("string", hookType, errorMsg + " hook type should be a non empty string.");
+            hidden.typeGuard("function", plugin, errorMsg + " plugin should be a function.");
+            if (!Array.isArray(this.hooks[hookType])) {
+                this.hooks[hookType] = [];
+            }
+            this.hooks[hookType].push(plugin);
+            return this;
+        };
+        /**
+         *  Start listening for hash change if there are any registered routes.
+         *  @param {Function} action Optional action to be executed before core initialization.
+         */
+        Core.prototype.run = function (action) {
+            var _this = this;
+            onApplicationStartCustom = typeof action === "function" ? action : onApplicationStartCustom;
+            onApplicationStart = function () {
+                runPlugins.call(_this, spaMVP.HookType.SPA_DOMReady);
+            };
+            document.addEventListener("DOMContentLoaded", onDomReady);
+            return this;
+        };
+        return Core;
     }());
-    spaMVP.Model = Model;
+    spaMVP.Core = Core;
+})(spaMVP || (spaMVP = {}));
+//# sourceMappingURL=Core.js.map
+var spaMVP;
+(function (spaMVP) {
+    var Hidden;
+    (function (Hidden) {
+        "use strict";
+        Hidden.ModelEvents = {
+            Change: "change",
+            Destroy: "destroy"
+        };
+        Hidden.CollectionEvents = {
+            AddedItems: "added-items",
+            DeletedItems: "deleted-items",
+            UpdatedItem: "updated-item"
+        };
+        /**
+         *  @class spaMVP.Model
+         */
+        var Model = (function () {
+            function Model() {
+                this.listeners = {};
+            }
+            /**
+             *  Attaches an event handler to model raised events.
+             *  @param {String} eventType The name of the event.
+             *  @param {Function} handler The event's handler.
+             *  @param {Object} [context] The Handler's context.
+             */
+            Model.prototype.on = function (eventType, handler, context) {
+                if (!eventType) {
+                    return false;
+                }
+                this.listeners[eventType] = this.listeners[eventType] || [];
+                this.listeners[eventType].push({
+                    handler: handler,
+                    context: context
+                });
+                return true;
+            };
+            /**
+             *  Detaches an event handler.
+             *  @param {String} eventType The name of the event.
+             *  @param {Function} handler The handler which must be detached.
+             *  @param {Object} [context] The Handler's context.
+             */
+            Model.prototype.off = function (eventType, handler, context) {
+                var listeners = this.listeners[eventType] || [];
+                for (var i = 0, len = listeners.length; i < len; i++) {
+                    var listener = listeners[i];
+                    if (listener.handler === handler &&
+                        listener.context === context) {
+                        listener = listeners[len - 1];
+                        listeners.length--;
+                        return true;
+                    }
+                }
+                return false;
+            };
+            /**
+             *  Notifies the listeners attached for specific event.
+             */
+            Model.prototype.notify = function (type, data) {
+                if (!Array.isArray(this.listeners[type])) {
+                    return;
+                }
+                this.listeners[type]
+                    .slice(0)
+                    .forEach(function (listener) { return listener.handler.call(listener.context, data); });
+            };
+            /**
+             *  Notifies for change event.
+             */
+            Model.prototype.change = function () {
+                this.notify(Hidden.ModelEvents.Change, this);
+            };
+            /**
+             *  Notifies for destroy event.
+             */
+            Model.prototype.destroy = function () {
+                this.notify(Hidden.ModelEvents.Destroy, this);
+            };
+            return Model;
+        }());
+        Hidden.Model = Model;
+        var Model;
+        (function (Model) {
+            Model.Events = Hidden.ModelEvents;
+            Model.CollectionEvents = {
+                AddedItems: "added-items",
+                DeletedItems: "deleted-items",
+                UpdatedItem: "updated-item"
+            };
+        })(Model = Hidden.Model || (Hidden.Model = {}));
+    })(Hidden = spaMVP.Hidden || (spaMVP.Hidden = {}));
 })(spaMVP || (spaMVP = {}));
 //# sourceMappingURL=Model.js.map
+var spaMVP;
+(function (spaMVP) {
+    "use strict";
+})(spaMVP || (spaMVP = {}));
 var spaMVP;
 (function (spaMVP) {
     var Hidden;
@@ -277,138 +529,134 @@ var __extends = (this && this.__extends) || function (d, b) {
 };
 var spaMVP;
 (function (spaMVP) {
-    "use strict";
-    var hidden = spaMVP.Hidden;
-    spaMVP.CollectionEvents = {
-        AddedItems: "added-items",
-        DeletedItems: "deleted-items",
-        UpdatedItem: "updated-item"
-    };
-    function onItemChange(item) {
-        this.notify(spaMVP.CollectionEvents.UpdatedItem, item);
-    }
-    function onItemDestroy(item) {
-        this.removeRange([item]);
-    }
-    /**
-     *  Composite pattern on spaMVP.Model.
-     *  It is usefull when you want to listen for collection of models.
-     *  @class spaMVP.Collection
-     *  @augments spaMVP.Model
-     */
-    var Collection = (function (_super) {
-        __extends(Collection, _super);
-        function Collection() {
-            _super.call(this);
-            this.models = new hidden.HashSet();
+    var Hidden;
+    (function (Hidden) {
+        "use strict";
+        function onItemChange(item) {
+            this.notify(Hidden.Model.CollectionEvents.UpdatedItem, item);
         }
-        Object.defineProperty(Collection.prototype, "size", {
-            get: function () {
-                return this.models.size;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Collection.prototype.equals = function (other) {
-            return false;
-        };
-        Collection.prototype.hash = function () {
-            return this.size ^ 17;
-        };
+        function onItemDestroy(item) {
+            this.removeRange([item]);
+        }
         /**
-         *  Adds new model to the set.
-         *  @returns {Boolean}
+         *  Composite pattern on spaMVP.Model.
+         *  It is usefull when you want to listen for collection of models.
+         *  @class spaMVP.Collection
+         *  @augments spaMVP.Model
          */
-        Collection.prototype.add = function (model) {
-            return this.addRange([model]);
-        };
-        /**
-         *  Adds range of models to the set.
-         *  @returns {Boolean}
-         */
-        Collection.prototype.addRange = function (models) {
-            var added = [];
-            for (var i = 0, len = models.length; i < len; i++) {
-                var model = models[i];
-                if (!this.models.add(model)) {
-                    continue;
+        var Collection = (function (_super) {
+            __extends(Collection, _super);
+            function Collection() {
+                _super.call(this);
+                this.models = new Hidden.HashSet();
+            }
+            Object.defineProperty(Collection.prototype, "size", {
+                get: function () {
+                    return this.models.size;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            Collection.prototype.equals = function (other) {
+                return false;
+            };
+            Collection.prototype.hash = function () {
+                return this.size ^ 17;
+            };
+            /**
+             *  Adds new model to the set.
+             *  @returns {Boolean}
+             */
+            Collection.prototype.add = function (model) {
+                return this.addRange([model]);
+            };
+            /**
+             *  Adds range of models to the set.
+             *  @returns {Boolean}
+             */
+            Collection.prototype.addRange = function (models) {
+                var added = [];
+                for (var i = 0, len = models.length; i < len; i++) {
+                    var model = models[i];
+                    if (!this.models.add(model)) {
+                        continue;
+                    }
+                    model.on(Hidden.Model.Events.Change, onItemChange, this);
+                    model.on(Hidden.Model.Events.Destroy, onItemDestroy, this);
+                    added.push(model);
                 }
-                model.on(spaMVP.ModelEvents.Change, onItemChange, this);
-                model.on(spaMVP.ModelEvents.Destroy, onItemDestroy, this);
-                added.push(model);
-            }
-            var isModified = added.length > 0;
-            if (isModified) {
-                this.notify(spaMVP.CollectionEvents.AddedItems, added);
-            }
-            return isModified;
-        };
-        /**
-         *  Removes a model from the set.
-         *  @returns {Boolean}
-         */
-        Collection.prototype.remove = function (model) {
-            return this.removeRange([model]);
-        };
-        /**
-         *  Removes range of models.
-         *  @returns {Boolean}
-         */
-        Collection.prototype.removeRange = function (models) {
-            var deleted = [];
-            for (var i = 0, len = models.length; i < len; i++) {
-                var model = models[i];
-                if (!this.models.remove(model)) {
-                    continue;
+                var isModified = added.length > 0;
+                if (isModified) {
+                    this.notify(Hidden.Model.CollectionEvents.AddedItems, added);
                 }
-                model.off(spaMVP.ModelEvents.Change, onItemChange, this);
-                model.off(spaMVP.ModelEvents.Destroy, onItemDestroy, this);
-                deleted.push(model);
-            }
-            var isModified = deleted.length > 0;
-            if (isModified) {
-                this.notify(spaMVP.CollectionEvents.DeletedItems, deleted);
-            }
-            return isModified;
-        };
-        /**
-         *  Removes all models from the set.
-         *  @returns {Boolean}
-         */
-        Collection.prototype.clear = function () {
-            return this.removeRange(this.toArray());
-        };
-        /**
-         *  Determines whether a model is in the collection.
-         *  @returns {Boolean}
-         */
-        Collection.prototype.contains = function (model) {
-            return this.models.contains(model);
-        };
-        /**
-         *  Determines whether the collection is not empty.
-         *  @returns {Boolean}
-         */
-        Collection.prototype.any = function () {
-            return this.size > 0;
-        };
-        /**
-         *  Returns the models as Array.
-         *  @returns {Array}
-         */
-        Collection.prototype.toArray = function () {
-            return this.models.toArray();
-        };
-        /**
-         *  Performs an action on each model in the set.
-         */
-        Collection.prototype.forEach = function (action, context) {
-            this.models.forEach(action, context);
-        };
-        Collection.subclass = spaMVP.subclassFactory;
-        return Collection;
-    }(spaMVP.Model));
-    spaMVP.Collection = Collection;
+                return isModified;
+            };
+            /**
+             *  Removes a model from the set.
+             *  @returns {Boolean}
+             */
+            Collection.prototype.remove = function (model) {
+                return this.removeRange([model]);
+            };
+            /**
+             *  Removes range of models.
+             *  @returns {Boolean}
+             */
+            Collection.prototype.removeRange = function (models) {
+                var deleted = [];
+                for (var i = 0, len = models.length; i < len; i++) {
+                    var model = models[i];
+                    if (!this.models.remove(model)) {
+                        continue;
+                    }
+                    model.off(Hidden.Model.Events.Change, onItemChange, this);
+                    model.off(Hidden.Model.Events.Destroy, onItemDestroy, this);
+                    deleted.push(model);
+                }
+                var isModified = deleted.length > 0;
+                if (isModified) {
+                    this.notify(Hidden.Model.CollectionEvents.DeletedItems, deleted);
+                }
+                return isModified;
+            };
+            /**
+             *  Removes all models from the set.
+             *  @returns {Boolean}
+             */
+            Collection.prototype.clear = function () {
+                return this.removeRange(this.toArray());
+            };
+            /**
+             *  Determines whether a model is in the collection.
+             *  @returns {Boolean}
+             */
+            Collection.prototype.contains = function (model) {
+                return this.models.contains(model);
+            };
+            /**
+             *  Determines whether the collection is not empty.
+             *  @returns {Boolean}
+             */
+            Collection.prototype.any = function () {
+                return this.size > 0;
+            };
+            /**
+             *  Returns the models as Array.
+             *  @returns {Array}
+             */
+            Collection.prototype.toArray = function () {
+                return this.models.toArray();
+            };
+            /**
+             *  Performs an action on each model in the set.
+             */
+            Collection.prototype.forEach = function (action, context) {
+                this.models.forEach(action, context);
+            };
+            return Collection;
+        }(Hidden.Model));
+        Hidden.Collection = Collection;
+    })(Hidden = spaMVP.Hidden || (spaMVP.Hidden = {}));
 })(spaMVP || (spaMVP = {}));
 //# sourceMappingURL=Collection.js.map
 var spaMVP;
@@ -542,199 +790,221 @@ var spaMVP;
 //# sourceMappingURL=UIEvent.js.map
 var spaMVP;
 (function (spaMVP) {
-    "use strict";
-    var hidden = spaMVP.Hidden;
-    function eventHandler(ev) {
-        var target = ev.target;
-        var dataset = target.dataset;
-        if (!dataset.hasOwnProperty(ev.type)) {
-            return;
-        }
-        var callbackName = dataset[ev.type];
-        if (typeof this[callbackName] === "function") {
-            this[callbackName](dataset, target, ev);
-            return;
-        }
-    }
-    /**
-     *  @class spaMVP.View
-     *  @param {HTMLElement} domNode The view's html element.
-     *  @param {Function} [template] A function which renders view's html element.
-     *  @property {HTMLElement} domNode
-     */
-    var View = (function () {
-        function View(domNode, template) {
-            if (!domNode) {
-                throw new Error("Dom node cannot be null.");
+    var Hidden;
+    (function (Hidden) {
+        "use strict";
+        function eventHandler(ev) {
+            var target = ev.target;
+            var dataset = target.dataset;
+            if (!dataset.hasOwnProperty(ev.type)) {
+                return;
             }
-            this._domNode = domNode;
-            this._template = template;
+            var callbackName = dataset[ev.type];
+            if (typeof this[callbackName] === "function") {
+                this[callbackName](dataset, target, ev);
+                return;
+            }
         }
-        Object.defineProperty(View.prototype, "domNode", {
-            get: function () {
-                return this._domNode;
-            },
-            enumerable: true,
-            configurable: true
-        });
         /**
-         *  Maps a view action to given ui event disptached from html element.
-         *  Mapping works by using the dataset - e.g data-click="handleClick" maps to handleClick.
-         * @param eventType
-         * @param useCapture
-         * @param selector
+         *  @class spaMVP.View
+         *  @param {HTMLElement} domNode The view's html element.
+         *  @param {Function} [template] A function which renders view's html element.
+         *  @property {HTMLElement} domNode
          */
-        View.prototype.map = function (eventType, useCapture, selector) {
-            if (useCapture === void 0) { useCapture = false; }
-            hidden.UIEvent({
-                name: eventType,
-                htmlElement: !selector ? this.domNode : this.domNode.querySelector(selector),
-                handler: eventHandler,
-                eventType: eventType,
-                context: this,
-                useCapture: useCapture
+        var View = (function () {
+            function View(domNode, template) {
+                if (!domNode) {
+                    throw new Error("Dom node cannot be null.");
+                }
+                this._domNode = domNode;
+                this._template = template;
+            }
+            Object.defineProperty(View.prototype, "domNode", {
+                get: function () {
+                    return this._domNode;
+                },
+                enumerable: true,
+                configurable: true
             });
-            return this;
-        };
-        /**
-         *  Renders the view.
-         *  @returns {HTMLElement}
-         */
-        View.prototype.render = function (model) {
-            if (this._template) {
-                this.domNode.innerHTML = this._template.call(this, model);
-            }
-            return this.domNode;
-        };
-        /**
-         *  Removes all elements and mapped events.
-         */
-        View.prototype.destroy = function () {
-            if (typeof this.domNode.detach === "function") {
-                this.domNode.detach();
-            }
-            this.removeAllElements();
-            this._domNode = null;
-            return this;
-        };
-        /**
-         *  Finds an element by given selector.
-         *  @param {String} selector
-         *  @returns {Element}
-         */
-        View.prototype.query = function (selector) {
-            return this.domNode.querySelector(selector);
-        };
-        /**
-         *  Removes an element by given selector.
-         *  @param {String} selector
-         */
-        View.prototype.removeElement = function (selector) {
-            var element = this.query(selector);
-            if (element) {
-                element.parentElement.removeChild(element);
-            }
-            return this;
-        };
-        /**
-         *  Removes all elements.
-         *  @returns {spaMVP.View}
-         */
-        View.prototype.removeAllElements = function () {
-            while (this.domNode.firstElementChild) {
-                this.domNode.removeChild(this.domNode.firstElementChild);
-            }
-            return this;
-        };
-        View.subclass = spaMVP.subclassFactory;
-        return View;
-    }());
-    spaMVP.View = View;
+            /**
+             *  Maps a view action to given ui event disptached from html element.
+             *  Mapping works by using the dataset - e.g data-click="handleClick" maps to handleClick.
+             * @param eventType
+             * @param useCapture
+             * @param selector
+             */
+            View.prototype.map = function (eventType, useCapture, selector) {
+                if (useCapture === void 0) { useCapture = false; }
+                Hidden.UIEvent({
+                    name: eventType,
+                    htmlElement: !selector ? this.domNode : this.domNode.querySelector(selector),
+                    handler: eventHandler,
+                    eventType: eventType,
+                    context: this,
+                    useCapture: useCapture
+                });
+                return this;
+            };
+            /**
+             *  Renders the view.
+             *  @returns {HTMLElement}
+             */
+            View.prototype.render = function (model) {
+                if (this._template) {
+                    this.domNode.innerHTML = this._template.call(this, model);
+                }
+                return this.domNode;
+            };
+            /**
+             *  Removes all elements and mapped events.
+             */
+            View.prototype.destroy = function () {
+                if (typeof this.domNode.detach === "function") {
+                    this.domNode.detach();
+                }
+                this.removeAllElements();
+                this._domNode = null;
+                return this;
+            };
+            /**
+             *  Finds an element by given selector.
+             *  @param {String} selector
+             *  @returns {Element}
+             */
+            View.prototype.query = function (selector) {
+                return this.domNode.querySelector(selector);
+            };
+            /**
+             *  Removes an element by given selector.
+             *  @param {String} selector
+             */
+            View.prototype.removeElement = function (selector) {
+                var element = this.query(selector);
+                if (element) {
+                    element.parentElement.removeChild(element);
+                }
+                return this;
+            };
+            /**
+             *  Removes all elements.
+             *  @returns {spaMVP.View}
+             */
+            View.prototype.removeAllElements = function () {
+                while (this.domNode.firstElementChild) {
+                    this.domNode.removeChild(this.domNode.firstElementChild);
+                }
+                return this;
+            };
+            return View;
+        }());
+        Hidden.View = View;
+    })(Hidden = spaMVP.Hidden || (spaMVP.Hidden = {}));
 })(spaMVP || (spaMVP = {}));
 //# sourceMappingURL=View.js.map
 var spaMVP;
 (function (spaMVP) {
-    "use strict";
-    /**
-     *  @class spaMVP.Presenter
-     */
-    var Presenter = (function () {
-        function Presenter() {
-            this._view = null;
-            this._model = null;
-            this._modelHandlers = {};
-        }
-        Object.defineProperty(Presenter.prototype, "view", {
-            get: function () {
-                return this._view;
-            },
-            set: function (value) {
-                if (this.view === value) {
-                    return;
-                }
-                if (this.view) {
-                    this.view.destroy();
-                }
-                this._view = value;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Presenter.prototype, "model", {
-            get: function () {
-                return this._model;
-            },
-            set: function (model) {
-                var _this = this;
-                if (this._model === model) {
-                    return;
-                }
-                Object.keys(this._modelHandlers).forEach(function (type) {
-                    var eventHandler = _this._modelHandlers[type];
-                    if (_this._model) {
-                        _this._model.off(type, eventHandler, _this);
-                    }
-                    if (model) {
-                        model.on(type, eventHandler, _this);
-                    }
-                });
-                this._model = model;
-                this.render();
-            },
-            enumerable: true,
-            configurable: true
-        });
+    var Hidden;
+    (function (Hidden) {
+        "use strict";
         /**
-         *  Determins which events to handle when model notifies.
+         *  @class spaMVP.Presenter
          */
-        Presenter.prototype.onModel = function (eventType, handler) {
-            if (eventType && handler) {
-                this._modelHandlers[eventType] = handler;
+        var Presenter = (function () {
+            function Presenter() {
+                this._view = null;
+                this._model = null;
+                this._modelHandlers = {};
             }
-            return this;
-        };
-        /**
-         *  Renders its view.
-         */
-        Presenter.prototype.render = function () {
-            if (this.view && this.model) {
-                return this.view.render(this.model);
-            }
-            return null;
-        };
-        /**
-         *  Destroys its view and model.
-         */
-        Presenter.prototype.destroy = function () {
-            this.view = null;
-            this.model = null;
-        };
-        Presenter.subclass = spaMVP.subclassFactory;
-        return Presenter;
-    }());
-    spaMVP.Presenter = Presenter;
+            Object.defineProperty(Presenter.prototype, "view", {
+                get: function () {
+                    return this._view;
+                },
+                set: function (value) {
+                    if (this.view === value) {
+                        return;
+                    }
+                    if (this.view) {
+                        this.view.destroy();
+                    }
+                    this._view = value;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            Object.defineProperty(Presenter.prototype, "model", {
+                get: function () {
+                    return this._model;
+                },
+                set: function (model) {
+                    var _this = this;
+                    if (this._model === model) {
+                        return;
+                    }
+                    Object.keys(this._modelHandlers).forEach(function (type) {
+                        var eventHandler = _this._modelHandlers[type];
+                        if (_this._model) {
+                            _this._model.off(type, eventHandler, _this);
+                        }
+                        if (model) {
+                            model.on(type, eventHandler, _this);
+                        }
+                    });
+                    this._model = model;
+                    this.render();
+                },
+                enumerable: true,
+                configurable: true
+            });
+            /**
+             *  Determins which events to handle when model notifies.
+             */
+            Presenter.prototype.onModel = function (eventType, handler) {
+                if (eventType && handler) {
+                    this._modelHandlers[eventType] = handler;
+                }
+                return this;
+            };
+            /**
+             *  Renders its view.
+             */
+            Presenter.prototype.render = function () {
+                if (this.view && this.model) {
+                    return this.view.render(this.model);
+                }
+                return null;
+            };
+            /**
+             *  Destroys its view and model.
+             */
+            Presenter.prototype.destroy = function () {
+                this.view = null;
+                this.model = null;
+            };
+            return Presenter;
+        }());
+        Hidden.Presenter = Presenter;
+    })(Hidden = spaMVP.Hidden || (spaMVP.Hidden = {}));
 })(spaMVP || (spaMVP = {}));
 //# sourceMappingURL=Presenter.js.map
+var spaMVP;
+(function (spaMVP) {
+    "use strict";
+    var hidden = spaMVP.Hidden;
+    spaMVP.Core.prototype.useMVP = function () {
+        var that = this;
+        if (that.mvp) {
+            return;
+        }
+        var mvp = {
+            Model: hidden.Model,
+            Collection: hidden.Collection,
+            View: hidden.View,
+            Presenter: hidden.Presenter,
+        };
+        that.mvp = mvp;
+    };
+})(spaMVP || (spaMVP = {}));
+//# sourceMappingURL=mvp.js.map
 var spaMVP;
 (function (spaMVP) {
     var Hidden;
@@ -821,11 +1091,9 @@ var spaMVP;
         var Route = (function () {
             function Route(pattern, onStart) {
                 this.tokens = [];
-                if (typeof pattern === "undefined" ||
-                    typeof pattern !== "string" ||
-                    pattern === null) {
-                    throw new Error("Route pattern should be non empty string.");
-                }
+                var errorMsg = "Route registration failed:";
+                Hidden.typeGuard("string", pattern, errorMsg + " pattern should be non empty string.");
+                Hidden.typeGuard("function", onStart, errorMsg + " callback should be a function.");
                 this.pattern = pattern;
                 this.callback = onStart;
                 this.populateTokens();
@@ -908,11 +1176,31 @@ var spaMVP;
     var Hidden;
     (function (Hidden) {
         "use strict";
+        function findRoute() {
+            for (var i = 0, len = this.routes.length; i < len; i++) {
+                var route = this.routes[i];
+                if (route.equals(this.urlHash)) {
+                    return route;
+                }
+            }
+            return null;
+        }
+        function startDefaultRoute(invalidHash) {
+            window.history.replaceState(null, null, window.location.pathname + "#" + this.defaultUrl);
+            this.urlHash.value = this.defaultUrl;
+            var nextRoute = findRoute.call(this);
+            if (nextRoute) {
+                nextRoute.start(this.urlHash);
+            }
+            else {
+                console.warn("No route handler for " + invalidHash);
+            }
+        }
         /**
-         *  @class RouteConfig - Handles spa application route changes.
+         *  @class RouteConfig - Handles window hash change.
          */
-        var DefaultRouteConfig = (function () {
-            function DefaultRouteConfig() {
+        var RouteConfig = (function () {
+            function RouteConfig() {
                 this.routes = [];
                 this.urlHash = new Hidden.UrlHash();
                 this.defaultUrl = null;
@@ -922,295 +1210,94 @@ var spaMVP;
              *  When url's hash is changed it executes a callback with populated dynamic routes and query parameters.
              *  Dynamic route param can be registered with {yourParam}.
              */
-            DefaultRouteConfig.prototype.registerRoute = function (pattern, callback) {
+            RouteConfig.prototype.register = function (pattern, callback) {
                 if (this.routes.some(function (r) { return r.pattern === pattern; })) {
                     throw new Error("Route " + pattern + " has been already registered.");
                 }
                 this.routes.push(new Hidden.Route(pattern, callback));
+                return this;
             };
             /**
              *  Starts hash url if such is registered, if not, it starts the default one.
              */
-            DefaultRouteConfig.prototype.startRoute = function (hash) {
+            RouteConfig.prototype.startRoute = function (hash) {
                 this.urlHash.value = hash;
-                var nextRoute = this.findRoute();
+                var nextRoute = findRoute.call(this);
                 if (nextRoute) {
                     nextRoute.start(this.urlHash);
                     return;
                 }
-                if (this.defaultUrl) {
-                    this.startDefaultRoute(hash);
+                if (typeof this.defaultUrl === "string") {
+                    startDefaultRoute.call(this, hash);
                 }
                 else {
-                    console.warn("No route handler for " + hash);
+                    console.warn("No route matches " + hash);
                 }
             };
             /**
              *  Returns all registered patterns.
              */
-            DefaultRouteConfig.prototype.getRoutes = function () {
+            RouteConfig.prototype.getRoutes = function () {
                 return this.routes.map(function (route) { return route.pattern; });
             };
             /**
              *  Determines if there are any registered routes.
              */
-            DefaultRouteConfig.prototype.hasRoutes = function () {
+            RouteConfig.prototype.hasRoutes = function () {
                 return this.routes.length > 0;
             };
-            DefaultRouteConfig.prototype.findRoute = function () {
-                for (var i = 0, len = this.routes.length; i < len; i++) {
-                    var route = this.routes[i];
-                    if (route.equals(this.urlHash)) {
-                        return route;
-                    }
-                }
-                return null;
-            };
-            DefaultRouteConfig.prototype.startDefaultRoute = function (invalidHash) {
-                window.history.replaceState(null, null, window.location.pathname + "#" + this.defaultUrl);
-                this.urlHash.value = this.defaultUrl;
-                var nextRoute = this.findRoute();
-                if (nextRoute) {
-                    nextRoute.start(this.urlHash);
-                }
-                else {
-                    console.warn("No route handler for " + invalidHash);
-                }
-            };
-            return DefaultRouteConfig;
+            return RouteConfig;
         }());
-        Hidden.DefaultRouteConfig = DefaultRouteConfig;
+        Hidden.RouteConfig = RouteConfig;
     })(Hidden = spaMVP.Hidden || (spaMVP.Hidden = {}));
 })(spaMVP || (spaMVP = {}));
-//# sourceMappingURL=DefaultRouteConfig.js.map
-var spaMVP;
-(function (spaMVP) {
-    "use strict";
-    /**
-     *  @class Sandbox - Connects all modules to the outside world.
-     *  @property {String} moduleInstanceId - Id of the module it serves for.
-     */
-    var Sandbox = (function () {
-        function Sandbox(core, moduleInstanceId) {
-            if (!core || !moduleInstanceId) {
-                throw new Error("Missing core or module instance ID");
-            }
-            this.core = core;
-            this.moduleInstanceId = moduleInstanceId;
-        }
-        Sandbox.prototype.subscribe = function (eventTypes, handler, context) {
-            this.core.subscribe(eventTypes, handler, context);
-        };
-        Sandbox.prototype.unsubscribe = function (eventTypes, handler, context) {
-            this.core.unsubscribe(eventTypes, handler, context);
-        };
-        Sandbox.prototype.publish = function (eventType, data) {
-            this.core.publish(eventType, data);
-        };
-        Sandbox.prototype.getService = function (id) {
-            return this.core.getService(id);
-        };
-        return Sandbox;
-    }());
-    spaMVP.Sandbox = Sandbox;
-})(spaMVP || (spaMVP = {}));
-//# sourceMappingURL=Sandbox.js.map
+//# sourceMappingURL=RouteConfig.js.map
 var spaMVP;
 (function (spaMVP) {
     "use strict";
     var hidden = spaMVP.Hidden;
-    function initialize(ev) {
-        var _this = this;
-        document.removeEventListener("DOMContentLoaded", this.onDomReady);
-        if (this.onAppStart) {
-            this.onAppStart();
+    spaMVP.Core.prototype.useRouting = function () {
+        var that = this;
+        if (that.routing) {
+            return;
         }
-        if (this.routeConfig.hasRoutes()) {
-            this.routeConfig.startRoute(window.location.hash.substring(1));
-            window.addEventListener("hashchange", function () {
-                _this.routeConfig.startRoute(window.location.hash.substring(1));
+        that.routing = new hidden.RouteConfig();
+        that.hook(spaMVP.HookType.SPA_DOMReady, function () {
+            if (!that.routing.hasRoutes()) {
+                return;
+            }
+            var global = window;
+            that.routing.startRoute(global.location.hash.substring(1));
+            global.addEventListener("hashchange", function () {
+                that.routing.startRoute(global.location.hash.substring(1));
             });
-        }
-    }
-    function addSubscriber(eventType, handler, context) {
-        this.subscribers[eventType] = this.subscribers[eventType] || [];
-        this.subscribers[eventType].push({
-            handler: handler,
-            context: context
         });
-    }
-    function removeSubscriber(eventType, handler, context) {
-        var subscribers = this.subscribers[eventType] || [];
-        for (var i = 0, len = subscribers.length; i < len; i++) {
-            var subscriber = subscribers[i];
-            if (subscriber.handler === handler &&
-                subscriber.context === context) {
-                subscribers[i] = subscribers[len - 1];
-                subscribers.length--;
-                return;
-            }
-        }
-    }
-    var Core = (function () {
-        function Core(routeConfig) {
-            if (routeConfig === void 0) { routeConfig = new hidden.DefaultRouteConfig(); }
-            this.onDomReady = initialize.bind(this);
-            this.subscribers = {};
-            this.modules = {};
+    };
+})(spaMVP || (spaMVP = {}));
+//# sourceMappingURL=routing.js.map
+var spaMVP;
+(function (spaMVP) {
+    "use strict";
+    var ServiceConfig = (function () {
+        function ServiceConfig() {
             this.services = {};
-            this.routeConfig = routeConfig;
         }
-        /**
-         *  Start listening for hash change if there are any registered routes.
-         *  @param {Function} action Optional action to be executed on DOMContentLoaded.
-         */
-        Core.prototype.run = function (action) {
-            this.onAppStart = action;
-            document.addEventListener("DOMContentLoaded", this.onDomReady);
-            return this;
-        };
-        /**
-         *  Registers a route by given url pattern.
-         *  When url's hash is changed it executes a callback with populated dynamic routes and query parameters.
-         *  Dynamic route param can be registered with {yourParam}.
-         */
-        Core.prototype.registerRoute = function (pattern, callback) {
-            this.routeConfig.registerRoute(pattern, callback);
-            return this;
-        };
-        /**
-         *  Starts hash url if such is registered, if not, it starts the default one.
-         */
-        Core.prototype.startRoute = function (hash) {
-            this.routeConfig.startRoute(hash);
-            return this;
-        };
-        /**
-         *  Sets a default url.
-         */
-        Core.prototype.defaultUrl = function (url) {
-            this.routeConfig.defaultUrl = url;
-            return this;
-        };
-        /**
-         *  Subscribes for given events.
-         *  @param {Array} eventTypes - Array of events to subscribe for.
-         *  @param {Function} handler - The events' handler.
-         *  @param {Object} context - Handler's context.
-         */
-        Core.prototype.subscribe = function (eventTypes, handler, context) {
-            if (typeof handler !== "function") {
-                throw new TypeError("Event type handler should be a function");
-            }
-            if (Array.isArray(eventTypes)) {
-                for (var i = 0, len = eventTypes.length; i < len; i++) {
-                    addSubscriber.call(this, eventTypes[i], handler, context);
-                }
-            }
-        };
-        /**
-         *  Unsubscribes for specific events.
-         *  @param {Array} eventTypes - Array of events to unsubscribe for.
-         *  @param {Function} handler - The handler which must be unsubscribed.
-         *  @param {Object} context - Handler's context.
-         */
-        Core.prototype.unsubscribe = function (eventTypes, handler, context) {
-            if (Array.isArray(eventTypes)) {
-                for (var i = 0, len = eventTypes.length; i < len; i++) {
-                    removeSubscriber.call(this, eventTypes[i], handler, context);
-                }
-            }
-        };
-        /**
-         *  Publishes an event.
-         *  @param {String} type - Type of the event.
-         *  @param {*} [data] - Optional data.
-         */
-        Core.prototype.publish = function (type, data) {
-            if (!Array.isArray(this.subscribers[type])) {
-                return;
-            }
-            this.subscribers[type]
-                .slice(0)
-                .forEach(function (subscriber) { return subscriber.handler.call(subscriber.context, type, data); });
-        };
-        /**
-         *  Registers a module.
-         *  @param {string} moduleId
-         *  @param {function} moduleFactory - function which provides an instance of the module.
-         */
-        Core.prototype.register = function (moduleId, moduleFactory) {
-            if (moduleId === "" || typeof moduleId !== "string") {
-                throw new TypeError(moduleId + " Module registration FAILED: ID must be a non empty string.");
-            }
-            if (this.modules[moduleId]) {
-                throw new TypeError(moduleId + " Module registration FAILED: a module with such id has been already registered.");
-            }
-            var tempModule = moduleFactory(new spaMVP.Sandbox(this, moduleId));
-            if (typeof tempModule.init !== "function" || typeof tempModule.destroy !== "function") {
-                throw new TypeError(moduleId + " Module registration FAILED: Module has no init or destroy methods.");
-            }
-            this.modules[moduleId] = { create: moduleFactory, instances: null };
-            return this;
-        };
-        /**
-         *  Returns all registered module ids.
-         *  @returns {string[]}
-         */
-        Core.prototype.getAllModules = function () {
-            return Object.keys(this.modules);
-        };
-        /**
-         *  Starts an instance of given module and initializes it.
-         *  @param {string} moduleId - Id of the module, which must be started.
-         *  @param {object} options
-         */
-        Core.prototype.start = function (moduleId, options) {
-            var module = this.modules[moduleId];
-            if (!module) {
-                throw new ReferenceError(moduleId + " Module not found.");
-            }
-            options = options || {};
-            if (typeof options !== "object") {
-                throw new TypeError(moduleId + " Module's options must be an object.");
-            }
-            module.instances = module.instances || {};
-            var instanceId = options["instanceId"] || moduleId;
-            if (module.instances.hasOwnProperty(instanceId)) {
-                return this;
-            }
-            var instance = module.create(new spaMVP.Sandbox(this, instanceId));
-            module.instances[instanceId] = instance;
-            instance.init(options);
-            return this;
-        };
-        /**
-         *  Stops a given module.
-         *  @param {string} moduleId - Id of the module, which must be stopped.
-         *  @param {string} [instanceId] - Specific module's instance id.
-         */
-        Core.prototype.stop = function (moduleId, instanceId) {
-            var module = this.modules[moduleId];
-            var id = instanceId || moduleId;
-            if (module && module.instances && module.instances.hasOwnProperty(id)) {
-                module.instances[id].destroy();
-                delete module.instances[id];
-            }
-            return this;
-        };
         /**
          *  Add a service.
          *  @param {String} id
          *  @param {Function} factory - function which provides an instance of the service.
          */
-        Core.prototype.addService = function (id, factory) {
+        ServiceConfig.prototype.add = function (id, creator) {
             if (typeof id !== "string" || id === "") {
-                throw new TypeError(id + " Service registration FAILED: ID must be non empty string.");
+                throw new TypeError(id + " service registration failed: ID must be non empty string.");
+            }
+            if (typeof creator !== "function") {
+                throw new TypeError(id + " service registration failed: creator must be a function.");
             }
             if (this.services[id]) {
-                throw new TypeError(id + " Service registration FAILED: a service with such id has been already added.");
+                throw new TypeError(id + " service registration failed: a service with such id has been already added.");
             }
-            this.services[id] = factory;
+            this.services[id] = creator;
             return this;
         };
         /**
@@ -1218,29 +1305,45 @@ var spaMVP;
          *  @param {String} id
          *  @returns {*}
          */
-        Core.prototype.getService = function (id) {
-            var service = this.services[id];
-            if (!service) {
-                throw new ReferenceError(id + " Service was not found.");
+        ServiceConfig.prototype.get = function (id) {
+            var creator = this.services[id];
+            if (!creator) {
+                throw new ReferenceError(id + " service was not found.");
             }
-            return service(new spaMVP.Sandbox(this, id));
+            return creator();
         };
-        return Core;
+        return ServiceConfig;
     }());
-    spaMVP.Core = Core;
-    /**
-     *  Returns application core.
-     * @param {RouteConfig} [routeConfig] - Optional. It is usefull if you want to use custom route handling.
-     * @returns {Core}
-     */
-    function createAppCore(routeConfig) {
-        return new Core(routeConfig);
-    }
-    spaMVP.createAppCore = createAppCore;
+    spaMVP.Core.prototype.useServices = function () {
+        var that = this;
+        if (that.services) {
+            return;
+        }
+        that.services = new ServiceConfig();
+        var sandbox = that.Sandbox.prototype;
+        /**
+         *  Gets a specific service instance by id.
+         *  @param {String} id
+         *  @returns {*}
+         */
+        sandbox.getService = function (id) {
+            return this.core.services.get(id);
+        };
+    };
 })(spaMVP || (spaMVP = {}));
-//# sourceMappingURL=Core.js.map
+//# sourceMappingURL=services.js.map
 var spaMVP;
 (function (spaMVP) {
+    "use strict";
     delete spaMVP.Hidden;
+    /**
+     *  Returns the application core.
+     * @param {function} [sandboxType] - Optional. Sandbox type which the application will use.
+     * @returns {Core}
+     */
+    function createCore(sandboxType) {
+        return new spaMVP.Core(sandboxType);
+    }
+    spaMVP.createCore = createCore;
 })(spaMVP || (spaMVP = {}));
-//# sourceMappingURL=encapsulate.js.map
+//# sourceMappingURL=spaMVP.js.map

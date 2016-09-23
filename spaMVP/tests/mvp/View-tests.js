@@ -5,25 +5,27 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-describe('View', function () {
+describe("View", function () {
+    var core = new spaMVP.Core();
+    core.useMVP();
     function createDiv() {
-        var div = document.createElement('div');
-        div.dataset['click'] = 'handleClick';
-        var heading = document.createElement('h1');
-        var p = document.createElement('p');
-        heading.textContent = 'Heading';
+        var div = document.createElement("div");
+        div.dataset["click"] = "handleClick";
+        var heading = document.createElement("h1");
+        var p = document.createElement("p");
+        heading.textContent = "Heading";
         div.appendChild(heading);
         div.appendChild(p);
         return div;
     }
     function template(model) {
-        return '<span>' + model.id + '</span>';
+        return "<span>" + model.id + "</span>";
     }
     var TestView = (function (_super) {
         __extends(TestView, _super);
         function TestView() {
             _super.call(this, createDiv(), template);
-            this.map('click');
+            this.map("click");
         }
         TestView.prototype.handleClick = function (dataset, target, ev) {
             this.clickedDataset = dataset;
@@ -31,72 +33,72 @@ describe('View', function () {
             this.clickedEvent = ev;
         };
         return TestView;
-    }(spaMVP.View));
+    }(core.mvp.View));
     function getView() {
         return new TestView();
     }
-    it('should query its dom element for elements', function () {
+    it("should query its dom element for elements", function () {
         var view = getView();
-        var result = view.query('h1');
-        var nullElement = view.query('span');
-        expect(result.tagName).toEqual('H1');
+        var result = view.query("h1");
+        var nullElement = view.query("span");
+        expect(result.tagName).toEqual("H1");
         expect(nullElement).toBeNull();
     });
-    it('should remove element', function () {
+    it("should remove element", function () {
         var view = getView();
-        view.removeElement('h1');
-        expect(view.query('h1')).toBeNull();
+        view.removeElement("h1");
+        expect(view.query("h1")).toBeNull();
     });
-    it('should remove all elements', function () {
+    it("should remove all elements", function () {
         var view = getView();
         view.removeAllElements();
         expect(view.domNode.childElementCount).toEqual(0);
     });
-    it('should map event to its container', function () {
+    it("should map event to its container", function () {
         var view = getView();
-        expect(view.domNode.hasEvent('click')).toBeTruthy();
+        expect(view.domNode.hasEvent("click")).toBeTruthy();
     });
-    it('should map event to custom element', function () {
+    it("should map event to custom element", function () {
         var view = getView();
-        view.map('click', false, 'h1');
-        expect(view.query('h1').hasEvent('click')).toBeTruthy();
+        view.map("click", false, "h1");
+        expect(view.query("h1").hasEvent("click")).toBeTruthy();
     });
-    it('should handle mapped event', function () {
+    it("should handle mapped event", function () {
         var view = getView();
-        spyOn(view, 'handleClick').and.callThrough();
-        var ev = new Event('click');
+        spyOn(view, "handleClick").and.callThrough();
+        var ev = new Event("click");
         view.domNode.dispatchEvent(ev);
         expect(view.handleClick).toHaveBeenCalled();
         expect(view.clickedDataset).toBe(view.domNode.dataset);
         expect(view.clickedTarget).toBe(view.domNode);
         expect(view.clickedEvent).toBe(ev);
     });
-    it('should remove any children and events when destroy', function () {
+    it("should remove any children and events when destroy", function () {
         var view = getView();
-        spyOn(view, 'handleClick');
+        spyOn(view, "handleClick");
         var domNode = view.domNode;
         view.destroy();
-        domNode.dispatchEvent(new Event('click'));
+        domNode.dispatchEvent(new Event("click"));
         expect(view.handleClick).not.toHaveBeenCalled();
         expect(view.domNode).toBeNull();
         expect(domNode.childElementCount).toEqual(0);
-        expect(domNode.hasEvent('click')).toBeFalsy();
+        expect(domNode.hasEvent("click")).toBeFalsy();
     });
-    it('should return its dom node when render', function () {
+    it("should return its dom node when render", function () {
         var view = getView();
         expect(view.render({})).toBe(view.domNode);
     });
-    it('should render span when template action is executed', function () {
+    it("should render span when template action is executed", function () {
         var view = getView();
         view.render({ id: 10 });
-        expect(view.domNode.innerText).toEqual('10');
-        expect(view.domNode.firstElementChild.nodeName).toEqual('SPAN');
+        expect(view.domNode.innerText).toEqual("10");
+        expect(view.domNode.firstElementChild.nodeName).toEqual("SPAN");
     });
-    it('should support chaining for all methods that return nothing', function () {
+    it("should support chaining for all methods that return nothing", function () {
         var view = getView();
         var chaining = function () {
-            view.map('change')
-                .removeElement('div')
+            view.map("change")
+                .removeElement("div")
                 .removeAllElements()
                 .destroy();
         };
