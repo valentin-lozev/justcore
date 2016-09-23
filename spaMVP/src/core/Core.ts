@@ -91,7 +91,7 @@
         destroy(): void;
     }
 
-    export const enum HookType {
+    export enum HookType {
         SPA_DOMReady = 0,
         SPA_ModuleDestroy,
         SPA_ModuleInit,
