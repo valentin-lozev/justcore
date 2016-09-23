@@ -1,0 +1,24 @@
+﻿html, body, h1, h2, h3, h4, h5 {
+    font-family: "Raleway", sans-serif;
+}
+
+body {
+    max-width: 1600px !important;
+}
+
+#main-nav {
+    z-index: 3;
+    width: 300px;
+}
+
+#main {
+margin-left: 300px;
+}
+
+.w3-sidenav a, .w3-sidenav h4 {
+    font-weight: bold;
+}
+
+.quantity, .price {
+    margin-left: 10px
+}
