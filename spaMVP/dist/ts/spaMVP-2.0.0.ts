@@ -1120,14 +1120,14 @@ namespace spaMVP {
     }
 
     export interface Core {
-        useMVP(): this;
+        useMVP(): void;
         mvp: MVPPlugin;
     }
 
-    Core.prototype.useMVP = function (): this {
+    Core.prototype.useMVP = function (): void {
         let that = <Core>this;
         if (that.mvp) {
-            return that;
+            return;
         }
 
         let mvp: MVPPlugin = {
@@ -1137,7 +1137,6 @@ namespace spaMVP {
             Presenter: hidden.Presenter,
         };
         that.mvp = mvp;
-        return that;
     };
 }
 namespace spaMVP.Hidden {

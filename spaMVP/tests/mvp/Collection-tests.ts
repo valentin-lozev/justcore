@@ -1,7 +1,7 @@
 ﻿/// <reference path="../../jasmine.d.ts" />
 /// <chutzpah_reference path="jasmine.js" />
 
-describe("Collection", function () {
+describe("Collection", () => {
 
     let core = new spaMVP.Core();
     core.useMVP();
@@ -17,7 +17,7 @@ describe("Collection", function () {
             return this.id | 17;
         }
 
-        equals(other: Book) {
+        equals(other: Book): boolean {
             return other && this.id === other.id;
         }
     }
@@ -35,16 +35,16 @@ describe("Collection", function () {
         return new core.mvp.Collection<Book>();
     }
 
-    it("should be an instance of Model", function () {
+    it("should be an instance of Model", () => {
         expect(getCollection() instanceof spaMVP.Hidden.Model).toBeTruthy();
     });
 
-    it("should have size", function () {
+    it("should have size", () => {
         expect(getCollection().size).toEqual(0);
     });
 
     describe("Adding", () => {
-        it("should return true when add new item", function () {
+        it("should return true when add new item", () => {
             let collection = getCollection();
             let book = new Book(1);
 
@@ -53,7 +53,7 @@ describe("Collection", function () {
             expect(result).toBeTruthy();
         });
 
-        it("should return false when add duplicated item", function () {
+        it("should return false when add duplicated item", () => {
             let collection = getCollection();
             let book = new Book(0);
             collection.add(book);
@@ -64,7 +64,7 @@ describe("Collection", function () {
             expect(collection.size).toEqual(1);
         });
 
-        it("should return true when add range of items", function () {
+        it("should return true when add range of items", () => {
             let collection = getCollection();
             let size = 10;
 
@@ -74,7 +74,7 @@ describe("Collection", function () {
             expect(collection.size).toEqual(size);
         });
 
-        it("should return false when add range of duplicated items", function () {
+        it("should return false when add range of duplicated items", () => {
             let collection = getCollection();
             let size = 10;
             collection.addRange(getBooks(size));
@@ -85,7 +85,7 @@ describe("Collection", function () {
             expect(collection.size).toEqual(size);
         });
 
-        it("should notify for added items", function () {
+        it("should notify for added items", () => {
             let collection = getCollection();
             let books = getBooks(20);
             let spy = jasmine.createSpyObj("spy", ["handler"]);
@@ -98,7 +98,7 @@ describe("Collection", function () {
     });
 
     describe("Deleting", () => {
-        it("should return true when remove existing item", function () {
+        it("should return true when remove existing item", () => {
             let collection = getCollection();
             let book = getBooks(1)[0];
             collection.add(book);
@@ -109,7 +109,7 @@ describe("Collection", function () {
             expect(collection.size).toEqual(0);
         });
 
-        it("should return false when remove unexisting item", function () {
+        it("should return false when remove unexisting item", () => {
             let collection = getCollection();
 
             let result = collection.remove(new Book(1));
@@ -118,7 +118,7 @@ describe("Collection", function () {
             expect(collection.size).toEqual(0);
         });
 
-        it("should return true when remove range of items", function () {
+        it("should return true when remove range of items", () => {
             let collection = getCollection();
             let size = 10;
             let books = getBooks(size);
@@ -130,7 +130,7 @@ describe("Collection", function () {
             expect(collection.size).toEqual(0);
         });
 
-        it("should return false when remove range of unexisting items", function () {
+        it("should return false when remove range of unexisting items", () => {
             let collection = getCollection();
 
             let result = collection.removeRange(getBooks(10));
@@ -139,7 +139,7 @@ describe("Collection", function () {
             expect(collection.size).toEqual(0);
         });
 
-        it("should notify for deleted items", function () {
+        it("should notify for deleted items", () => {
             let collection = getCollection();
             let books = getBooks(20);
             let spy = jasmine.createSpyObj("spy", ["handler"]);
@@ -152,12 +152,12 @@ describe("Collection", function () {
             expect(collection.size).toEqual(0);
         });
 
-        it("should remove all items when clear is being invoked", function () {
+        it("should remove all items when clear is being invoked", () => {
             let result = false;
             let collection = getCollection();
             let books = getBooks(20);
             let spy = {
-                handler: data => {
+                handler: (data): void => {
                     result = data.length === books.length;
                 }
             };
@@ -172,7 +172,7 @@ describe("Collection", function () {
             expect(result).toBeTruthy();
         });
 
-        it("should delete an item on item destroy", function () {
+        it("should delete an item on item destroy", () => {
             let collection = getCollection();
             let books = getBooks(20);
             let spy = jasmine.createSpyObj("spy", ["handler"]);
@@ -192,7 +192,7 @@ describe("Collection", function () {
     });
 
     describe("Updating", () => {
-        it("should notify for updated item", function () {
+        it("should notify for updated item", () => {
             let collection = getCollection();
             let books = getBooks(20);
             let spy = jasmine.createSpyObj("spy", ["handler"]);
@@ -208,14 +208,14 @@ describe("Collection", function () {
         });
     });
 
-    it("should return false when does not constain given item", function () {
+    it("should return false when does not constain given item", () => {
         let collection = getCollection();
         let book = new Book(1);
 
         expect(collection.contains(book)).toBeFalsy();
     });
 
-    it("should return true when constains given item", function () {
+    it("should return true when constains given item", () => {
         let collection = getCollection();
         let book = new Book(1);
         collection.add(book);
@@ -223,13 +223,13 @@ describe("Collection", function () {
         expect(collection.contains(book)).toBeTruthy();
     });
 
-    it("any should return false when constains no items", function () {
+    it("any should return false when constains no items", () => {
         let collection = getCollection();
 
         expect(collection.any()).toBeFalsy();
     });
 
-    it("any should return true when constains at least one item", function () {
+    it("any should return true when constains at least one item", () => {
         let collection = getCollection();
         let book = new Book(1);
         collection.add(book);
