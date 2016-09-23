@@ -45,22 +45,23 @@ var spaMVP;
             }
             catch (ex) {
                 var argsDetails = args.length > 0 ? args.join(", ") : "none";
-                console.error("Plugin execution failed on hook " + hookType + ". Arguments: " + argsDetails + ". Message: " + ex);
+                console.error("Plugin execution failed on hook " + HookType[hookType] + ". Arguments: " + argsDetails + ". Message: " + ex);
             }
         }
     }
     var hidden = spaMVP.Hidden;
     var onApplicationStart = function () { };
     var onApplicationStartCustom = function () { };
-    spaMVP.HookType = {
-        SPA_DOMReady: "spa-dom-ready",
-        SPA_ModuleDestroy: "spa-module-destroy",
-        SPA_ModuleInit: "spa-module-init",
-        SPA_ModuleRegister: "spa-module-register",
-        SPA_Publish: "spa-publish",
-        SPA_Subscribe: "spa-subscribe",
-        SPA_Unsubscribe: "spa-unsubscribe",
-    };
+    (function (HookType) {
+        HookType[HookType["SPA_DOMReady"] = 0] = "SPA_DOMReady";
+        HookType[HookType["SPA_ModuleDestroy"] = 1] = "SPA_ModuleDestroy";
+        HookType[HookType["SPA_ModuleInit"] = 2] = "SPA_ModuleInit";
+        HookType[HookType["SPA_ModuleRegister"] = 3] = "SPA_ModuleRegister";
+        HookType[HookType["SPA_Publish"] = 4] = "SPA_Publish";
+        HookType[HookType["SPA_Subscribe"] = 5] = "SPA_Subscribe";
+        HookType[HookType["SPA_Unsubscribe"] = 6] = "SPA_Unsubscribe";
+    })(spaMVP.HookType || (spaMVP.HookType = {}));
+    var HookType = spaMVP.HookType;
     var Core = (function () {
         function Core(sandboxType) {
             this.subscribers = {};
@@ -78,7 +79,7 @@ var spaMVP;
             var errorMsg = "Subscribing failed:";
             hidden.typeGuard("function", handler, errorMsg + " event handler should be a function.");
             hidden.typeGuard("array", eventTypes, errorMsg + " event types should be passed as an array of strings.");
-            runPlugins.call(this, spaMVP.HookType.SPA_Subscribe, eventTypes);
+            runPlugins.call(this, HookType.SPA_Subscribe, eventTypes);
             for (var i = 0, len = eventTypes.length; i < len; i++) {
                 addSubscriber.call(this, eventTypes[i], handler, context);
             }
@@ -94,7 +95,7 @@ var spaMVP;
             var errorMsg = "Unsubscribing failed:";
             hidden.typeGuard("function", handler, errorMsg + " event handler should be a function.");
             hidden.typeGuard("array", eventTypes, errorMsg + " event types should be passed as an array of strings.");
-            runPlugins.call(this, spaMVP.HookType.SPA_Unsubscribe, eventTypes);
+            runPlugins.call(this, HookType.SPA_Unsubscribe, eventTypes);
             for (var i = 0, len = eventTypes.length; i < len; i++) {
                 removeSubscriber.call(this, eventTypes[i], handler, context);
             }
@@ -109,7 +110,7 @@ var spaMVP;
             if (!Array.isArray(this.subscribers[type])) {
                 return;
             }
-            runPlugins.call(this, spaMVP.HookType.SPA_Publish, type, data);
+            runPlugins.call(this, HookType.SPA_Publish, type, data);
             this.subscribers[type]
                 .slice(0)
                 .forEach(function (subscriber) { return subscriber.handler.call(subscriber.context, type, data); });
@@ -127,7 +128,7 @@ var spaMVP;
             var tempModule = moduleFactory(new this.Sandbox(this, moduleId));
             hidden.typeGuard("function", tempModule.init, errorMsg + " module does not implement init method.");
             hidden.typeGuard("function", tempModule.destroy, errorMsg + " module does not implement destroy method.");
-            runPlugins.call(this, spaMVP.HookType.SPA_ModuleRegister, moduleId, moduleFactory);
+            runPlugins.call(this, HookType.SPA_ModuleRegister, moduleId, moduleFactory);
             this.modules[moduleId] = {
                 create: moduleFactory,
                 instances: {}
@@ -150,7 +151,7 @@ var spaMVP;
                 // already initialized
                 return this;
             }
-            runPlugins.call(this, spaMVP.HookType.SPA_ModuleInit, moduleId, options);
+            runPlugins.call(this, HookType.SPA_ModuleInit, moduleId, options);
             var instance = module.create(new this.Sandbox(this, instanceId));
             module.instances[instanceId] = instance;
             instance.init(options);
@@ -165,7 +166,7 @@ var spaMVP;
             var module = this.modules[moduleId];
             var id = instanceId || moduleId;
             if (module && module.instances.hasOwnProperty(id)) {
-                runPlugins.call(this, spaMVP.HookType.SPA_ModuleDestroy, moduleId, instanceId);
+                runPlugins.call(this, HookType.SPA_ModuleDestroy, moduleId, instanceId);
                 module.instances[id].destroy();
                 delete module.instances[id];
             }
@@ -179,12 +180,12 @@ var spaMVP;
         };
         /**
          *  Hooks a given function to specific hook type.
-         *  @param {string} hookType - The hook type.
+         *  @param {HookType} hookType - The hook type.
          *  @param {function} plugin - The function needs to hook.
          */
         Core.prototype.hook = function (hookType, plugin) {
             var errorMsg = "Hook plugin failed:";
-            hidden.typeGuard("string", hookType, errorMsg + " hook type should be a non empty string.");
+            hidden.typeGuard("number", hookType, errorMsg + " hook type should be an HookType enum.");
             hidden.typeGuard("function", plugin, errorMsg + " plugin should be a function.");
             if (!Array.isArray(this.hooks[hookType])) {
                 this.hooks[hookType] = [];
@@ -200,7 +201,7 @@ var spaMVP;
             var _this = this;
             onApplicationStartCustom = typeof action === "function" ? action : onApplicationStartCustom;
             onApplicationStart = function () {
-                runPlugins.call(_this, spaMVP.HookType.SPA_DOMReady);
+                runPlugins.call(_this, HookType.SPA_DOMReady);
             };
             document.addEventListener("DOMContentLoaded", onDomReady);
             return this;

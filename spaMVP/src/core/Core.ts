@@ -44,7 +44,7 @@
         onApplicationStartCustom();
     }
 
-    function runPlugins(hookType: string, ...params: any[]): void {
+    function runPlugins(hookType: HookType, ...params: any[]): void {
         let plugins = this.hooks[hookType];
         if (!Array.isArray(plugins)) {
             return;
@@ -61,7 +61,7 @@
                 plugins[i].apply(null, args);
             } catch (ex) {
                 let argsDetails = args.length > 0 ? args.join(", ") : "none";
-                console.error(`Plugin execution failed on hook ${hookType}. Arguments: ${argsDetails}. Message: ${ex}`);
+                console.error(`Plugin execution failed on hook ${HookType[hookType]}. Arguments: ${argsDetails}. Message: ${ex}`);
             }
         }
     }
@@ -82,7 +82,7 @@
         stop(moduleId: string, instanceId?: string): this;
         getModules(): string[];
 
-        hook(hookType: string, plugin: Function): this;
+        hook(hookType: HookType, plugin: Function): this;
         run(action?: Function): this;
     }
 
@@ -91,14 +91,14 @@
         destroy(): void;
     }
 
-    export const HookType = {
-        SPA_DOMReady: "spa-dom-ready",
-        SPA_ModuleDestroy: "spa-module-destroy",
-        SPA_ModuleInit: "spa-module-init",
-        SPA_ModuleRegister: "spa-module-register",
-        SPA_Publish: "spa-publish",
-        SPA_Subscribe: "spa-subscribe",
-        SPA_Unsubscribe: "spa-unsubscribe",
+    export const enum HookType {
+        SPA_DOMReady = 0,
+        SPA_ModuleDestroy,
+        SPA_ModuleInit,
+        SPA_ModuleRegister,
+        SPA_Publish,
+        SPA_Subscribe,
+        SPA_Unsubscribe,
     }
 
     export class Core implements Core {
@@ -240,12 +240,12 @@
 
         /**
          *  Hooks a given function to specific hook type.
-         *  @param {string} hookType - The hook type.
+         *  @param {HookType} hookType - The hook type.
          *  @param {function} plugin - The function needs to hook.
          */
-        hook(hookType: string, plugin: Function): this {
+        hook(hookType: HookType, plugin: Function): this {
             let errorMsg = "Hook plugin failed:";
-            hidden.typeGuard("string", hookType, `${errorMsg} hook type should be a non empty string.`);
+            hidden.typeGuard("number", hookType, `${errorMsg} hook type should be an HookType enum.`);
             hidden.typeGuard("function", plugin, `${errorMsg} plugin should be a function.`);
 
             if (!Array.isArray(this.hooks[hookType])) {
