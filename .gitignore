@@ -9,6 +9,12 @@
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
+spaMVP/src/*.js
+spaMVP/src/*.js.map
+spaMVP/plugins/*.js
+spaMVP/plugins/*.js.map
+spaMVP/tests/*.js
+spaMVP/tests/*.js.map
 
 # Build results
 [Dd]ebug/
