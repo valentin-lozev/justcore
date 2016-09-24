@@ -271,7 +271,14 @@ var spaMVP;
             onApplicationStart = function () {
                 runPlugins.call(_this, HookType.SPA_DOMReady);
             };
-            document.addEventListener("DOMContentLoaded", onDomReady);
+            if (document.readyState === "complete" ||
+                document.readyState === "interactive" ||
+                document.readyState === "loaded" /* old safari browsers */) {
+                onDomReady(null);
+            }
+            else {
+                document.addEventListener("DOMContentLoaded", onDomReady);
+            }
             return this;
         };
         return Core;
