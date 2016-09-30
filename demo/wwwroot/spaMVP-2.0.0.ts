@@ -347,7 +347,15 @@ namespace spaMVP {
                 runPlugins.call(this, HookType.SPA_DOMReady);
             };
 
-            document.addEventListener("DOMContentLoaded", onDomReady);
+            if (document.readyState === "complete" ||
+                document.readyState === "interactive" ||
+                document.readyState === "loaded" /* old safari browsers */) {
+                onDomReady(null);
+            }
+            else {
+                document.addEventListener("DOMContentLoaded", onDomReady);
+            }
+
             return this;
         }
     }
@@ -1120,14 +1128,14 @@ namespace spaMVP {
     }
 
     export interface Core {
-        useMVP(): this;
+        useMVP(): void;
         mvp: MVPPlugin;
     }
 
-    Core.prototype.useMVP = function (): this {
+    Core.prototype.useMVP = function (): void {
         let that = <Core>this;
         if (that.mvp) {
-            return that;
+            return;
         }
 
         let mvp: MVPPlugin = {
@@ -1137,7 +1145,6 @@ namespace spaMVP {
             Presenter: hidden.Presenter,
         };
         that.mvp = mvp;
-        return that;
     };
 }
 namespace spaMVP.Hidden {
