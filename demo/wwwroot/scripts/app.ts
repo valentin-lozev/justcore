@@ -2,6 +2,7 @@
 app.useRouting();
 app.useMVP();
 app.useServices();
+app.useConsoleLogging();
 
 app.run(() => {
     app.routing
