@@ -111,28 +111,33 @@ describe("Presenter", () => {
         expect(presenter.render).toHaveBeenCalled();
     });
 
-    it("should render when model and view are defined", () => {
+    it("should render when view is defined", () => {
         let presenter = getPresenter();
-        let view = getView();
+        presenter.view = getView();
         spyOn(presenter, "render").and.callThrough();
-        spyOn(view, "render");
+        spyOn(presenter.view, "render");
 
-        presenter.view = view;
         presenter.model = new Book();
 
         expect(presenter.render).toHaveBeenCalled();
-        expect(view.render).toHaveBeenCalledWith(presenter.model);
+        expect(presenter.view.render).toHaveBeenCalledWith(presenter.model);
     });
 
-    it("should not render when model is not defined", () => {
+    it("should return view's dom node when render", () => {
         let presenter = getPresenter();
-        let view = getView();
-        spyOn(view, "render");
-        presenter.view = view;
+        presenter.view = getView();
+        presenter.model = new Book();
+        spyOn(presenter, "render").and.callThrough();
 
-        presenter.render();
+        let result = presenter.render();
 
-        expect(view.render).not.toHaveBeenCalled();
+        expect(result).toBe(presenter.view.domNode);
+    });
+
+    it("should not render when view is not defined", () => {
+        let presenter = getPresenter();
+
+        expect(presenter.render()).toBeNull();
     });
 
     it("should reset its model and view when destroy", () => {

@@ -64,7 +64,7 @@
          *  Renders its view.
          */
         render(): Element {
-            if (this.view && this.model) {
+            if (this.view) {
                 return this.view.render(this.model);
             }
 

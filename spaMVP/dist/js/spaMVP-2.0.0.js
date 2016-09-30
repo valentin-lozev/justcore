@@ -976,7 +976,7 @@ var spaMVP;
              *  Renders its view.
              */
             Presenter.prototype.render = function () {
-                if (this.view && this.model) {
+                if (this.view) {
                     return this.view.render(this.model);
                 }
                 return null;
