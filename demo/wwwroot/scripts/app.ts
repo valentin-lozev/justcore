@@ -5,7 +5,6 @@ app.useServices();
 app.useConsoleLogging();
 
 app.run(() => {
-
     app.routing
         .register('/', routeParams => onRouteChanged("home"))
         .register('/products', routeParams => onRouteChanged("products"))
