@@ -425,7 +425,9 @@ var spaMVP;
              *  @returns {Boolean}
              */
             HashSet.prototype.add = function (item) {
-                if (this.contains(item)) {
+                if (item === null ||
+                    typeof item === "undefined" ||
+                    this.contains(item)) {
                     return false;
                 }
                 var hashCode = item.hash();
@@ -825,7 +827,7 @@ var spaMVP;
                     throw new Error("Dom node cannot be null.");
                 }
                 this._domNode = domNode;
-                this._template = template;
+                this.template = template;
             }
             Object.defineProperty(View.prototype, "domNode", {
                 get: function () {
@@ -858,8 +860,8 @@ var spaMVP;
              *  @returns {HTMLElement}
              */
             View.prototype.render = function (model) {
-                if (this._template) {
-                    this.domNode.innerHTML = this._template.call(this, model);
+                if (this.template) {
+                    this.domNode.innerHTML = this.template.call(this, model);
                 }
                 return this.domNode;
             };

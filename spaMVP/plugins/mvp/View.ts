@@ -22,8 +22,8 @@
      *  @property {HTMLElement} domNode
      */
     export class View {
-        private _template: (model: any) => string;
         private _domNode: HTMLElement;
+        private template: (model: any) => string;
 
         constructor(domNode: HTMLElement, template?: (model: any) => string) {
             if (!domNode) {
@@ -31,7 +31,7 @@
             }
 
             this._domNode = domNode;
-            this._template = template;
+            this.template = template;
         }
 
         get domNode(): HTMLElement {
@@ -63,8 +63,8 @@
          *  @returns {HTMLElement}
          */
         render(model: any): HTMLElement {
-            if (this._template) {
-                this.domNode.innerHTML = this._template.call(this, model);
+            if (this.template) {
+                this.domNode.innerHTML = this.template.call(this, model);
             }
 
             return this.domNode;

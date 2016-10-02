@@ -48,7 +48,9 @@ namespace spaMVP.Hidden {
          *  @returns {Boolean}
          */
         add(item: T): boolean {
-            if (this.contains(item)) {
+            if (item === null ||
+                typeof item === "undefined" ||
+                this.contains(item)) {
                 return false;
             }
 

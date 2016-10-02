@@ -18,8 +18,15 @@ describe("HashSet", function (): void {
         expect(set.size).toEqual(1);
     });
 
+    it("should return false when add null or undefined", () => {
+        let set = new spaMVP.Hidden.HashSet<number>();
+
+        expect(set.add(null)).toBeFalsy();
+        expect(set.add(undefined)).toBeFalsy();
+        expect(set.size).toEqual(0);
+    });
+
     it("should return false when add a duplicated item", () => {
-        debugger;
         let set = new spaMVP.Hidden.HashSet<number>();
         set.add(1);
 

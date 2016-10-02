@@ -508,7 +508,9 @@ namespace spaMVP.Hidden {
          *  @returns {Boolean}
          */
         add(item: T): boolean {
-            if (this.contains(item)) {
+            if (item === null ||
+                typeof item === "undefined" ||
+                this.contains(item)) {
                 return false;
             }
 
@@ -935,8 +937,8 @@ namespace spaMVP.Hidden {
      *  @property {HTMLElement} domNode
      */
     export class View {
-        private _template: (model: any) => string;
         private _domNode: HTMLElement;
+        private template: (model: any) => string;
 
         constructor(domNode: HTMLElement, template?: (model: any) => string) {
             if (!domNode) {
@@ -944,7 +946,7 @@ namespace spaMVP.Hidden {
             }
 
             this._domNode = domNode;
-            this._template = template;
+            this.template = template;
         }
 
         get domNode(): HTMLElement {
@@ -976,8 +978,8 @@ namespace spaMVP.Hidden {
          *  @returns {HTMLElement}
          */
         render(model: any): HTMLElement {
-            if (this._template) {
-                this.domNode.innerHTML = this._template.call(this, model);
+            if (this.template) {
+                this.domNode.innerHTML = this.template.call(this, model);
             }
 
             return this.domNode;
