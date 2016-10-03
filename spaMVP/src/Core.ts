@@ -1,6 +1,12 @@
 ﻿namespace spaMVP {
     "use strict";
 
+    import hidden = spaMVP.Hidden;
+
+    let onApplicationRunAction = function () { };
+
+    let onApplicationRunCustomAction = function () { };
+
     interface HookList {
         [name: string]: Function[];
     }
@@ -40,8 +46,8 @@
 
     function onDomReady(ev: Event): void {
         document.removeEventListener("DOMContentLoaded", onDomReady);
-        onApplicationStartCustom();
-        onApplicationStart();
+        onApplicationRunCustomAction();
+        onApplicationRunAction();
     }
 
     function runPlugins(hookType: HookType, ...params: any[]): void {
@@ -66,10 +72,6 @@
         }
     }
 
-    import hidden = spaMVP.Hidden;
-    let onApplicationStart = function () { };
-    let onApplicationStartCustom = function () { };
-
     export interface Core {
         Sandbox: SandboxConstructor;
 
@@ -87,7 +89,7 @@
     }
 
     export interface Module {
-        init(options: any): void;
+        init(options?: Object): void;
         destroy(): void;
     }
 
@@ -261,8 +263,8 @@
          *  @param {Function} action Optional action to be executed before core initialization.
          */
         run(action?: () => void): this {
-            onApplicationStartCustom = typeof action === "function" ? action : onApplicationStartCustom;
-            onApplicationStart = () => {
+            onApplicationRunCustomAction = typeof action === "function" ? action : onApplicationRunCustomAction;
+            onApplicationRunAction = () => {
                 runPlugins.call(this, HookType.SPA_DOMReady);
             };
 
