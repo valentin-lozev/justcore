@@ -3,10 +3,10 @@
 
     import mvp = plugins.mvp;
 
-    interface MVPPlugin {
+    export interface MVPPlugin {
         Model: typeof mvp.Model;
         Collection: typeof mvp.Collection;
-        View: typeof mvp.BaseView;
+        View: typeof mvp.View;
         Presenter: typeof mvp.Presenter;
     }
 
@@ -24,7 +24,7 @@
         that.mvp = {
             Model: mvp.Model,
             Collection: mvp.Collection,
-            View: mvp.BaseView,
+            View: mvp.View,
             Presenter: mvp.Presenter,
         };
     };

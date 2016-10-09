@@ -1,4 +1,9 @@
-﻿namespace spaMVP.plugins.mvp {
+﻿interface MVPView {
+    render(model: any): HTMLElement;
+    destroy(): void;
+}
+
+namespace spaMVP.plugins.mvp {
     "use strict";
 
     function eventHandler(ev: Event): void {
@@ -15,18 +20,14 @@
         }
     }
 
-    export interface View {
-        render(model: any): HTMLElement;
-        destroy(): void;
-    }
 
     /**
-     *  @class spaMVP.BaseView
+     *  @class spaMVP.View
      *  @param {HTMLElement} domNode The view's html element.
      *  @param {Function} [template] A function which renders view's html element.
      *  @property {HTMLElement} domNode
      */
-    export class BaseView implements View {
+    export class View implements MVPView {
         private _domNode: HTMLElement;
         private template: (model: any) => string;
 

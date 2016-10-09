@@ -6,7 +6,7 @@ describe("Collection", () => {
     let core = new spaMVP.Core();
     core.useMVP();
 
-    class Book extends core.mvp.Model implements spaMVP.plugins.mvp.Equatable<Book> {
+    class Book extends core.mvp.Model implements MVPEquatable<Book> {
         id: number;
         constructor(id: number) {
             super();

@@ -28,18 +28,10 @@
         }
     }
 
-    export interface RoutingPlugin {
-        defaultUrl: string;
-        register(pattern: string, callback: (routeParams: any) => void): this;
-        startRoute(hash: string): void;
-        getRoutes(): string[];
-        hasRoutes(): boolean;
-    }
-
     /**
      *  @class RouteConfig - Handles window hash change.
      */
-    export class RouteConfig implements RoutingPlugin {
+    export class RouteConfig {
         private routes: Route[] = [];
         private urlHash: UrlHash = new UrlHash();
         public defaultUrl: string = null;

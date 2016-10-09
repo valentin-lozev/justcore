@@ -28,7 +28,7 @@ describe("Presenter", () => {
         return new BookPresenter();
     }
 
-    function getView(): spaMVP.plugins.mvp.BaseView {
+    function getView(): spaMVP.plugins.mvp.View {
         return new core.mvp.View(document.createElement("div"));
     }
 

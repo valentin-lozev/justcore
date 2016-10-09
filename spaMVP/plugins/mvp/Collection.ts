@@ -15,7 +15,7 @@
      *  @class spaMVP.Collection
      *  @augments spaMVP.Model
      */
-    export class Collection<TModel extends Model & Equatable<TModel>> extends Model {
+    export class Collection<TModel extends Model & MVPEquatable<TModel>> extends Model {
         private models: HashSet<TModel> = new HashSet<TModel>();
 
         constructor() {

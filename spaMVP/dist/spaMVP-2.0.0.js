@@ -817,20 +817,20 @@ var spaMVP;
                 }
             }
             /**
-             *  @class spaMVP.BaseView
+             *  @class spaMVP.View
              *  @param {HTMLElement} domNode The view's html element.
              *  @param {Function} [template] A function which renders view's html element.
              *  @property {HTMLElement} domNode
              */
-            var BaseView = (function () {
-                function BaseView(domNode, template) {
+            var View = (function () {
+                function View(domNode, template) {
                     if (!domNode) {
                         throw new Error("Dom node cannot be null.");
                     }
                     this._domNode = domNode;
                     this.template = template;
                 }
-                Object.defineProperty(BaseView.prototype, "domNode", {
+                Object.defineProperty(View.prototype, "domNode", {
                     get: function () {
                         return this._domNode;
                     },
@@ -844,7 +844,7 @@ var spaMVP;
                  * @param useCapture
                  * @param selector
                  */
-                BaseView.prototype.map = function (eventType, useCapture, selector) {
+                View.prototype.map = function (eventType, useCapture, selector) {
                     if (useCapture === void 0) { useCapture = false; }
                     mvp.UIEvent({
                         name: eventType,
@@ -860,7 +860,7 @@ var spaMVP;
                  *  Renders the view.
                  *  @returns {HTMLElement}
                  */
-                BaseView.prototype.render = function (model) {
+                View.prototype.render = function (model) {
                     if (this.template) {
                         this.domNode.innerHTML = this.template.call(this, model);
                     }
@@ -869,7 +869,7 @@ var spaMVP;
                 /**
                  *  Removes all elements and mapped events.
                  */
-                BaseView.prototype.destroy = function () {
+                View.prototype.destroy = function () {
                     if (typeof this.domNode.detach === "function") {
                         this.domNode.detach();
                     }
@@ -882,14 +882,14 @@ var spaMVP;
                  *  @param {String} selector
                  *  @returns {Element}
                  */
-                BaseView.prototype.query = function (selector) {
+                View.prototype.query = function (selector) {
                     return this.domNode.querySelector(selector);
                 };
                 /**
                  *  Removes an element by given selector.
                  *  @param {String} selector
                  */
-                BaseView.prototype.removeElement = function (selector) {
+                View.prototype.removeElement = function (selector) {
                     var element = this.query(selector);
                     if (element) {
                         element.parentElement.removeChild(element);
@@ -900,15 +900,15 @@ var spaMVP;
                  *  Removes all elements.
                  *  @returns {spaMVP.View}
                  */
-                BaseView.prototype.removeAllElements = function () {
+                View.prototype.removeAllElements = function () {
                     while (this.domNode.firstElementChild) {
                         this.domNode.removeChild(this.domNode.firstElementChild);
                     }
                     return this;
                 };
-                return BaseView;
+                return View;
             }());
-            mvp.BaseView = BaseView;
+            mvp.View = View;
         })(mvp = plugins.mvp || (plugins.mvp = {}));
     })(plugins = spaMVP.plugins || (spaMVP.plugins = {}));
 })(spaMVP || (spaMVP = {}));
@@ -1013,7 +1013,7 @@ var spaMVP;
         that.mvp = {
             Model: mvp.Model,
             Collection: mvp.Collection,
-            View: mvp.BaseView,
+            View: mvp.View,
             Presenter: mvp.Presenter,
         };
     };

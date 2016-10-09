@@ -6,8 +6,6 @@
   "directories": {
     "test": "tests"
   },
-  "dependencies": {  
-  },
   "devDependencies": {
     "event-stream": "^3.3.4",
     "gulp": "^3.9.1",

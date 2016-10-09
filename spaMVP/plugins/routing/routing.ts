@@ -3,9 +3,17 @@
 
     import routing = plugins.routing;
 
+    export interface RoutingPlugin {
+        defaultUrl: string;
+        register(pattern: string, callback: (routeParams: any) => void): this;
+        startRoute(hash: string): void;
+        getRoutes(): string[];
+        hasRoutes(): boolean;
+    }
+
     export interface Core {
         useRouting(): void;
-        routing: routing.RoutingPlugin;
+        routing: RoutingPlugin;
     }
 
     Core.prototype.useRouting = function (): void {

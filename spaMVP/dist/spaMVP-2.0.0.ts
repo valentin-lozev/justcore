@@ -449,20 +449,21 @@ namespace spaMVP.plugins.mvp {
         }
     }
 }
+interface MVPEquatable<T> {
+    equals(other: T): boolean;
+    hash(): number;
+}
+
 namespace spaMVP.plugins.mvp {
     "use strict";
 
-    export interface Equatable<T> {
-        equals(other: T): boolean;
-        hash(): number;
-    }
 
     /**
      *  Creates a collection of unique items.
      *  @class spaMVP.HashSet
      *  @property {Number} size  
      */
-    export class HashSet<T extends Equatable<T>> {
+    export class HashSet<T extends MVPEquatable<T>> {
         private items: Object = {};
         public size: number = 0;
 
@@ -627,7 +628,7 @@ namespace spaMVP.plugins.mvp {
      *  @class spaMVP.Collection
      *  @augments spaMVP.Model
      */
-    export class Collection<TModel extends Model & Equatable<TModel>> extends Model {
+    export class Collection<TModel extends Model & MVPEquatable<TModel>> extends Model {
         private models: HashSet<TModel> = new HashSet<TModel>();
 
         constructor() {
@@ -900,6 +901,11 @@ namespace spaMVP.plugins.mvp {
 
     });
 }
+interface MVPView {
+    render(model: any): HTMLElement;
+    destroy(): void;
+}
+
 namespace spaMVP.plugins.mvp {
     "use strict";
 
@@ -917,18 +923,14 @@ namespace spaMVP.plugins.mvp {
         }
     }
 
-    export interface View {
-        render(model: any): HTMLElement;
-        destroy(): void;
-    }
 
     /**
-     *  @class spaMVP.BaseView
+     *  @class spaMVP.View
      *  @param {HTMLElement} domNode The view's html element.
      *  @param {Function} [template] A function which renders view's html element.
      *  @property {HTMLElement} domNode
      */
-    export class BaseView implements View {
+    export class View implements MVPView {
         private _domNode: HTMLElement;
         private template: (model: any) => string;
 
@@ -1113,10 +1115,10 @@ namespace spaMVP {
 
     import mvp = plugins.mvp;
 
-    interface MVPPlugin {
+    export interface MVPPlugin {
         Model: typeof mvp.Model;
         Collection: typeof mvp.Collection;
-        View: typeof mvp.BaseView;
+        View: typeof mvp.View;
         Presenter: typeof mvp.Presenter;
     }
 
@@ -1134,7 +1136,7 @@ namespace spaMVP {
         that.mvp = {
             Model: mvp.Model,
             Collection: mvp.Collection,
-            View: mvp.BaseView,
+            View: mvp.View,
             Presenter: mvp.Presenter,
         };
     };
@@ -1352,18 +1354,10 @@ namespace spaMVP.plugins.routing {
         }
     }
 
-    export interface RoutingPlugin {
-        defaultUrl: string;
-        register(pattern: string, callback: (routeParams: any) => void): this;
-        startRoute(hash: string): void;
-        getRoutes(): string[];
-        hasRoutes(): boolean;
-    }
-
     /**
      *  @class RouteConfig - Handles window hash change.
      */
-    export class RouteConfig implements RoutingPlugin {
+    export class RouteConfig {
         private routes: Route[] = [];
         private urlHash: UrlHash = new UrlHash();
         public defaultUrl: string = null;
@@ -1420,9 +1414,17 @@ namespace spaMVP {
 
     import routing = plugins.routing;
 
+    export interface RoutingPlugin {
+        defaultUrl: string;
+        register(pattern: string, callback: (routeParams: any) => void): this;
+        startRoute(hash: string): void;
+        getRoutes(): string[];
+        hasRoutes(): boolean;
+    }
+
     export interface Core {
         useRouting(): void;
-        routing: routing.RoutingPlugin;
+        routing: RoutingPlugin;
     }
 
     Core.prototype.useRouting = function (): void {

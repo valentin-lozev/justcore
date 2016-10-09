@@ -1,17 +1,18 @@
+interface MVPEquatable<T> {
+    equals(other: T): boolean;
+    hash(): number;
+}
+
 namespace spaMVP.plugins.mvp {
     "use strict";
 
-    export interface Equatable<T> {
-        equals(other: T): boolean;
-        hash(): number;
-    }
 
     /**
      *  Creates a collection of unique items.
      *  @class spaMVP.HashSet
      *  @property {Number} size  
      */
-    export class HashSet<T extends Equatable<T>> {
+    export class HashSet<T extends MVPEquatable<T>> {
         private items: Object = {};
         public size: number = 0;
 
