@@ -297,11 +297,6 @@ var spaMVP;
                 Change: "change",
                 Destroy: "destroy"
             };
-            mvp.CollectionEvents = {
-                AddedItems: "added-items",
-                DeletedItems: "deleted-items",
-                UpdatedItem: "updated-item"
-            };
             /**
              *  @class spaMVP.Model
              */
@@ -543,6 +538,11 @@ var spaMVP;
             function onItemDestroy(item) {
                 this.removeRange([item]);
             }
+            mvp.CollectionEvents = {
+                AddedItems: "added-items",
+                DeletedItems: "deleted-items",
+                UpdatedItem: "updated-item"
+            };
             /**
              *  Composite pattern on spaMVP.Model.
              *  It is usefull when you want to listen for collection of models.
@@ -1012,7 +1012,9 @@ var spaMVP;
         }
         that.mvp = {
             Model: mvp.Model,
+            ModelEvents: mvp.ModelEvents,
             Collection: mvp.Collection,
+            CollectionEvents: mvp.CollectionEvents,
             View: mvp.View,
             Presenter: mvp.Presenter,
         };

@@ -6,12 +6,6 @@
         Destroy: "destroy"
     };
 
-    export const CollectionEvents = {
-        AddedItems: "added-items",
-        DeletedItems: "deleted-items",
-        UpdatedItem: "updated-item"
-    };
-
     /**
      *  @class spaMVP.Model
      */

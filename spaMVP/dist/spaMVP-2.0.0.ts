@@ -369,12 +369,6 @@ namespace spaMVP.plugins.mvp {
         Destroy: "destroy"
     };
 
-    export const CollectionEvents = {
-        AddedItems: "added-items",
-        DeletedItems: "deleted-items",
-        UpdatedItem: "updated-item"
-    };
-
     /**
      *  @class spaMVP.Model
      */
@@ -621,6 +615,12 @@ namespace spaMVP.plugins.mvp {
     function onItemDestroy(item): void {
         this.removeRange([item]);
     }
+
+    export const CollectionEvents = {
+        AddedItems: "added-items",
+        DeletedItems: "deleted-items",
+        UpdatedItem: "updated-item"
+    };
 
     /**
      *  Composite pattern on spaMVP.Model.
@@ -1117,7 +1117,16 @@ namespace spaMVP {
 
     export interface MVPPlugin {
         Model: typeof mvp.Model;
+        ModelEvents: {
+            Change: string,
+            Destroy: string
+        };
         Collection: typeof mvp.Collection;
+        CollectionEvents: {
+            AddedItems: string,
+            DeletedItems: string,
+            UpdatedItem: string
+        };
         View: typeof mvp.View;
         Presenter: typeof mvp.Presenter;
     }
@@ -1135,7 +1144,9 @@ namespace spaMVP {
 
         that.mvp = {
             Model: mvp.Model,
+            ModelEvents: mvp.ModelEvents,
             Collection: mvp.Collection,
+            CollectionEvents: mvp.CollectionEvents,
             View: mvp.View,
             Presenter: mvp.Presenter,
         };
