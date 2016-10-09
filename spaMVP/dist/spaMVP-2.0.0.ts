@@ -82,6 +82,11 @@ namespace spaMVP {
 namespace spaMVP {
     "use strict";
 
+    import typeGuard = helpers.typeGuard;
+
+    let onApplicationRunAction = function () { };
+    let onApplicationRunCustomAction = function () { };
+
     interface HookList {
         [name: string]: Function[];
     }
@@ -121,8 +126,8 @@ namespace spaMVP {
 
     function onDomReady(ev: Event): void {
         document.removeEventListener("DOMContentLoaded", onDomReady);
-        onApplicationStartCustom();
-        onApplicationStart();
+        onApplicationRunCustomAction();
+        onApplicationRunAction();
     }
 
     function runPlugins(hookType: HookType, ...params: any[]): void {
@@ -147,11 +152,6 @@ namespace spaMVP {
         }
     }
 
-    import typeGuard = helpers.typeGuard;
-
-    let onApplicationStart = function () { };
-    let onApplicationStartCustom = function () { };
-
     export interface Core {
         Sandbox: SandboxConstructor;
 
@@ -169,7 +169,7 @@ namespace spaMVP {
     }
 
     export interface Module {
-        init(options: any): void;
+        init(options?: Object): void;
         destroy(): void;
     }
 
@@ -343,8 +343,8 @@ namespace spaMVP {
          *  @param {Function} action Optional action to be executed before core initialization.
          */
         run(action?: () => void): this {
-            onApplicationStartCustom = typeof action === "function" ? action : onApplicationStartCustom;
-            onApplicationStart = () => {
+            onApplicationRunCustomAction = typeof action === "function" ? action : onApplicationRunCustomAction;
+            onApplicationRunAction = () => {
                 runPlugins.call(this, HookType.SPA_DOMReady);
             };
 

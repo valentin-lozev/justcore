@@ -69,6 +69,9 @@ var spaMVP;
 var spaMVP;
 (function (spaMVP) {
     "use strict";
+    var typeGuard = spaMVP.helpers.typeGuard;
+    var onApplicationRunAction = function () { };
+    var onApplicationRunCustomAction = function () { };
     function addSubscriber(eventType, handler, context) {
         this.subscribers[eventType] = this.subscribers[eventType] || [];
         this.subscribers[eventType].push({
@@ -90,8 +93,8 @@ var spaMVP;
     }
     function onDomReady(ev) {
         document.removeEventListener("DOMContentLoaded", onDomReady);
-        onApplicationStartCustom();
-        onApplicationStart();
+        onApplicationRunCustomAction();
+        onApplicationRunAction();
     }
     function runPlugins(hookType) {
         var params = [];
@@ -117,9 +120,6 @@ var spaMVP;
             }
         }
     }
-    var typeGuard = spaMVP.helpers.typeGuard;
-    var onApplicationStart = function () { };
-    var onApplicationStartCustom = function () { };
     (function (HookType) {
         HookType[HookType["SPA_DOMReady"] = 0] = "SPA_DOMReady";
         HookType[HookType["SPA_ModuleDestroy"] = 1] = "SPA_ModuleDestroy";
@@ -267,8 +267,8 @@ var spaMVP;
          */
         Core.prototype.run = function (action) {
             var _this = this;
-            onApplicationStartCustom = typeof action === "function" ? action : onApplicationStartCustom;
-            onApplicationStart = function () {
+            onApplicationRunCustomAction = typeof action === "function" ? action : onApplicationRunCustomAction;
+            onApplicationRunAction = function () {
                 runPlugins.call(_this, HookType.SPA_DOMReady);
             };
             if (document.readyState === "complete" ||
