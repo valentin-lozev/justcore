@@ -4,7 +4,7 @@
     /**
      *  @class spaMVP.Presenter
      */
-    export class Presenter<TView extends View, TModel extends Model> {
+    export class Presenter<TView extends MVPView, TModel extends Model> {
         private _view: TView = null;
         private _model: TModel = null;
         private _modelHandlers: Object = {};
