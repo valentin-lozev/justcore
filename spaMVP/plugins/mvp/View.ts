@@ -1,4 +1,4 @@
-﻿namespace spaMVP.Hidden {
+﻿namespace spaMVP.plugins.mvp {
     "use strict";
 
     function eventHandler(ev: Event): void {
@@ -15,13 +15,18 @@
         }
     }
 
+    export interface View {
+        render(model: any): HTMLElement;
+        destroy(): void;
+    }
+
     /**
-     *  @class spaMVP.View
+     *  @class spaMVP.BaseView
      *  @param {HTMLElement} domNode The view's html element.
      *  @param {Function} [template] A function which renders view's html element.
      *  @property {HTMLElement} domNode
      */
-    export class View {
+    export class BaseView implements View {
         private _domNode: HTMLElement;
         private template: (model: any) => string;
 
@@ -117,5 +122,4 @@
             return this;
         }
     }
-
 }

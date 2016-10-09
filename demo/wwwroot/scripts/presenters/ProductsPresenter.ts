@@ -1,4 +1,11 @@
-﻿class ProductsPresenter extends app.mvp.Presenter<ProductsPanelView, ProductList> {
+﻿interface ProductsView extends spaMVP.plugins.mvp.View {
+    reset(): this;
+    filter(name: string): this;
+    search(query: string): this;
+    addProduct(product: Product): this;
+}
+
+class ProductsPresenter extends app.mvp.Presenter<ProductsView, ProductList> {
 
     private sandbox: spaMVP.Sandbox;
 
@@ -6,7 +13,7 @@
         super();
 
         this.sandbox = sb;
-        this.onModel(app.mvp.Collection.CollectionEvents.AddedItems, this.onProductsAdded);
+        this.onModel(spaMVP.plugins.mvp.CollectionEvents.AddedItems, this.onProductsAdded);
     }
 
     changeFilter(name: string) {

@@ -1,4 +1,4 @@
-﻿namespace spaMVP.Hidden {
+﻿namespace spaMVP.plugins.routing {
     "use strict";
 
     export interface QueryParam {

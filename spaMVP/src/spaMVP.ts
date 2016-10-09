@@ -1,7 +1,7 @@
 ﻿namespace spaMVP {
     "use strict";
 
-    delete spaMVP.Hidden;
+    delete spaMVP.helpers;
 
     /**
      *  Returns the application core.

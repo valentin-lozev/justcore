@@ -4,7 +4,7 @@
  *  Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
  *  Source code: http://github.com/valentin-lozev/spaMVP
  */
-namespace spaMVP.Hidden {
+namespace spaMVP.helpers {
     "use strict";
 
     export function typeGuard(expected: string, value: any, errorMsg: string): void {
@@ -147,7 +147,8 @@ namespace spaMVP {
         }
     }
 
-    import hidden = spaMVP.Hidden;
+    import typeGuard = helpers.typeGuard;
+
     let onApplicationStart = function () { };
     let onApplicationStartCustom = function () { };
 
@@ -199,8 +200,8 @@ namespace spaMVP {
          */
         subscribe(eventTypes: string[], handler: (type: string, data: any) => void, context?: any): this {
             let errorMsg = "Subscribing failed:";
-            hidden.typeGuard("function", handler, `${errorMsg} event handler should be a function.`);
-            hidden.typeGuard("array", eventTypes, `${errorMsg} event types should be passed as an array of strings.`);
+            typeGuard("function", handler, `${errorMsg} event handler should be a function.`);
+            typeGuard("array", eventTypes, `${errorMsg} event types should be passed as an array of strings.`);
 
             runPlugins.call(this, HookType.SPA_Subscribe, eventTypes);
             for (let i = 0, len = eventTypes.length; i < len; i++) {
@@ -218,8 +219,8 @@ namespace spaMVP {
          */
         unsubscribe(eventTypes: string[], handler: (type: string, data: any) => void, context?: any): this {
             let errorMsg = "Unsubscribing failed:";
-            hidden.typeGuard("function", handler, `${errorMsg} event handler should be a function.`);
-            hidden.typeGuard("array", eventTypes, `${errorMsg} event types should be passed as an array of strings.`);
+            typeGuard("function", handler, `${errorMsg} event handler should be a function.`);
+            typeGuard("array", eventTypes, `${errorMsg} event types should be passed as an array of strings.`);
 
             runPlugins.call(this, HookType.SPA_Unsubscribe, eventTypes);
             for (let i = 0, len = eventTypes.length; i < len; i++) {
@@ -252,12 +253,12 @@ namespace spaMVP {
          */
         register(moduleId: string, moduleFactory: (sb: Sandbox) => Module): this {
             let errorMsg = `${moduleId} registration failed:`;
-            hidden.typeGuard("string", moduleId, `${errorMsg} module ID must be a string.`);
-            hidden.typeGuard("string", moduleId, `${errorMsg} module ID must be a string.`);
-            hidden.typeGuard("undefined", this.modules[moduleId], `${errorMsg} module with such id has been already registered.`);
+            typeGuard("string", moduleId, `${errorMsg} module ID must be a string.`);
+            typeGuard("string", moduleId, `${errorMsg} module ID must be a string.`);
+            typeGuard("undefined", this.modules[moduleId], `${errorMsg} module with such id has been already registered.`);
             let tempModule = moduleFactory(new this.Sandbox(this, moduleId));
-            hidden.typeGuard("function", tempModule.init, `${errorMsg} module does not implement init method.`);
-            hidden.typeGuard("function", tempModule.destroy, `${errorMsg} module does not implement destroy method.`);
+            typeGuard("function", tempModule.init, `${errorMsg} module does not implement init method.`);
+            typeGuard("function", tempModule.destroy, `${errorMsg} module does not implement destroy method.`);
 
             runPlugins.call(this, HookType.SPA_ModuleRegister, moduleId, moduleFactory);
             this.modules[moduleId] = {
@@ -277,8 +278,8 @@ namespace spaMVP {
             options = options || {};
 
             let errorMsg = `${moduleId} initialization failed:`;
-            hidden.typeGuard("object", module, `${errorMsg} module not found.`);
-            hidden.typeGuard("object", options, `${errorMsg} module options must be an object.`);
+            typeGuard("object", module, `${errorMsg} module not found.`);
+            typeGuard("object", options, `${errorMsg} module options must be an object.`);
 
             let instanceId = options["instanceId"] || moduleId;
             if (module.instances.hasOwnProperty(instanceId)) {
@@ -326,8 +327,8 @@ namespace spaMVP {
          */
         hook(hookType: HookType, plugin: Function): this {
             let errorMsg = "Hook plugin failed:";
-            hidden.typeGuard("number", hookType, `${errorMsg} hook type should be an HookType enum.`);
-            hidden.typeGuard("function", plugin, `${errorMsg} plugin should be a function.`);
+            typeGuard("number", hookType, `${errorMsg} hook type should be an HookType enum.`);
+            typeGuard("function", plugin, `${errorMsg} plugin should be a function.`);
 
             if (!Array.isArray(this.hooks[hookType])) {
                 this.hooks[hookType] = [];
@@ -360,7 +361,7 @@ namespace spaMVP {
         }
     }
 }
-namespace spaMVP.Hidden {
+namespace spaMVP.plugins.mvp {
     "use strict";
 
     export const ModelEvents = {
@@ -447,28 +448,14 @@ namespace spaMVP.Hidden {
             this.notify(ModelEvents.Destroy, this);
         }
     }
-
-    export module Model {
-        export const Events = ModelEvents;
-
-        export const CollectionEvents = {
-            AddedItems: "added-items",
-            DeletedItems: "deleted-items",
-            UpdatedItem: "updated-item"
-        };
-    }
 }
-namespace spaMVP {
+namespace spaMVP.plugins.mvp {
     "use strict";
 
     export interface Equatable<T> {
         equals(other: T): boolean;
         hash(): number;
     }
-}
-
-namespace spaMVP.Hidden {
-    "use strict";
 
     /**
      *  Creates a collection of unique items.
@@ -508,7 +495,9 @@ namespace spaMVP.Hidden {
          *  @returns {Boolean}
          */
         add(item: T): boolean {
-            if (this.contains(item)) {
+            if (item === null ||
+                typeof item === "undefined" ||
+                this.contains(item)) {
                 return false;
             }
 
@@ -621,11 +610,11 @@ namespace spaMVP.Hidden {
     }
 
 }
-namespace spaMVP.Hidden {
+namespace spaMVP.plugins.mvp {
     "use strict";
 
     function onItemChange(item): void {
-        this.notify(Model.CollectionEvents.UpdatedItem, item);
+        this.notify(CollectionEvents.UpdatedItem, item);
     }
 
     function onItemDestroy(item): void {
@@ -677,14 +666,14 @@ namespace spaMVP.Hidden {
                     continue;
                 }
 
-                model.on(Model.Events.Change, onItemChange, this);
-                model.on(Model.Events.Destroy, onItemDestroy, this);
+                model.on(ModelEvents.Change, onItemChange, this);
+                model.on(ModelEvents.Destroy, onItemDestroy, this);
                 added.push(model);
             }
 
             let isModified = added.length > 0;
             if (isModified) {
-                this.notify(Model.CollectionEvents.AddedItems, added);
+                this.notify(CollectionEvents.AddedItems, added);
             }
 
             return isModified;
@@ -710,14 +699,14 @@ namespace spaMVP.Hidden {
                     continue;
                 }
 
-                model.off(Model.Events.Change, onItemChange, this);
-                model.off(Model.Events.Destroy, onItemDestroy, this);
+                model.off(ModelEvents.Change, onItemChange, this);
+                model.off(ModelEvents.Destroy, onItemDestroy, this);
                 deleted.push(model);
             }
 
             let isModified = deleted.length > 0;
             if (isModified) {
-                this.notify(Model.CollectionEvents.DeletedItems, deleted);
+                this.notify(CollectionEvents.DeletedItems, deleted);
             }
 
             return isModified;
@@ -770,7 +759,7 @@ interface Element {
     events: boolean;
 }
 
-namespace spaMVP.Hidden {
+namespace spaMVP.plugins.mvp {
     "use strict";
 
     /**
@@ -911,7 +900,7 @@ namespace spaMVP.Hidden {
 
     });
 }
-namespace spaMVP.Hidden {
+namespace spaMVP.plugins.mvp {
     "use strict";
 
     function eventHandler(ev: Event): void {
@@ -928,15 +917,20 @@ namespace spaMVP.Hidden {
         }
     }
 
+    export interface View {
+        render(model: any): HTMLElement;
+        destroy(): void;
+    }
+
     /**
-     *  @class spaMVP.View
+     *  @class spaMVP.BaseView
      *  @param {HTMLElement} domNode The view's html element.
      *  @param {Function} [template] A function which renders view's html element.
      *  @property {HTMLElement} domNode
      */
-    export class View {
-        private _template: (model: any) => string;
+    export class BaseView implements View {
         private _domNode: HTMLElement;
+        private template: (model: any) => string;
 
         constructor(domNode: HTMLElement, template?: (model: any) => string) {
             if (!domNode) {
@@ -944,7 +938,7 @@ namespace spaMVP.Hidden {
             }
 
             this._domNode = domNode;
-            this._template = template;
+            this.template = template;
         }
 
         get domNode(): HTMLElement {
@@ -976,8 +970,8 @@ namespace spaMVP.Hidden {
          *  @returns {HTMLElement}
          */
         render(model: any): HTMLElement {
-            if (this._template) {
-                this.domNode.innerHTML = this._template.call(this, model);
+            if (this.template) {
+                this.domNode.innerHTML = this.template.call(this, model);
             }
 
             return this.domNode;
@@ -1030,9 +1024,8 @@ namespace spaMVP.Hidden {
             return this;
         }
     }
-
 }
-namespace spaMVP.Hidden {
+namespace spaMVP.plugins.mvp {
     "use strict";
 
     /**
@@ -1097,8 +1090,8 @@ namespace spaMVP.Hidden {
         /**
          *  Renders its view.
          */
-        render(): Element {
-            if (this.view && this.model) {
+        render(): HTMLElement {
+            if (this.view) {
                 return this.view.render(this.model);
             }
 
@@ -1118,13 +1111,13 @@ namespace spaMVP.Hidden {
 namespace spaMVP {
     "use strict";
 
-    import hidden = spaMVP.Hidden;
+    import mvp = plugins.mvp;
 
-    export interface MVPPlugin {
-        Model: typeof hidden.Model;
-        Collection: typeof hidden.Collection;
-        View: typeof hidden.View;
-        Presenter: typeof hidden.Presenter;
+    interface MVPPlugin {
+        Model: typeof mvp.Model;
+        Collection: typeof mvp.Collection;
+        View: typeof mvp.BaseView;
+        Presenter: typeof mvp.Presenter;
     }
 
     export interface Core {
@@ -1138,16 +1131,15 @@ namespace spaMVP {
             return;
         }
 
-        let mvp: MVPPlugin = {
-            Model: hidden.Model,
-            Collection: hidden.Collection,
-            View: hidden.View,
-            Presenter: hidden.Presenter,
+        that.mvp = {
+            Model: mvp.Model,
+            Collection: mvp.Collection,
+            View: mvp.BaseView,
+            Presenter: mvp.Presenter,
         };
-        that.mvp = mvp;
     };
 }
-namespace spaMVP.Hidden {
+namespace spaMVP.plugins.routing {
     "use strict";
 
     export interface QueryParam {
@@ -1220,8 +1212,10 @@ namespace spaMVP.Hidden {
         }
     }
 }
-namespace spaMVP.Hidden {
+namespace spaMVP.plugins.routing {
     "use strict";
+
+    import typeGuard = helpers.typeGuard;
 
     interface RouteToken {
         name: string;
@@ -1328,7 +1322,7 @@ namespace spaMVP.Hidden {
         }
     }
 }
-namespace spaMVP.Hidden {
+namespace spaMVP.plugins.routing {
     "use strict";
 
     function findRoute(): Route {
@@ -1424,11 +1418,11 @@ namespace spaMVP.Hidden {
 namespace spaMVP {
     "use strict";
 
-    import hidden = spaMVP.Hidden;
+    import routing = plugins.routing;
 
     export interface Core {
         useRouting(): void;
-        routing: hidden.RoutingPlugin;
+        routing: routing.RoutingPlugin;
     }
 
     Core.prototype.useRouting = function (): void {
@@ -1437,7 +1431,7 @@ namespace spaMVP {
             return;
         }
 
-        that.routing = new hidden.RouteConfig();
+        that.routing = new routing.RouteConfig();
 
         that.hook(spaMVP.HookType.SPA_DOMReady, () => {
             if (!that.routing.hasRoutes()) {
@@ -1453,14 +1447,19 @@ namespace spaMVP {
         });
     };
 }
-namespace spaMVP {
+namespace spaMVP.plugins.services {
     "use strict";
 
     interface ServiceList {
         [id: string]: () => any;
     }
 
-    class ServiceConfig implements ServicesPlugin {
+    export interface ServicesPlugin {
+        add<T>(id: string, creator: () => T): this;
+        get<T>(id: string): T;
+    }
+
+    export class ServiceConfig implements ServicesPlugin {
         private services: ServiceList = {};
 
         /**
@@ -1499,15 +1498,16 @@ namespace spaMVP {
             return creator();
         }
     }
+}
 
-    export interface ServicesPlugin {
-        add<T>(id: string, creator: () => T): this;
-        get<T>(id: string): T;
-    }
+namespace spaMVP {
+    "use strict";
+
+    import services = plugins.services;
 
     export interface Core {
         useServices(): void;
-        services: ServicesPlugin;
+        services: services.ServicesPlugin;
     }
 
     export interface Sandbox {
@@ -1520,7 +1520,7 @@ namespace spaMVP {
             return;
         }
 
-        that.services = new ServiceConfig();
+        that.services = new services.ServiceConfig();
         let sandbox = <Sandbox>that.Sandbox.prototype;
 
         /**
@@ -1536,7 +1536,7 @@ namespace spaMVP {
 namespace spaMVP {
     "use strict";
 
-    delete spaMVP.Hidden;
+    delete spaMVP.helpers;
 
     /**
      *  Returns the application core.

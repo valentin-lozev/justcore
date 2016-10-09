@@ -1,13 +1,13 @@
 ﻿namespace spaMVP {
     "use strict";
 
-    import hidden = spaMVP.Hidden;
+    import mvp = plugins.mvp;
 
-    export interface MVPPlugin {
-        Model: typeof hidden.Model;
-        Collection: typeof hidden.Collection;
-        View: typeof hidden.View;
-        Presenter: typeof hidden.Presenter;
+    interface MVPPlugin {
+        Model: typeof mvp.Model;
+        Collection: typeof mvp.Collection;
+        View: typeof mvp.BaseView;
+        Presenter: typeof mvp.Presenter;
     }
 
     export interface Core {
@@ -21,12 +21,11 @@
             return;
         }
 
-        let mvp: MVPPlugin = {
-            Model: hidden.Model,
-            Collection: hidden.Collection,
-            View: hidden.View,
-            Presenter: hidden.Presenter,
+        that.mvp = {
+            Model: mvp.Model,
+            Collection: mvp.Collection,
+            View: mvp.BaseView,
+            Presenter: mvp.Presenter,
         };
-        that.mvp = mvp;
     };
 }

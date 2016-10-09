@@ -66,7 +66,8 @@
         }
     }
 
-    import hidden = spaMVP.Hidden;
+    import typeGuard = helpers.typeGuard;
+
     let onApplicationStart = function () { };
     let onApplicationStartCustom = function () { };
 
@@ -118,8 +119,8 @@
          */
         subscribe(eventTypes: string[], handler: (type: string, data: any) => void, context?: any): this {
             let errorMsg = "Subscribing failed:";
-            hidden.typeGuard("function", handler, `${errorMsg} event handler should be a function.`);
-            hidden.typeGuard("array", eventTypes, `${errorMsg} event types should be passed as an array of strings.`);
+            typeGuard("function", handler, `${errorMsg} event handler should be a function.`);
+            typeGuard("array", eventTypes, `${errorMsg} event types should be passed as an array of strings.`);
 
             runPlugins.call(this, HookType.SPA_Subscribe, eventTypes);
             for (let i = 0, len = eventTypes.length; i < len; i++) {
@@ -137,8 +138,8 @@
          */
         unsubscribe(eventTypes: string[], handler: (type: string, data: any) => void, context?: any): this {
             let errorMsg = "Unsubscribing failed:";
-            hidden.typeGuard("function", handler, `${errorMsg} event handler should be a function.`);
-            hidden.typeGuard("array", eventTypes, `${errorMsg} event types should be passed as an array of strings.`);
+            typeGuard("function", handler, `${errorMsg} event handler should be a function.`);
+            typeGuard("array", eventTypes, `${errorMsg} event types should be passed as an array of strings.`);
 
             runPlugins.call(this, HookType.SPA_Unsubscribe, eventTypes);
             for (let i = 0, len = eventTypes.length; i < len; i++) {
@@ -171,12 +172,12 @@
          */
         register(moduleId: string, moduleFactory: (sb: Sandbox) => Module): this {
             let errorMsg = `${moduleId} registration failed:`;
-            hidden.typeGuard("string", moduleId, `${errorMsg} module ID must be a string.`);
-            hidden.typeGuard("string", moduleId, `${errorMsg} module ID must be a string.`);
-            hidden.typeGuard("undefined", this.modules[moduleId], `${errorMsg} module with such id has been already registered.`);
+            typeGuard("string", moduleId, `${errorMsg} module ID must be a string.`);
+            typeGuard("string", moduleId, `${errorMsg} module ID must be a string.`);
+            typeGuard("undefined", this.modules[moduleId], `${errorMsg} module with such id has been already registered.`);
             let tempModule = moduleFactory(new this.Sandbox(this, moduleId));
-            hidden.typeGuard("function", tempModule.init, `${errorMsg} module does not implement init method.`);
-            hidden.typeGuard("function", tempModule.destroy, `${errorMsg} module does not implement destroy method.`);
+            typeGuard("function", tempModule.init, `${errorMsg} module does not implement init method.`);
+            typeGuard("function", tempModule.destroy, `${errorMsg} module does not implement destroy method.`);
 
             runPlugins.call(this, HookType.SPA_ModuleRegister, moduleId, moduleFactory);
             this.modules[moduleId] = {
@@ -196,8 +197,8 @@
             options = options || {};
 
             let errorMsg = `${moduleId} initialization failed:`;
-            hidden.typeGuard("object", module, `${errorMsg} module not found.`);
-            hidden.typeGuard("object", options, `${errorMsg} module options must be an object.`);
+            typeGuard("object", module, `${errorMsg} module not found.`);
+            typeGuard("object", options, `${errorMsg} module options must be an object.`);
 
             let instanceId = options["instanceId"] || moduleId;
             if (module.instances.hasOwnProperty(instanceId)) {
@@ -245,8 +246,8 @@
          */
         hook(hookType: HookType, plugin: Function): this {
             let errorMsg = "Hook plugin failed:";
-            hidden.typeGuard("number", hookType, `${errorMsg} hook type should be an HookType enum.`);
-            hidden.typeGuard("function", plugin, `${errorMsg} plugin should be a function.`);
+            typeGuard("number", hookType, `${errorMsg} hook type should be an HookType enum.`);
+            typeGuard("function", plugin, `${errorMsg} plugin should be a function.`);
 
             if (!Array.isArray(this.hooks[hookType])) {
                 this.hooks[hookType] = [];

@@ -3,7 +3,7 @@
 
 describe("RouteConfig", () => {
 
-    function getConfig(): spaMVP.Hidden.RoutingPlugin {
+    function getConfig(): spaMVP.plugins.routing.RoutingPlugin {
         let core = new spaMVP.Core();
         core.useRouting();
         return core.routing;

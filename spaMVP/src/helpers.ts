@@ -1,4 +1,4 @@
-﻿namespace spaMVP.Hidden {
+﻿namespace spaMVP.helpers {
     "use strict";
 
     export function typeGuard(expected: string, value: any, errorMsg: string): void {

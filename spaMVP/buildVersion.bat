@@ -1,1 +1,0 @@
-cmd /k gulp scripts

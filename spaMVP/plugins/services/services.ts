@@ -1,11 +1,16 @@
-﻿namespace spaMVP {
+﻿namespace spaMVP.plugins.services {
     "use strict";
 
     interface ServiceList {
         [id: string]: () => any;
     }
 
-    class ServiceConfig implements ServicesPlugin {
+    export interface ServicesPlugin {
+        add<T>(id: string, creator: () => T): this;
+        get<T>(id: string): T;
+    }
+
+    export class ServiceConfig implements ServicesPlugin {
         private services: ServiceList = {};
 
         /**
@@ -44,15 +49,16 @@
             return creator();
         }
     }
+}
 
-    export interface ServicesPlugin {
-        add<T>(id: string, creator: () => T): this;
-        get<T>(id: string): T;
-    }
+namespace spaMVP {
+    "use strict";
+
+    import services = plugins.services;
 
     export interface Core {
         useServices(): void;
-        services: ServicesPlugin;
+        services: services.ServicesPlugin;
     }
 
     export interface Sandbox {
@@ -65,7 +71,7 @@
             return;
         }
 
-        that.services = new ServiceConfig();
+        that.services = new services.ServiceConfig();
         let sandbox = <Sandbox>that.Sandbox.prototype;
 
         /**

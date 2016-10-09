@@ -3,7 +3,7 @@
 
 describe("Helpers", () => {
 
-    let guard = spaMVP.Hidden.typeGuard;
+    let guard = spaMVP.helpers.typeGuard;
 
     it("typeGuard should throw with message when expected is invalid", () => {
         let expected = "string";

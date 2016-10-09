@@ -1,5 +1,7 @@
-﻿namespace spaMVP.Hidden {
+﻿namespace spaMVP.plugins.routing {
     "use strict";
+
+    import typeGuard = helpers.typeGuard;
 
     interface RouteToken {
         name: string;

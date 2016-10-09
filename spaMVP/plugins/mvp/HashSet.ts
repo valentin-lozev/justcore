@@ -1,14 +1,10 @@
-namespace spaMVP {
+namespace spaMVP.plugins.mvp {
     "use strict";
 
     export interface Equatable<T> {
         equals(other: T): boolean;
         hash(): number;
     }
-}
-
-namespace spaMVP.Hidden {
-    "use strict";
 
     /**
      *  Creates a collection of unique items.

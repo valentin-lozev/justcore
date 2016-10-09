@@ -1,4 +1,4 @@
-﻿namespace spaMVP.Hidden {
+﻿namespace spaMVP.plugins.routing {
     "use strict";
 
     function findRoute(): Route {

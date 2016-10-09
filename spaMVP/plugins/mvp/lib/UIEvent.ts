@@ -5,7 +5,7 @@
     events: boolean;
 }
 
-namespace spaMVP.Hidden {
+namespace spaMVP.plugins.mvp {
     "use strict";
 
     /**

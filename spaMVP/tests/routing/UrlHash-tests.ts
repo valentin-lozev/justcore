@@ -3,8 +3,8 @@
 
 describe("UrlHash", () => {
 
-    function getIt(): spaMVP.Hidden.UrlHash {
-        return new spaMVP.Hidden.UrlHash();
+    function getIt(): spaMVP.plugins.routing.UrlHash {
+        return new spaMVP.plugins.routing.UrlHash();
     }
 
     it("should have empty string set as default value", () => {

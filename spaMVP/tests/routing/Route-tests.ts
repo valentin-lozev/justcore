@@ -3,13 +3,13 @@
 
 describe("Route", () => {
 
-    function getRoute(pattern: string, callback?: (routeParams: any) => void): spaMVP.Hidden.Route {
+    function getRoute(pattern: string, callback?: (routeParams: any) => void): spaMVP.plugins.routing.Route {
         callback = callback || function (): void { return; };
-        return new spaMVP.Hidden.Route(pattern, callback);
+        return new spaMVP.plugins.routing.Route(pattern, callback);
     }
 
-    function getHash(value: string): spaMVP.Hidden.UrlHash {
-        let result = new spaMVP.Hidden.UrlHash();
+    function getHash(value: string): spaMVP.plugins.routing.UrlHash {
+        let result = new spaMVP.plugins.routing.UrlHash();
         result.value = value;
         return result;
     }

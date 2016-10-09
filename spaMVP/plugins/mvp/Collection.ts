@@ -1,8 +1,8 @@
-﻿namespace spaMVP.Hidden {
+﻿namespace spaMVP.plugins.mvp {
     "use strict";
 
     function onItemChange(item): void {
-        this.notify(Model.CollectionEvents.UpdatedItem, item);
+        this.notify(CollectionEvents.UpdatedItem, item);
     }
 
     function onItemDestroy(item): void {
@@ -54,14 +54,14 @@
                     continue;
                 }
 
-                model.on(Model.Events.Change, onItemChange, this);
-                model.on(Model.Events.Destroy, onItemDestroy, this);
+                model.on(ModelEvents.Change, onItemChange, this);
+                model.on(ModelEvents.Destroy, onItemDestroy, this);
                 added.push(model);
             }
 
             let isModified = added.length > 0;
             if (isModified) {
-                this.notify(Model.CollectionEvents.AddedItems, added);
+                this.notify(CollectionEvents.AddedItems, added);
             }
 
             return isModified;
@@ -87,14 +87,14 @@
                     continue;
                 }
 
-                model.off(Model.Events.Change, onItemChange, this);
-                model.off(Model.Events.Destroy, onItemDestroy, this);
+                model.off(ModelEvents.Change, onItemChange, this);
+                model.off(ModelEvents.Destroy, onItemDestroy, this);
                 deleted.push(model);
             }
 
             let isModified = deleted.length > 0;
             if (isModified) {
-                this.notify(Model.CollectionEvents.DeletedItems, deleted);
+                this.notify(CollectionEvents.DeletedItems, deleted);
             }
 
             return isModified;

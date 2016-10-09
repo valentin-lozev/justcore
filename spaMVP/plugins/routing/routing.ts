@@ -1,11 +1,11 @@
 ﻿namespace spaMVP {
     "use strict";
 
-    import hidden = spaMVP.Hidden;
+    import routing = plugins.routing;
 
     export interface Core {
         useRouting(): void;
-        routing: hidden.RoutingPlugin;
+        routing: routing.RoutingPlugin;
     }
 
     Core.prototype.useRouting = function (): void {
@@ -14,7 +14,7 @@
             return;
         }
 
-        that.routing = new hidden.RouteConfig();
+        that.routing = new routing.RouteConfig();
 
         that.hook(spaMVP.HookType.SPA_DOMReady, () => {
             if (!that.routing.hasRoutes()) {

@@ -1,4 +1,4 @@
-﻿class ProductsPanelView extends app.mvp.View {
+﻿class ProductsPanelView extends app.mvp.View implements ProductsView {
     presenter: ProductsPresenter;
 
     constructor(presenter: ProductsPresenter, template?: (model: Product) => string) {

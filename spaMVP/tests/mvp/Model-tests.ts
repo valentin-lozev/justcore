@@ -3,6 +3,7 @@
 
 describe("Model", () => {
 
+    let ModelEvents = spaMVP.plugins.mvp.ModelEvents;
     let core = new spaMVP.Core();
     core.useMVP();
 
@@ -80,7 +81,7 @@ describe("Model", () => {
     it("should notify for change with specific string and data", () => {
         let model = new TestModel();
         let spy = jasmine.createSpyObj("spy", ["handler"]);
-        model.on(spaMVP.Hidden.Model.Events.Change, spy.handler);
+        model.on(ModelEvents.Change, spy.handler);
 
         model.change();
 
@@ -90,7 +91,7 @@ describe("Model", () => {
     it("should notify for destroy with specific string and data", () => {
         let model = new TestModel();
         let spy = jasmine.createSpyObj("spy", ["handler"]);
-        model.on(spaMVP.Hidden.Model.Events.Destroy, spy.handler);
+        model.on(ModelEvents.Destroy, spy.handler);
 
         model.destroy();
 
@@ -100,7 +101,7 @@ describe("Model", () => {
     it("should return false when try to detach unattached listener", () => {
         let model = new TestModel();
 
-        let result = model.off(spaMVP.Hidden.Model.Events.Change, () => -1);
+        let result = model.off(ModelEvents.Change, () => -1);
 
         expect(result).toBeFalsy();
     });
@@ -108,9 +109,9 @@ describe("Model", () => {
     it("should return true when successfully detach a listener", () => {
         let model = new TestModel();
         let spy = jasmine.createSpyObj("spy", ["handler"]);
-        model.on(spaMVP.Hidden.Model.Events.Change, spy.handler);
+        model.on(ModelEvents.Change, spy.handler);
 
-        let result = model.off(spaMVP.Hidden.Model.Events.Change, spy.handler);
+        let result = model.off(ModelEvents.Change, spy.handler);
 
         expect(result).toBeTruthy();
     });
@@ -118,10 +119,10 @@ describe("Model", () => {
     it("should return true when successfully detach a listener passed with given context", () => {
         let model = new TestModel();
         let spy = jasmine.createSpyObj("spy", ["handler"]);
-        model.on(spaMVP.Hidden.Model.Events.Change, spy.handler, model);
+        model.on(ModelEvents.Change, spy.handler, model);
 
-        let falsyResult = model.off(spaMVP.Hidden.Model.Events.Change, spy.handler);
-        let result = model.off(spaMVP.Hidden.Model.Events.Change, spy.handler, model);
+        let falsyResult = model.off(ModelEvents.Change, spy.handler);
+        let result = model.off(ModelEvents.Change, spy.handler, model);
 
         expect(falsyResult).toBeFalsy();
         expect(result).toBeTruthy();
@@ -130,9 +131,9 @@ describe("Model", () => {
     it("should not invoke already detached listener", () => {
         let model = new TestModel();
         let spy = jasmine.createSpyObj("spy", ["handler"]);
-        model.on(spaMVP.Hidden.Model.Events.Change, spy.handler);
+        model.on(ModelEvents.Change, spy.handler);
 
-        let result = model.off(spaMVP.Hidden.Model.Events.Change, spy.handler);
+        let result = model.off(ModelEvents.Change, spy.handler);
         model.change();
 
         expect(result).toBeTruthy();

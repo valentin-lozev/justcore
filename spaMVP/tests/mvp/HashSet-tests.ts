@@ -11,15 +11,19 @@ describe("HashSet", function (): void {
     Number.prototype.hash = function (): number { return this | 17; };
     Number.prototype.equals = function (other: number): boolean { return this == other; };
 
+    function getSet(): spaMVP.plugins.mvp.HashSet<number> {
+        return new spaMVP.plugins.mvp.HashSet<number>();
+    }
+
     it("should return true when successfully add an item", () => {
-        let set = new spaMVP.Hidden.HashSet<number>();
+        let set = getSet();
 
         expect(set.add(1)).toBeTruthy();
         expect(set.size).toEqual(1);
     });
 
     it("should return false when add null or undefined", () => {
-        let set = new spaMVP.Hidden.HashSet<number>();
+        let set = getSet();
 
         expect(set.add(null)).toBeFalsy();
         expect(set.add(undefined)).toBeFalsy();
@@ -27,7 +31,7 @@ describe("HashSet", function (): void {
     });
 
     it("should return false when add a duplicated item", () => {
-        let set = new spaMVP.Hidden.HashSet<number>();
+        let set = getSet();
         set.add(1);
 
         expect(set.add(1)).toBeFalsy();
@@ -35,7 +39,7 @@ describe("HashSet", function (): void {
     });
 
     it("should add only unique items", () => {
-        let set = new spaMVP.Hidden.HashSet<number>();
+        let set = getSet();
         let size = 10000;
 
         for (let i = 0; i < size; i++) {
@@ -49,20 +53,20 @@ describe("HashSet", function (): void {
     });
 
     it("should return true when contains an item", () => {
-        let set = new spaMVP.Hidden.HashSet<number>();
+        let set = getSet();
         set.add(10);
 
         expect(set.contains(10)).toBeTruthy();
     });
 
     it("should return false when does not contain an item", () => {
-        let set = new spaMVP.Hidden.HashSet<number>();
+        let set = getSet();
 
         expect(set.contains(10)).toBeFalsy();
     });
 
     it("should be empty when clear is being called", () => {
-        let set = new spaMVP.Hidden.HashSet<number>();
+        let set = getSet();
         let size = 1000;
         for (let i = 0; i < size; i++) {
             set.add(i);
@@ -77,7 +81,7 @@ describe("HashSet", function (): void {
     });
 
     it("should return true when successfully clear items", () => {
-        let set = new spaMVP.Hidden.HashSet<number>();
+        let set = getSet();
         set.add(1);
 
         let result = set.clear();
@@ -87,7 +91,7 @@ describe("HashSet", function (): void {
     });
 
     it("should return false when clear an empty set", () => {
-        let set = new spaMVP.Hidden.HashSet<number>();
+        let set = getSet();
 
         let result = set.clear();
 
@@ -95,7 +99,7 @@ describe("HashSet", function (): void {
     });
 
     it("should return true when remove successfully an item", () => {
-        let set = new spaMVP.Hidden.HashSet<number>();
+        let set = getSet();
         let size = 10000;
         for (let i = 0; i < size; i++) {
             set.add(i);
@@ -108,13 +112,13 @@ describe("HashSet", function (): void {
     });
 
     it("should return false when remove item that does not exist", () => {
-        let set = new spaMVP.Hidden.HashSet<number>();
+        let set = getSet();
 
         expect(set.remove(1)).toBeFalsy();
     });
 
     it("should return an array of its items", () => {
-        let set = new spaMVP.Hidden.HashSet<number>();
+        let set = getSet();
         let size = 1000;
         for (let i = 0; i < size; i++) {
             set.add(i);
@@ -130,7 +134,7 @@ describe("HashSet", function (): void {
     });
 
     it("should iterate over its items and performs an action", () => {
-        let set = new spaMVP.Hidden.HashSet();
+        let set = getSet();
         let size = 100;
         let sum = 0;
         for (let i = 0; i < size; i++) {

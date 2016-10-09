@@ -1,4 +1,4 @@
-﻿namespace spaMVP.Hidden {
+﻿namespace spaMVP.plugins.mvp {
     "use strict";
 
     export const ModelEvents = {
@@ -84,15 +84,5 @@
         destroy(): void {
             this.notify(ModelEvents.Destroy, this);
         }
-    }
-
-    export module Model {
-        export const Events = ModelEvents;
-
-        export const CollectionEvents = {
-            AddedItems: "added-items",
-            DeletedItems: "deleted-items",
-            UpdatedItem: "updated-item"
-        };
     }
 }

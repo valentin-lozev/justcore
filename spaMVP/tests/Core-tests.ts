@@ -7,17 +7,17 @@ describe("Core", () => {
         return new spaMVP.Core();
     }
 
-    function getModule(): spaMVP.Module {
+    function getModule(sb: spaMVP.Sandbox): spaMVP.Module {
         return {
-            init: (options?: Object) => true,
-            destroy: () => false
+            init: (options?: Object): void => undefined,
+            destroy: (): void => undefined
         };
     }
 
     describe("Initialization", () => {
         it("should execute an action on DOMContentLoaded", () => {
             let core = getOne();
-            let spy = { action: function () { } };
+            let spy = { action: function (): void { return; } };
             spyOn(spy, "action");
 
             core.run(spy.action);
@@ -46,46 +46,32 @@ describe("Core", () => {
     });
 
     describe("Modules", () => {
-        it("should havent any registered modules by default", function () {
+        it("should havent any registered modules by default", () => {
             let modules = getOne().getModules();
 
             expect(Array.isArray(modules)).toBeTruthy();
             expect(modules.length).toEqual(0);
         });
 
-        it("should have validation when register", function () {
+        it("should have validation when register", () => {
             let core = getOne();
             let validId = "testModule";
-            let validCreator = (sb: spaMVP.Sandbox): spaMVP.Module => {
-                return {
-                    init: function () { },
-                    destroy: function () { }
-                };
-            };
             let tests = [
-                function emptyString() { core.register("", validCreator); },
-                function nullString() { core.register(null, validCreator); },
-                function undefinedString() { core.register(undefined, validCreator); },
-                function nullCreator() { core.register(validId, null); },
-                function undefinedCreator() { core.register(validId, undefined); }
+                function emptyString(): void { core.register("", getModule); },
+                function nullString(): void { core.register(null, getModule); },
+                function undefinedString(): void { core.register(undefined, getModule); },
+                function nullCreator(): void { core.register(validId, null); },
+                function undefinedCreator(): void { core.register(validId, undefined); }
             ];
 
-            tests.forEach(function (test) {
-                expect(test).toThrow();
-            });
+            tests.forEach(test => expect(test).toThrow());
         });
 
-        it("should register a module", function () {
+        it("should register a module", () => {
             let core = getOne();
             let id = "testModule";
-            let creator = (sb: spaMVP.Sandbox): spaMVP.Module => {
-                return {
-                    init: function () { },
-                    destroy: function () { }
-                };
-            };
 
-            core.register(id, creator);
+            core.register(id, getModule);
 
             let modules = core.getModules();
             expect(Array.isArray(modules)).toBeTruthy();
@@ -93,33 +79,27 @@ describe("Core", () => {
             expect(modules[0]).toEqual(id);
         });
 
-        it("should throw if when module not found", function () {
+        it("should throw if when module not found", () => {
             let core = getOne();
 
             expect(() => core.start("test")).toThrow();
         });
 
-        it("should throw when register an already registered module", function () {
+        it("should throw when register an already registered module", () => {
             let core = getOne();
             let id = "testModule";
-            let creator = (sb: spaMVP.Sandbox): spaMVP.Module => {
-                return {
-                    init: function () { },
-                    destroy: function () { }
-                };
-            };
 
-            core.register(id, creator);
+            core.register(id, getModule);
 
-            expect(() => core.register(id, creator)).toThrow();
+            expect(() => core.register(id, getModule)).toThrow();
             let modules = core.getModules();
             expect(modules.length).toEqual(1);
         });
 
-        it("should start a module", function () {
+        it("should start a module", () => {
             let core = getOne();
             let id = "testModule";
-            let module = getModule();
+            let module = getModule(new core.Sandbox(core, id));
             spyOn(module, "init");
             let creator = (sb: spaMVP.Sandbox): spaMVP.Module => module;
             core.register(id, creator);
@@ -131,10 +111,10 @@ describe("Core", () => {
             expect(module.init).toHaveBeenCalledWith({});
         });
 
-        it("should start a module with options", function () {
+        it("should start a module with options", () => {
             let core = getOne();
             let id = "testModule";
-            let module = getModule();
+            let module = getModule(new core.Sandbox(core, id));
             spyOn(module, "init");
             let creator = (sb: spaMVP.Sandbox): spaMVP.Module => module;
             core.register(id, creator);
@@ -145,10 +125,10 @@ describe("Core", () => {
             expect(module.init).toHaveBeenCalledWith(options);
         });
 
-        it("should not start an already started module", function () {
+        it("should not start an already started module", () => {
             let core = getOne();
             let id = "testModule";
-            let module = getModule();
+            let module = getModule(new core.Sandbox(core, id));
             spyOn(module, "init");
             let creator = (sb: spaMVP.Sandbox): spaMVP.Module => module;
             core.register(id, creator);
@@ -159,10 +139,10 @@ describe("Core", () => {
             expect(module.init).toHaveBeenCalledTimes(1);
         });
 
-        it("should start a module with another instance", function () {
+        it("should start a module with another instance", () => {
             let core = getOne();
             let id = "testModule";
-            let module = getModule();
+            let module = getModule(new core.Sandbox(core, id));
             spyOn(module, "init");
             let creator = (sb: spaMVP.Sandbox): spaMVP.Module => module;
             core.register(id, creator);
@@ -173,16 +153,16 @@ describe("Core", () => {
             expect(module.init).toHaveBeenCalledTimes(2);
         });
 
-        it("should not throw when stop not started module", function () {
+        it("should not throw when stop not started module", () => {
             let core = getOne();
 
             expect(() => core.stop("")).not.toThrow();
         });
 
-        it("should stop a module", function () {
+        it("should stop a module", () => {
             let core = getOne();
             let id = "testModule";
-            let module = getModule();
+            let module = getModule(new core.Sandbox(core, id));
             spyOn(module, "destroy");
             let creator = (sb: spaMVP.Sandbox): spaMVP.Module => module;
             core.register(id, creator);
@@ -193,10 +173,10 @@ describe("Core", () => {
             expect(module.destroy).toHaveBeenCalledTimes(1);
         });
 
-        it("should stop a module having multiple instances", function () {
+        it("should stop a module having multiple instances", () => {
             let core = getOne();
             let id = "testModule";
-            let module = getModule();
+            let module = getModule(new core.Sandbox(core, id));
             spyOn(module, "destroy");
             let creator = (sb: spaMVP.Sandbox): spaMVP.Module => module;
             core.register(id, creator);
@@ -214,7 +194,7 @@ describe("Core", () => {
         it("should add subscriber", () => {
             let core = getOne();
             let subscriber = {
-                onPublish: (data?: any) => true
+                onPublish: (data?: any): void => undefined
             };
             spyOn(subscriber, "onPublish");
             let events = ["change", "destroy"];
@@ -230,7 +210,7 @@ describe("Core", () => {
         it("should remove subscriber", () => {
             let core = getOne();
             let subscriber = {
-                onPublish: (data?: any) => true
+                onPublish: (data?: any): void => undefined
             };
             spyOn(subscriber, "onPublish");
             let events = ["change", "destroy"];
@@ -247,7 +227,7 @@ describe("Core", () => {
         it("should throw when hook with invalid type", () => {
             let core = getOne();
             let hook = () => {
-                core.hook(null, () => { });
+                core.hook(null, () => { return; });
             };
 
             expect(hook).toThrow();
@@ -274,10 +254,10 @@ describe("Core", () => {
         });
 
         it("should run plugin when hook into module destroy", () => {
-            let core = getOne();
-            let module = getModule();
-            let creator = (sb: spaMVP.Sandbox): spaMVP.Module => module;
             let moduleID = "module";
+            let core = getOne();
+            let module = getModule(new core.Sandbox(core, moduleID));
+            let creator = (sb: spaMVP.Sandbox): spaMVP.Module => module;
             core.register(moduleID, creator);
             let mock = jasmine.createSpyObj("mock", ["plugin"]);
             core.hook(spaMVP.HookType.SPA_ModuleDestroy, mock.plugin);
@@ -290,10 +270,10 @@ describe("Core", () => {
         });
 
         it("should run plugin when hook into module init", () => {
-            let core = getOne();
-            let module = getModule();
-            let creator = (sb: spaMVP.Sandbox): spaMVP.Module => module;
             let moduleID = "module";
+            let core = getOne();
+            let module = getModule(new core.Sandbox(core, moduleID));
+            let creator = (sb: spaMVP.Sandbox): spaMVP.Module => module;
             core.register(moduleID, creator);
             let mock = jasmine.createSpyObj("mock", ["plugin"]);
             core.hook(spaMVP.HookType.SPA_ModuleInit, mock.plugin);
@@ -306,10 +286,10 @@ describe("Core", () => {
         });
 
         it("should run plugin when hook into module register", () => {
-            let core = getOne();
-            let module = getModule();
-            let creator = (sb: spaMVP.Sandbox): spaMVP.Module => module;
             let moduleID = "module";
+            let core = getOne();
+            let module = getModule(new core.Sandbox(core, moduleID));
+            let creator = (sb: spaMVP.Sandbox): spaMVP.Module => module;
             let mock = jasmine.createSpyObj("mock", ["plugin"]);
             core.hook(spaMVP.HookType.SPA_ModuleRegister, mock.plugin);
 
@@ -325,7 +305,7 @@ describe("Core", () => {
             core.hook(spaMVP.HookType.SPA_Publish, mock.plugin);
             let message = "hello";
             let type = "test";
-            core.subscribe([type], () => { });
+            core.subscribe([type], () => { return; });
 
             core.publish(type, message);
 
@@ -339,7 +319,7 @@ describe("Core", () => {
             core.hook(spaMVP.HookType.SPA_Subscribe, mock.plugin);
             let type = "test";
 
-            core.subscribe([type], () => { });
+            core.subscribe([type], () => { return; });
 
             expect(mock.plugin).toHaveBeenCalledTimes(1);
             expect(mock.plugin).toHaveBeenCalledWith([type]);
@@ -351,8 +331,8 @@ describe("Core", () => {
             core.hook(spaMVP.HookType.SPA_Unsubscribe, mock.plugin);
             let type = "test";
 
-            core.subscribe([type], () => { });
-            core.unsubscribe([type], () => { });
+            core.subscribe([type], () => { return; });
+            core.unsubscribe([type], () => { return; });
 
             expect(mock.plugin).toHaveBeenCalledTimes(1);
             expect(mock.plugin).toHaveBeenCalledWith([type]);
@@ -361,12 +341,12 @@ describe("Core", () => {
         it("should not throw when plugin execution failed", () => {
             let core = getOne();
             let mock = {
-                plugin: () => { throw new Error(); }
+                plugin: (): void => { throw new Error(); }
             };
             spyOn(mock, "plugin").and.callThrough();
             core.hook(spaMVP.HookType.SPA_Subscribe, mock.plugin);
 
-            expect(() => core.subscribe(["test"], () => { })).not.toThrow();
+            expect(() => core.subscribe(["test"], () => { return; })).not.toThrow();
             expect(mock.plugin).toHaveBeenCalledTimes(1);
         });
     });

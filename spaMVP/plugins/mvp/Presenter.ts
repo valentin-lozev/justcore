@@ -1,4 +1,4 @@
-﻿namespace spaMVP.Hidden {
+﻿namespace spaMVP.plugins.mvp {
     "use strict";
 
     /**
@@ -63,7 +63,7 @@
         /**
          *  Renders its view.
          */
-        render(): Element {
+        render(): HTMLElement {
             if (this.view) {
                 return this.view.render(this.model);
             }

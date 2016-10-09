@@ -6,7 +6,7 @@ describe("Collection", () => {
     let core = new spaMVP.Core();
     core.useMVP();
 
-    class Book extends core.mvp.Model implements spaMVP.Equatable<Book> {
+    class Book extends core.mvp.Model implements spaMVP.plugins.mvp.Equatable<Book> {
         id: number;
         constructor(id: number) {
             super();
@@ -31,12 +31,12 @@ describe("Collection", () => {
         return result;
     }
 
-    function getCollection(): spaMVP.Hidden.Collection<Book> {
+    function getCollection(): spaMVP.plugins.mvp.Collection<Book> {
         return new core.mvp.Collection<Book>();
     }
 
     it("should be an instance of Model", () => {
-        expect(getCollection() instanceof spaMVP.Hidden.Model).toBeTruthy();
+        expect(getCollection() instanceof spaMVP.plugins.mvp.Model).toBeTruthy();
     });
 
     it("should have size", () => {
@@ -89,7 +89,7 @@ describe("Collection", () => {
             let collection = getCollection();
             let books = getBooks(20);
             let spy = jasmine.createSpyObj("spy", ["handler"]);
-            collection.on(spaMVP.Hidden.Collection.CollectionEvents.AddedItems, spy.handler);
+            collection.on(spaMVP.plugins.mvp.CollectionEvents.AddedItems, spy.handler);
 
             collection.addRange(books);
 
@@ -143,7 +143,7 @@ describe("Collection", () => {
             let collection = getCollection();
             let books = getBooks(20);
             let spy = jasmine.createSpyObj("spy", ["handler"]);
-            collection.on(spaMVP.Hidden.Model.CollectionEvents.DeletedItems, spy.handler);
+            collection.on(spaMVP.plugins.mvp.CollectionEvents.DeletedItems, spy.handler);
             collection.addRange(books);
 
             collection.removeRange(books);
@@ -163,7 +163,7 @@ describe("Collection", () => {
             };
             spyOn(spy, "handler").and.callThrough();
             collection.addRange(books);
-            collection.on(spaMVP.Hidden.Model.CollectionEvents.DeletedItems, spy.handler);
+            collection.on(spaMVP.plugins.mvp.CollectionEvents.DeletedItems, spy.handler);
 
             collection.clear();
 
@@ -176,7 +176,7 @@ describe("Collection", () => {
             let collection = getCollection();
             let books = getBooks(20);
             let spy = jasmine.createSpyObj("spy", ["handler"]);
-            collection.on(spaMVP.Hidden.Model.CollectionEvents.DeletedItems, spy.handler);
+            collection.on(spaMVP.plugins.mvp.CollectionEvents.DeletedItems, spy.handler);
             collection.addRange(books);
 
             books.forEach(book => {
@@ -196,7 +196,7 @@ describe("Collection", () => {
             let collection = getCollection();
             let books = getBooks(20);
             let spy = jasmine.createSpyObj("spy", ["handler"]);
-            collection.on(spaMVP.Hidden.Model.CollectionEvents.UpdatedItem, spy.handler);
+            collection.on(spaMVP.plugins.mvp.CollectionEvents.UpdatedItem, spy.handler);
             collection.addRange(books);
 
             books.forEach(book => {

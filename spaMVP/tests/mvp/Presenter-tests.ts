@@ -3,6 +3,7 @@
 
 describe("Presenter", () => {
 
+    let mvp = spaMVP.plugins.mvp;
     let core = new spaMVP.Core();
     core.useMVP();
 
@@ -12,7 +13,7 @@ describe("Presenter", () => {
         }
     }
 
-    class BookPresenter extends core.mvp.Presenter<spaMVP.Hidden.View, Book> {
+    class BookPresenter extends core.mvp.Presenter<spaMVP.plugins.mvp.View, Book> {
         calledContext: any;
         constructor() {
             super();
@@ -27,7 +28,7 @@ describe("Presenter", () => {
         return new BookPresenter();
     }
 
-    function getView(): spaMVP.Hidden.View {
+    function getView(): spaMVP.plugins.mvp.BaseView {
         return new core.mvp.View(document.createElement("div"));
     }
 
@@ -66,7 +67,7 @@ describe("Presenter", () => {
     it("should map to model when a new one is set", () => {
         let presenter = getPresenter();
         spyOn(presenter, "onBookChanged").and.callThrough();
-        presenter.onModel(spaMVP.Hidden.Model.Events.Change, presenter.onBookChanged);
+        presenter.onModel(mvp.ModelEvents.Change, presenter.onBookChanged);
         let book = new Book();
 
         presenter.model = book;
@@ -89,7 +90,7 @@ describe("Presenter", () => {
 
     it("should remove mapping from its model when a new one is set", () => {
         let presenter = getPresenter();
-        presenter.onModel(spaMVP.Hidden.Model.Events.Change, presenter.onBookChanged);
+        presenter.onModel(mvp.ModelEvents.Change, presenter.onBookChanged);
         let book = new Book();
         spyOn(presenter, "onBookChanged");
         spyOn(book, "off");
@@ -131,7 +132,7 @@ describe("Presenter", () => {
 
         let result = presenter.render();
 
-        expect(result).toBe(presenter.view.domNode);
+        expect(result).toBe(presenter.render());
     });
 
     it("should not render when view is not defined", () => {
