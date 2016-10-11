@@ -22,8 +22,6 @@ describe("View", () => {
     }
 
     class TestView extends core.mvp.View {
-        clickedDataset: DOMStringMap;
-        clickedTarget: HTMLElement;
         clickedEvent: Event;
 
         constructor() {
@@ -31,9 +29,7 @@ describe("View", () => {
             this.map("click");
         }
 
-        handleClick(dataset: DOMStringMap, target: HTMLElement, ev: Event): void {
-            this.clickedDataset = dataset;
-            this.clickedTarget = target;
+        handleClick(ev: Event): void {
             this.clickedEvent = ev;
         }
     }
@@ -90,8 +86,6 @@ describe("View", () => {
         view.domNode.dispatchEvent(ev);
 
         expect(view.handleClick).toHaveBeenCalled();
-        expect(view.clickedDataset).toBe(view.domNode.dataset);
-        expect(view.clickedTarget).toBe(view.domNode);
         expect(view.clickedEvent).toBe(ev);
     });
 

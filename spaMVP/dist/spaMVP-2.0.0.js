@@ -812,7 +812,7 @@ var spaMVP;
                 }
                 var callbackName = dataset[ev.type];
                 if (typeof this[callbackName] === "function") {
-                    this[callbackName](dataset, target, ev);
+                    this[callbackName](ev);
                     return;
                 }
             }
