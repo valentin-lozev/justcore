@@ -297,6 +297,25 @@ var spaMVP;
                 Change: "change",
                 Destroy: "destroy"
             };
+            function asModel(target) {
+                debugger;
+                if (typeof target !== "object" || target === null) {
+                    return null;
+                }
+                var alreadyInstalled = target instanceof Model;
+                if (alreadyInstalled) {
+                    return target;
+                }
+                var model = new Model();
+                for (var key in model) {
+                    if (Object.prototype.hasOwnProperty.call(target, key)) {
+                        throw new Error("Cannot install mvp communication. Key " + key + " is already defined in the model.");
+                    }
+                    target[key] = model[key];
+                }
+                return target;
+            }
+            mvp.asModel = asModel;
             /**
              *  @class spaMVP.Model
              */
@@ -1012,6 +1031,7 @@ var spaMVP;
         }
         that.mvp = {
             Model: mvp.Model,
+            asModel: mvp.asModel,
             ModelEvents: mvp.ModelEvents,
             Collection: mvp.Collection,
             CollectionEvents: mvp.CollectionEvents,

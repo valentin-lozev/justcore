@@ -3,18 +3,13 @@
 
 describe("Model", () => {
 
+    let asModel = spaMVP.plugins.mvp.asModel;
     let ModelEvents = spaMVP.plugins.mvp.ModelEvents;
     let core = new spaMVP.Core();
     core.useMVP();
 
-    class TestModel extends core.mvp.Model {
-        constructor() {
-            super();
-        }
-    }
-
     it("should not accept listener when event type is invalid string", () => {
-        let model = new TestModel();
+        let model = asModel({});
         let spy = jasmine.createSpyObj("spy", ["listener"]);
 
         expect(model.on("", spy.listener)).toBeFalsy();
@@ -23,14 +18,14 @@ describe("Model", () => {
     });
 
     it("should accept listener when event type is valid string", () => {
-        let model = new TestModel();
+        let model = asModel({});
         let spy = jasmine.createSpyObj("spy", ["listener"]);
 
         expect(model.on("change", spy.listener)).toBeTruthy();
     });
 
     it("should notify without data when there is attached listener", () => {
-        let model = new TestModel();
+        let model = asModel({});
         let spy = jasmine.createSpyObj("spy", ["listener"]);
         let event = "something";
         model.on(event, spy.listener);
@@ -41,7 +36,7 @@ describe("Model", () => {
     });
 
     it("should notify with data when there is attached listener", () => {
-        let model = new TestModel();
+        let model = asModel({});
         let spy = jasmine.createSpyObj("spy", ["listener"]);
         let event = "something";
         model.on(event, spy.listener);
@@ -52,7 +47,7 @@ describe("Model", () => {
     });
 
     it("should notify when there is attached listener with given context", () => {
-        let model = new TestModel();
+        let model = asModel({});
         let context = null;
         let action = function (): void { context = this; };
         let event = "something";
@@ -64,7 +59,7 @@ describe("Model", () => {
     });
 
     it("should notify when having multiple listeners", () => {
-        let model = new TestModel();
+        let model = asModel({});
         let spy = jasmine.createSpyObj("spy", ["save", "remove", "insert"]);
         let event = "something";
         model.on(event, spy.save);
@@ -79,7 +74,7 @@ describe("Model", () => {
     });
 
     it("should notify for change with specific string and data", () => {
-        let model = new TestModel();
+        let model = asModel({});
         let spy = jasmine.createSpyObj("spy", ["handler"]);
         model.on(ModelEvents.Change, spy.handler);
 
@@ -89,7 +84,7 @@ describe("Model", () => {
     });
 
     it("should notify for destroy with specific string and data", () => {
-        let model = new TestModel();
+        let model = asModel({});
         let spy = jasmine.createSpyObj("spy", ["handler"]);
         model.on(ModelEvents.Destroy, spy.handler);
 
@@ -99,7 +94,7 @@ describe("Model", () => {
     });
 
     it("should return false when try to detach unattached listener", () => {
-        let model = new TestModel();
+        let model = asModel({});
 
         let result = model.off(ModelEvents.Change, () => -1);
 
@@ -107,7 +102,7 @@ describe("Model", () => {
     });
 
     it("should return true when successfully detach a listener", () => {
-        let model = new TestModel();
+        let model = asModel({});
         let spy = jasmine.createSpyObj("spy", ["handler"]);
         model.on(ModelEvents.Change, spy.handler);
 
@@ -117,7 +112,7 @@ describe("Model", () => {
     });
 
     it("should return true when successfully detach a listener passed with given context", () => {
-        let model = new TestModel();
+        let model = asModel({});
         let spy = jasmine.createSpyObj("spy", ["handler"]);
         model.on(ModelEvents.Change, spy.handler, model);
 
@@ -129,7 +124,7 @@ describe("Model", () => {
     });
 
     it("should not invoke already detached listener", () => {
-        let model = new TestModel();
+        let model = asModel({});
         let spy = jasmine.createSpyObj("spy", ["handler"]);
         model.on(ModelEvents.Change, spy.handler);
 

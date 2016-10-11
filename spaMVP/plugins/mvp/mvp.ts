@@ -5,6 +5,7 @@
 
     export interface MVPPlugin {
         Model: typeof mvp.Model;
+        asModel<T>(target: T): T & mvp.Model;
         ModelEvents: {
             Change: string,
             Destroy: string
@@ -32,6 +33,7 @@
 
         that.mvp = {
             Model: mvp.Model,
+            asModel: mvp.asModel,
             ModelEvents: mvp.ModelEvents,
             Collection: mvp.Collection,
             CollectionEvents: mvp.CollectionEvents,

@@ -369,10 +369,34 @@ namespace spaMVP.plugins.mvp {
         Destroy: "destroy"
     };
 
+    export function asModel<T>(target: T): T & Model {
+        debugger;
+        if (typeof target !== "object" || target === null) {
+            return null;
+        }
+
+        let alreadyInstalled = target instanceof Model;
+        if (alreadyInstalled) {
+            return <T & Model>target;
+        }
+
+        let model = new Model();
+        for (let key in model) {
+            if (Object.prototype.hasOwnProperty.call(target, key)) {
+                throw new Error(`Cannot install mvp communication. Key ${key} is already defined in the model.`);
+            }
+
+            target[key] = model[key];
+        }
+
+        return <T & Model>target;
+    }
+
+
     /**
      *  @class spaMVP.Model
      */
-    export abstract class Model {
+    export class Model {
         private listeners: Object = {};
 
         /**
@@ -1116,6 +1140,7 @@ namespace spaMVP {
 
     export interface MVPPlugin {
         Model: typeof mvp.Model;
+        asModel<T>(target: T): T & mvp.Model;
         ModelEvents: {
             Change: string,
             Destroy: string
@@ -1143,6 +1168,7 @@ namespace spaMVP {
 
         that.mvp = {
             Model: mvp.Model,
+            asModel: mvp.asModel,
             ModelEvents: mvp.ModelEvents,
             Collection: mvp.Collection,
             CollectionEvents: mvp.CollectionEvents,
