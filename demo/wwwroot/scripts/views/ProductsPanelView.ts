@@ -46,7 +46,8 @@
         return this;
     }
 
-    addToCart(dataset: any, target: Element, ev) {
+    addToCart(ev: Event) {
+        let target = <HTMLElement>ev.target;
         this.presenter.addToCart(parseInt(target.parentElement.id));
     }
 }

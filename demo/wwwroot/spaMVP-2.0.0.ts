@@ -82,6 +82,11 @@ namespace spaMVP {
 namespace spaMVP {
     "use strict";
 
+    import typeGuard = helpers.typeGuard;
+
+    let onApplicationRunAction = function () { };
+    let onApplicationRunCustomAction = function () { };
+
     interface HookList {
         [name: string]: Function[];
     }
@@ -121,8 +126,8 @@ namespace spaMVP {
 
     function onDomReady(ev: Event): void {
         document.removeEventListener("DOMContentLoaded", onDomReady);
-        onApplicationStartCustom();
-        onApplicationStart();
+        onApplicationRunCustomAction();
+        onApplicationRunAction();
     }
 
     function runPlugins(hookType: HookType, ...params: any[]): void {
@@ -147,11 +152,6 @@ namespace spaMVP {
         }
     }
 
-    import typeGuard = helpers.typeGuard;
-
-    let onApplicationStart = function () { };
-    let onApplicationStartCustom = function () { };
-
     export interface Core {
         Sandbox: SandboxConstructor;
 
@@ -169,7 +169,7 @@ namespace spaMVP {
     }
 
     export interface Module {
-        init(options: any): void;
+        init(options?: Object): void;
         destroy(): void;
     }
 
@@ -343,8 +343,8 @@ namespace spaMVP {
          *  @param {Function} action Optional action to be executed before core initialization.
          */
         run(action?: () => void): this {
-            onApplicationStartCustom = typeof action === "function" ? action : onApplicationStartCustom;
-            onApplicationStart = () => {
+            onApplicationRunCustomAction = typeof action === "function" ? action : onApplicationRunCustomAction;
+            onApplicationRunAction = () => {
                 runPlugins.call(this, HookType.SPA_DOMReady);
             };
 
@@ -367,12 +367,6 @@ namespace spaMVP.plugins.mvp {
     export const ModelEvents = {
         Change: "change",
         Destroy: "destroy"
-    };
-
-    export const CollectionEvents = {
-        AddedItems: "added-items",
-        DeletedItems: "deleted-items",
-        UpdatedItem: "updated-item"
     };
 
     /**
@@ -449,20 +443,21 @@ namespace spaMVP.plugins.mvp {
         }
     }
 }
+interface MVPEquatable<T> {
+    equals(other: T): boolean;
+    hash(): number;
+}
+
 namespace spaMVP.plugins.mvp {
     "use strict";
 
-    export interface Equatable<T> {
-        equals(other: T): boolean;
-        hash(): number;
-    }
 
     /**
      *  Creates a collection of unique items.
      *  @class spaMVP.HashSet
      *  @property {Number} size  
      */
-    export class HashSet<T extends Equatable<T>> {
+    export class HashSet<T extends MVPEquatable<T>> {
         private items: Object = {};
         public size: number = 0;
 
@@ -621,13 +616,19 @@ namespace spaMVP.plugins.mvp {
         this.removeRange([item]);
     }
 
+    export const CollectionEvents = {
+        AddedItems: "added-items",
+        DeletedItems: "deleted-items",
+        UpdatedItem: "updated-item"
+    };
+
     /**
      *  Composite pattern on spaMVP.Model.
      *  It is usefull when you want to listen for collection of models.
      *  @class spaMVP.Collection
      *  @augments spaMVP.Model
      */
-    export class Collection<TModel extends Model & Equatable<TModel>> extends Model {
+    export class Collection<TModel extends Model & MVPEquatable<TModel>> extends Model {
         private models: HashSet<TModel> = new HashSet<TModel>();
 
         constructor() {
@@ -900,6 +901,11 @@ namespace spaMVP.plugins.mvp {
 
     });
 }
+interface MVPView {
+    render(model: any): HTMLElement;
+    destroy(): void;
+}
+
 namespace spaMVP.plugins.mvp {
     "use strict";
 
@@ -912,23 +918,18 @@ namespace spaMVP.plugins.mvp {
 
         let callbackName = dataset[ev.type];
         if (typeof this[callbackName] === "function") {
-            this[callbackName](dataset, target, ev);
+            this[callbackName](ev);
             return;
         }
     }
 
-    export interface View {
-        render(model: any): HTMLElement;
-        destroy(): void;
-    }
-
     /**
-     *  @class spaMVP.BaseView
+     *  @class spaMVP.View
      *  @param {HTMLElement} domNode The view's html element.
      *  @param {Function} [template] A function which renders view's html element.
      *  @property {HTMLElement} domNode
      */
-    export class BaseView implements View {
+    export class View implements MVPView {
         private _domNode: HTMLElement;
         private template: (model: any) => string;
 
@@ -1031,7 +1032,7 @@ namespace spaMVP.plugins.mvp {
     /**
      *  @class spaMVP.Presenter
      */
-    export class Presenter<TView extends View, TModel extends Model> {
+    export class Presenter<TView extends MVPView, TModel extends Model> {
         private _view: TView = null;
         private _model: TModel = null;
         private _modelHandlers: Object = {};
@@ -1113,10 +1114,19 @@ namespace spaMVP {
 
     import mvp = plugins.mvp;
 
-    interface MVPPlugin {
+    export interface MVPPlugin {
         Model: typeof mvp.Model;
+        ModelEvents: {
+            Change: string,
+            Destroy: string
+        };
         Collection: typeof mvp.Collection;
-        View: typeof mvp.BaseView;
+        CollectionEvents: {
+            AddedItems: string,
+            DeletedItems: string,
+            UpdatedItem: string
+        };
+        View: typeof mvp.View;
         Presenter: typeof mvp.Presenter;
     }
 
@@ -1133,8 +1143,10 @@ namespace spaMVP {
 
         that.mvp = {
             Model: mvp.Model,
+            ModelEvents: mvp.ModelEvents,
             Collection: mvp.Collection,
-            View: mvp.BaseView,
+            CollectionEvents: mvp.CollectionEvents,
+            View: mvp.View,
             Presenter: mvp.Presenter,
         };
     };
@@ -1352,18 +1364,10 @@ namespace spaMVP.plugins.routing {
         }
     }
 
-    export interface RoutingPlugin {
-        defaultUrl: string;
-        register(pattern: string, callback: (routeParams: any) => void): this;
-        startRoute(hash: string): void;
-        getRoutes(): string[];
-        hasRoutes(): boolean;
-    }
-
     /**
      *  @class RouteConfig - Handles window hash change.
      */
-    export class RouteConfig implements RoutingPlugin {
+    export class RouteConfig {
         private routes: Route[] = [];
         private urlHash: UrlHash = new UrlHash();
         public defaultUrl: string = null;
@@ -1420,9 +1424,17 @@ namespace spaMVP {
 
     import routing = plugins.routing;
 
+    export interface RoutingPlugin {
+        defaultUrl: string;
+        register(pattern: string, callback: (routeParams: any) => void): this;
+        startRoute(hash: string): void;
+        getRoutes(): string[];
+        hasRoutes(): boolean;
+    }
+
     export interface Core {
         useRouting(): void;
-        routing: routing.RoutingPlugin;
+        routing: RoutingPlugin;
     }
 
     Core.prototype.useRouting = function (): void {

@@ -1,4 +1,4 @@
-﻿class Product extends app.mvp.Model implements spaMVP.plugins.mvp.Equatable<Product> {
+﻿class Product extends app.mvp.Model implements MVPEquatable<Product> {
     id: number;
     name: string;
     price: number;
