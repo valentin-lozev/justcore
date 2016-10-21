@@ -97,7 +97,7 @@ namespace dcore {
             this.subscribers[topic] = {};
         }
 
-        let subscriptionID = "t" + (++lastUsedSubscriptionID);
+        let subscriptionID = "sbscrptn" + (++lastUsedSubscriptionID);
         this.subscribers[topic][subscriptionID] = handler;
         return subscriptionID;
     }
