@@ -1,0 +1,19 @@
+{
+  "Framework": "jasmine",
+  "TestHarnessLocationMode": "SettingsFileAdjacent",
+  "Compile": { "Mode": "External" },
+  "References": [
+    {
+      "Path": "src/DSandbox.js"
+    },
+    {
+      "Path": "src/DCore.js"
+    }
+  ],
+  "Tests": [
+    {
+      "Path": "tests",
+      "Includes": [ "*.js" ]
+    }
+  ]
+}
