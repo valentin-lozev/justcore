@@ -109,7 +109,7 @@ var dcore;
         if (!hasOwnProperty.call(this.subscribers, topic)) {
             this.subscribers[topic] = {};
         }
-        var subscriptionID = "t" + (++lastUsedSubscriptionID);
+        var subscriptionID = "sbscrptn" + (++lastUsedSubscriptionID);
         this.subscribers[topic][subscriptionID] = handler;
         return subscriptionID;
     }
@@ -311,8 +311,9 @@ var dcore;
      * @param {function} [sandboxType] Optional. Custom sandbox type.
      * @returns {Core}
      */
-    function createOne(sandboxType) {
-        return new Instance(sandboxType);
+    function createOne(sandboxType, isDebug) {
+        if (isDebug === void 0) { isDebug = true; }
+        return new Instance(sandboxType, isDebug);
     }
     dcore.createOne = createOne;
 })(dcore || (dcore = {}));

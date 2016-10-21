@@ -326,7 +326,7 @@ namespace dcore {
      * @param {function} [sandboxType] Optional. Custom sandbox type.
      * @returns {Core}
      */
-    export function createOne(sandboxType?: DSandboxConstructor): DCore {
-        return new Instance(sandboxType);
+    export function createOne(sandboxType?: DSandboxConstructor, isDebug = true): DCore {
+        return new Instance(sandboxType, isDebug);
     }
 }
