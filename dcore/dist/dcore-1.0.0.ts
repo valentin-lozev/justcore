@@ -338,6 +338,8 @@ namespace dcore {
                 runPlugins.call(this, HookType.Core_ModuleDestroy, moduleId, instanceId);
                 module.instances[id].destroy();
                 delete module.instances[id];
+            } else {
+                console.warn(`${moduleId} destroy failed: ${instanceId} instance not found.`);
             }
 
             return this;

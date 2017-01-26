@@ -252,6 +252,9 @@ var dcore;
                 module.instances[id].destroy();
                 delete module.instances[id];
             }
+            else {
+                console.warn(moduleId + " destroy failed: " + instanceId + " instance not found.");
+            }
             return this;
         };
         /**
