@@ -255,8 +255,14 @@ namespace dcore {
             let id = instanceId || moduleId;
             if (module && hasOwnProperty.call(module.instances, id)) {
                 runPlugins.call(this, HookType.Core_ModuleDestroy, moduleId, instanceId);
-                module.instances[id].destroy();
-                delete module.instances[id];
+                try {
+                    module.instances[id].destroy();
+                } catch (err) {
+                    console.warn(`${moduleId} destroy failed: An error has occured within the module:`);
+                    console.error(err);
+                } finally {
+                    delete module.instances[id];
+                }
             } else {
                 console.warn(`${moduleId} destroy failed: ${instanceId} instance not found.`);
             }
