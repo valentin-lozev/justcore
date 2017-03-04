@@ -4,7 +4,7 @@ var concat = require('gulp-concat');
 var minify = require('gulp-minify');
 var es = require('event-stream');
 
-var version = 'dcore-1.0.0';
+var version = 'dcore-1.0.1';
 var files = [
     "src/license",
     "src/DSandbox",
