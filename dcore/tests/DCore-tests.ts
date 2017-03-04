@@ -12,37 +12,27 @@ describe("DCore", () => {
 
     describe("Initialization", () => {
         it("should be in debug mode by default", () => {
-            let core = dcore.createOne();
-
-            expect(core.state.isDebug).toBeTruthy();
+            expect(dcore.createOne().state.isDebug).toBeTruthy();
         });
 
         it("should not be in running mode by default", () => {
-            let core = dcore.createOne();
-
-            expect(core.state.isRunning).toBeFalsy();
+            expect(dcore.createOne().state.isRunning).toBeFalsy();
         });
 
         it("should throw when run plugins before it is being started", () => {
-            let core = dcore.createOne();
-
-            expect(() => core.subscribe(["topic"], function (): void { return; })).toThrow();
+            expect(() => dcore.createOne().subscribe(["topic"], function (): void { return; }))
+                .toThrow();
         });
 
         it("should be in running mode after run", () => {
-            let core = dcore.createOne();
-
-            core.run();
-
-            expect(core.state.isRunning).toBeTruthy();
+            expect(dcore.createOne().run().state.isRunning).toBeTruthy();
         });
 
         it("should execute an action on DOMContentLoaded", () => {
-            let core = dcore.createOne();
             let spy = { action: function (): void { return; } };
             spyOn(spy, "action");
 
-            core.run(spy.action);
+            dcore.createOne().run(spy.action);
             document.dispatchEvent(new Event("DOMContentLoaded"));
 
             expect(spy.action).toHaveBeenCalled();
@@ -62,9 +52,7 @@ describe("DCore", () => {
         });
 
         it("should initialize with default sandbox type when such is not provided", () => {
-            let core = dcore.createOne();
-
-            expect(core.Sandbox).toBeDefined();
+            expect(dcore.createOne().Sandbox).toBeDefined();
         });
 
         it("should initialize with custom sandbox type when such is provided", () => {
@@ -91,9 +79,7 @@ describe("DCore", () => {
                 }
             }
 
-            let core = dcore.createOne(CustomSandbox);
-
-            expect(core.Sandbox).toBe(CustomSandbox);
+            expect(dcore.createOne(CustomSandbox).Sandbox).toBe(CustomSandbox);
         });
     });
 
@@ -120,21 +106,20 @@ describe("DCore", () => {
         });
 
         it("should register a module", () => {
-            let core = dcore.createOne().run();
             let id = "testModule";
 
-            core.register(id, getModule);
+            let modules = dcore.createOne()
+                .run()
+                .register(id, getModule)
+                .listModules();
 
-            let modules = core.listModules();
             expect(Array.isArray(modules)).toBeTruthy();
             expect(modules.length).toEqual(1);
             expect(modules[0]).toEqual(id);
         });
 
         it("should throw if when module not found", () => {
-            let core = dcore.createOne();
-
-            expect(() => core.start("test")).toThrow();
+            expect(() => dcore.createOne().start("test")).toThrow();
         });
 
         it("should throw when register an already registered module", () => {
@@ -153,12 +138,12 @@ describe("DCore", () => {
             let id = "testModule";
             let module = getModule(new core.Sandbox(core, id));
             spyOn(module, "init");
-            let creator = (sb: DSandbox): DModule => module;
-            core.register(id, creator);
 
-            core.start(id);
+            let modules = core
+                .register(id, (sb: DSandbox): DModule => module)
+                .start(id)
+                .listModules();
 
-            let modules = core.listModules();
             expect(modules[0]).toEqual(id);
             expect(module.init).toHaveBeenCalledWith({});
         });
@@ -168,11 +153,10 @@ describe("DCore", () => {
             let id = "testModule";
             let module = getModule(new core.Sandbox(core, id));
             spyOn(module, "init");
-            let creator = (sb: DSandbox): DModule => module;
-            core.register(id, creator);
-            let options = { count: 5 };
 
-            core.start(id, options);
+            let options = { count: 5 };
+            core.register(id, (sb: DSandbox): DModule => module)
+                .start(id, options);
 
             expect(module.init).toHaveBeenCalledWith(options);
         });
@@ -182,11 +166,10 @@ describe("DCore", () => {
             let id = "testModule";
             let module = getModule(new core.Sandbox(core, id));
             spyOn(module, "init");
-            let creator = (sb: DSandbox): DModule => module;
-            core.register(id, creator);
 
-            core.start(id);
-            core.start(id);
+            core.register(id, (sb: DSandbox): DModule => module)
+                .start(id)
+                .start(id);
 
             expect(module.init).toHaveBeenCalledTimes(1);
         });
@@ -196,19 +179,16 @@ describe("DCore", () => {
             let id = "testModule";
             let module = getModule(new core.Sandbox(core, id));
             spyOn(module, "init");
-            let creator = (sb: DSandbox): DModule => module;
-            core.register(id, creator);
 
-            core.start(id);
-            core.start(id, { instanceId: "test2" });
+            core.register(id, (sb: DSandbox): DModule => module)
+                .start(id)
+                .start(id, { instanceId: "test2" });
 
             expect(module.init).toHaveBeenCalledTimes(2);
         });
 
         it("should not throw when stop not started module", () => {
-            let core = dcore.createOne();
-
-            expect(() => core.stop("")).not.toThrow();
+            expect(() => dcore.createOne().stop("")).not.toThrow();
         });
 
         it("should stop a module", () => {
@@ -216,11 +196,10 @@ describe("DCore", () => {
             let id = "testModule";
             let module = getModule(new core.Sandbox(core, id));
             spyOn(module, "destroy");
-            let creator = (sb: DSandbox): DModule => module;
-            core.register(id, creator);
-            core.start(id);
 
-            core.stop(id);
+            core.register(id, (sb: DSandbox): DModule => module)
+                .start(id)
+                .stop(id);
 
             expect(module.destroy).toHaveBeenCalledTimes(1);
         });
@@ -230,13 +209,12 @@ describe("DCore", () => {
             let id = "testModule";
             let module = getModule(new core.Sandbox(core, id));
             spyOn(module, "destroy");
-            let creator = (sb: DSandbox): DModule => module;
-            core.register(id, creator);
-            core.start(id);
-            core.start(id, { instanceId: "another" });
 
-            core.stop(id);
-            core.stop(id, "another");
+            core.register(id, (sb: DSandbox): DModule => module)
+                .start(id)
+                .start(id, { instanceId: "another" })
+                .stop(id)
+                .stop(id, "another");
 
             expect(module.destroy).toHaveBeenCalledTimes(2);
         });
@@ -297,30 +275,28 @@ describe("DCore", () => {
     });
 
     describe("Hooks", () => {
-        it("should throw when hook with invalid type", () => {
-            let core = dcore.createOne();
+        it("should throw when hook with null type", () => {
             let hook = () => {
-                core.hook(null, () => { return; });
+                dcore.createOne().hook(null, (): boolean => { return true; });
             };
 
             expect(hook).toThrow();
         });
 
-        it("should throw when hook with invalid plugin", () => {
-            let core = dcore.createOne();
+        it("should throw when hook with null plugin", () => {
             let hook = () => {
-                core.hook(dcore.HookType.Core_DOMReady, null);
+                dcore.createOne().hook(dcore.HOOK_DOM_READY, null);
             };
 
             expect(hook).toThrow();
         });
 
         it("should run plugin when hook into DOMReady", () => {
-            let core = dcore.createOne();
             let mock = jasmine.createSpyObj("mock", ["plugin"]);
-            core.hook(dcore.HookType.Core_DOMReady, mock.plugin);
 
-            core.run();
+            dcore.createOne()
+                .hook(dcore.HOOK_DOM_READY, mock.plugin)
+                .run();
             document.dispatchEvent(new Event("DOMContentLoaded"));
 
             expect(mock.plugin).toHaveBeenCalledTimes(1);
@@ -330,13 +306,12 @@ describe("DCore", () => {
             let moduleID = "module";
             let core = dcore.createOne().run();
             let module = getModule(new core.Sandbox(core, moduleID));
-            let creator = (sb: DSandbox): DModule => module;
-            core.register(moduleID, creator);
             let mock = jasmine.createSpyObj("mock", ["plugin"]);
-            core.hook(dcore.HookType.Core_ModuleDestroy, mock.plugin);
 
-            core.start(moduleID);
-            core.stop(moduleID);
+            core.register(moduleID, (sb: DSandbox): DModule => module)
+                .hook(dcore.HOOK_MODULE_DESTROY, mock.plugin)
+                .start(moduleID)
+                .stop(moduleID);
 
             expect(mock.plugin).toHaveBeenCalledTimes(1);
             expect(mock.plugin).toHaveBeenCalledWith(moduleID, undefined);
@@ -346,16 +321,20 @@ describe("DCore", () => {
             let moduleID = "module";
             let core = dcore.createOne().run();
             let module = getModule(new core.Sandbox(core, moduleID));
-            let creator = (sb: DSandbox): DModule => module;
-            core.register(moduleID, creator);
-            let mock = jasmine.createSpyObj("mock", ["plugin"]);
-            core.hook(dcore.HookType.Core_ModuleInit, mock.plugin);
+            let spy = {
+                plugin: function (): boolean {
+                    return true;
+                }
+            };
+            spyOn(spy, "plugin").and.returnValue(true);
 
-            core.start(moduleID);
-            core.start(moduleID);
+            core.register(moduleID, (sb: DSandbox): DModule => module)
+                .hook(dcore.HOOK_MODULE_INITIALIZE, spy.plugin)
+                .start(moduleID)
+                .start(moduleID);
 
-            expect(mock.plugin).toHaveBeenCalledTimes(1);
-            expect(mock.plugin).toHaveBeenCalledWith(moduleID, {});
+            expect(spy.plugin).toHaveBeenCalledTimes(1);
+            expect(spy.plugin).toHaveBeenCalledWith(moduleID, {});
         });
 
         it("should run plugin when hook into module register", () => {
@@ -364,22 +343,23 @@ describe("DCore", () => {
             let module = getModule(new core.Sandbox(core, moduleID));
             let creator = (sb: DSandbox): DModule => module;
             let mock = jasmine.createSpyObj("mock", ["plugin"]);
-            core.hook(dcore.HookType.Core_ModuleRegister, mock.plugin);
 
-            core.register(moduleID, creator);
+            core.hook(dcore.HOOK_MODULE_REGISTER, mock.plugin)
+                .register(moduleID, creator);
 
             expect(mock.plugin).toHaveBeenCalledTimes(1);
             expect(mock.plugin).toHaveBeenCalledWith(moduleID, creator);
         });
 
         it("should run plugin when hook into publish", () => {
-            let core = dcore.createOne().run();
             let mock = jasmine.createSpyObj("mock", ["plugin"]);
-            core.hook(dcore.HookType.Core_Publish, mock.plugin);
             let message = "hello";
             let type = "test";
-            core.subscribe([type], () => { return; });
 
+            let core = dcore.createOne()
+                .run()
+                .hook(dcore.HOOK_MODULE_PUBLISH, mock.plugin);
+            core.subscribe([type], () => { return; });
             core.publish(type, message);
 
             expect(mock.plugin).toHaveBeenCalledTimes(1);
@@ -387,24 +367,26 @@ describe("DCore", () => {
         });
 
         it("should run plugin when hook into subscribe", () => {
-            let core = dcore.createOne().run();
             let mock = jasmine.createSpyObj("mock", ["plugin"]);
-            core.hook(dcore.HookType.Core_Subscribe, mock.plugin);
             let topic = "test";
 
-            core.subscribe([topic], () => { return; });
+            dcore.createOne()
+                .run()
+                .hook(dcore.HOOK_MODULE_SUBSCRIBE, mock.plugin)
+                .subscribe([topic], () => { return; });
 
             expect(mock.plugin).toHaveBeenCalledTimes(1);
             expect(mock.plugin).toHaveBeenCalledWith([topic]);
         });
 
         it("should run plugin when hook into unsubscribe", () => {
-            let core = dcore.createOne().run();
             let mock = jasmine.createSpyObj("mock", ["plugin"]);
-            core.hook(dcore.HookType.Core_Unsubscribe, mock.plugin);
             let topic = "test";
 
-            let token = core.subscribe([topic], () => { return; });
+            let token = dcore.createOne()
+                .run()
+                .hook(dcore.HOOK_MODULE_UNSUBSCRIBE, mock.plugin)
+                .subscribe([topic], () => { return; });
             token.destroy();
 
             expect(mock.plugin).toHaveBeenCalledTimes(1);
@@ -412,15 +394,44 @@ describe("DCore", () => {
         });
 
         it("should not throw when plugin execution failed", () => {
-            let core = dcore.createOne().run();
             let mock = {
-                plugin: (): void => { throw new Error(); }
+                plugin: (): boolean => { throw new Error(); }
             };
             spyOn(mock, "plugin").and.callThrough();
-            core.hook(dcore.HookType.Core_Subscribe, mock.plugin);
+
+            let core = dcore.createOne()
+                .run()
+                .hook(dcore.HOOK_MODULE_SUBSCRIBE, mock.plugin);
 
             expect(() => core.subscribe(["test"], () => { return; })).not.toThrow();
             expect(mock.plugin).toHaveBeenCalledTimes(1);
+        });
+
+        it("should stop pipeline when run stopper plugin", () => {
+            let moduleID = "module";
+            let core = dcore.createOne().run();
+            let module = getModule(new core.Sandbox(core, moduleID));
+            let spy = {
+                plugin1: function (): boolean { return false; },
+                plugin2: function (): boolean { return true; },
+                plugin3: function (): boolean { return true; },
+            };
+            spyOn(spy, "plugin1").and.returnValue(false);
+            spyOn(spy, "plugin2").and.returnValue(true);
+            spyOn(spy, "plugin3").and.returnValue(true);
+            spyOn(module, "init");
+
+            core.register(moduleID, (sb: DSandbox): DModule => module)
+                .hook(dcore.HOOK_MODULE_INITIALIZE, spy.plugin1)
+                .hook(dcore.HOOK_MODULE_INITIALIZE, spy.plugin2)
+                .hook(dcore.HOOK_MODULE_INITIALIZE, spy.plugin3)
+                .start(moduleID)
+                .start(moduleID);
+
+            expect(spy.plugin1).toHaveBeenCalledTimes(2);
+            expect(spy.plugin2).not.toHaveBeenCalled();
+            expect(spy.plugin3).not.toHaveBeenCalled();
+            expect(module.init).not.toHaveBeenCalled();
         });
     });
 });

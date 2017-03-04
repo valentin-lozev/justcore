@@ -25,7 +25,7 @@ namespace dcore {
 
         constructor(core: DCore, moduleInstanceId: string) {
             if (!core || !moduleInstanceId) {
-                throw new Error("Missing core or module instance ID.");
+                throw new Error("DefaultSandbox: Missing core or module instance ID");
             }
 
             this.core = core;

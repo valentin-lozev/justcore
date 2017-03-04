@@ -15,7 +15,7 @@ var dcore;
     var DefaultSandbox = (function () {
         function DefaultSandbox(core, moduleInstanceId) {
             if (!core || !moduleInstanceId) {
-                throw new Error("Missing core or module instance ID.");
+                throw new Error("DefaultSandbox: Missing core or module instance ID");
             }
             this.core = core;
             this.moduleInstanceId = moduleInstanceId;
@@ -84,11 +84,11 @@ var dcore;
             params[_i - 1] = arguments[_i];
         }
         if (!this.state.isRunning) {
-            throw new Error("Core is not running.");
+            throw new Error("runPlugins(): Core is not running");
         }
         var plugins = this.hooks[hookType];
         if (!Array.isArray(plugins)) {
-            return;
+            return true;
         }
         var argumentsLength = arguments.length;
         var args = new Array(argumentsLength - 1);
@@ -97,13 +97,18 @@ var dcore;
         }
         for (var i = 0, len = plugins.length; i < len; i++) {
             try {
-                plugins[i].apply(null, args);
+                if (!plugins[i].apply(null, args)) {
+                    return false;
+                }
             }
-            catch (ex) {
+            catch (err) {
                 var argsDetails = args.length > 0 ? args.join(", ") : "none";
-                console.error("Plugin execution failed on hook " + HookType[hookType] + ". Arguments: " + argsDetails + ". Message: " + ex);
+                console.error("runPlugins(): Execution failed on hook " + hookType);
+                console.error("runPlugins(): Execution arguments: " + argsDetails);
+                console.error("runPlugins(): Error: " + err);
             }
         }
+        return true;
     }
     function addSubscriber(topic, handler) {
         if (!hasOwnProperty.call(this.subscribers, topic)) {
@@ -113,16 +118,16 @@ var dcore;
         this.subscribers[topic][subscriptionID] = handler;
         return subscriptionID;
     }
-    (function (HookType) {
-        HookType[HookType["Core_DOMReady"] = 0] = "Core_DOMReady";
-        HookType[HookType["Core_ModuleDestroy"] = 1] = "Core_ModuleDestroy";
-        HookType[HookType["Core_ModuleInit"] = 2] = "Core_ModuleInit";
-        HookType[HookType["Core_ModuleRegister"] = 3] = "Core_ModuleRegister";
-        HookType[HookType["Core_Publish"] = 4] = "Core_Publish";
-        HookType[HookType["Core_Subscribe"] = 5] = "Core_Subscribe";
-        HookType[HookType["Core_Unsubscribe"] = 6] = "Core_Unsubscribe";
-    })(dcore.HookType || (dcore.HookType = {}));
-    var HookType = dcore.HookType;
+    dcore.HOOK_DOM_READY = "dom-ready";
+    dcore.HOOK_MODULE_DESTROY = "module-destroy";
+    dcore.HOOK_MODULE_DESTROYED = "module-destroyed";
+    dcore.HOOK_MODULE_INITIALIZE = "module-init";
+    dcore.HOOK_MODULE_INITIALIZED = "module-initialized";
+    dcore.HOOK_MODULE_REGISTER = "module-register";
+    dcore.HOOK_MODULE_REGISTERED = "module-registered";
+    dcore.HOOK_MODULE_PUBLISH = "module-publish";
+    dcore.HOOK_MODULE_SUBSCRIBE = "module-subscribe";
+    dcore.HOOK_MODULE_UNSUBSCRIBE = "module-unsubscribe";
     var Instance = (function () {
         function Instance(sandboxType, isDebug) {
             if (isDebug === void 0) { isDebug = true; }
@@ -142,10 +147,14 @@ var dcore;
          *  @returns {Object}
          */
         Instance.prototype.subscribe = function (topics, handler) {
-            var errorMsg = "Subscribing failed:";
+            var errorMsg = "subscribe() failed:";
             typeGuard("function", handler, errorMsg + " message handler should be a function.");
             typeGuard("array", topics, errorMsg + " topics should be passed as an array of strings.");
-            runPlugins.call(this, HookType.Core_Subscribe, topics);
+            if (!runPlugins.call(this, dcore.HOOK_MODULE_SUBSCRIBE, topics)) {
+                return {
+                    destroy: function () { }
+                };
+            }
             var token = {};
             for (var i = 0, len = topics.length; i < len; i++) {
                 var topic = topics[i];
@@ -157,14 +166,14 @@ var dcore;
                 destroy: function (topic) {
                     if (arguments.length === 0) {
                         Object.keys(token).forEach(function (t) {
-                            runPlugins.call(that, HookType.Core_Unsubscribe, t);
+                            runPlugins.call(that, dcore.HOOK_MODULE_UNSUBSCRIBE, t);
                             var subscriptionID = token[t];
                             delete that.subscribers[t][subscriptionID];
                         });
                         return;
                     }
                     if (hasOwnProperty.call(token, topic)) {
-                        runPlugins.call(that, HookType.Core_Unsubscribe, topic);
+                        runPlugins.call(that, dcore.HOOK_MODULE_UNSUBSCRIBE, topic);
                         var subscriptionID = token[topic];
                         delete that.subscribers[topic][subscriptionID];
                     }
@@ -178,9 +187,11 @@ var dcore;
          */
         Instance.prototype.publish = function (topic, data) {
             if (!hasOwnProperty.call(this.subscribers, topic)) {
-                return;
+                return this;
             }
-            runPlugins.call(this, HookType.Core_Publish, topic, data);
+            if (!runPlugins.call(this, dcore.HOOK_MODULE_PUBLISH, topic, data)) {
+                return this;
+            }
             var subscriptions = this.subscribers[topic];
             Object.keys(subscriptions)
                 .forEach(function (key) {
@@ -196,6 +207,7 @@ var dcore;
                     }, 0);
                 }
             });
+            return this;
         };
         /**
          *  Registers a module.
@@ -203,18 +215,20 @@ var dcore;
          *  @param {function} moduleFactory Function which provides an instance of the module.
          */
         Instance.prototype.register = function (moduleId, moduleFactory) {
-            var errorMsg = moduleId + " registration failed:";
-            typeGuard("string", moduleId, errorMsg + " module ID must be a string.");
-            typeGuard("string", moduleId, errorMsg + " module ID must be a string.");
-            typeGuard("undefined", this.modules[moduleId], errorMsg + " module with such id has been already registered.");
+            var errorMsg = "register() failed:";
+            typeGuard("string", moduleId, errorMsg + " module ID must be a string - " + moduleId);
+            typeGuard("undefined", this.modules[moduleId], errorMsg + " module with such id has been already registered - " + moduleId);
             var tempModule = moduleFactory(new this.Sandbox(this, moduleId));
-            typeGuard("function", tempModule.init, errorMsg + " module does not implement init method.");
-            typeGuard("function", tempModule.destroy, errorMsg + " module does not implement destroy method.");
-            runPlugins.call(this, HookType.Core_ModuleRegister, moduleId, moduleFactory);
+            typeGuard("function", tempModule.init, errorMsg + " module does not implement init method");
+            typeGuard("function", tempModule.destroy, errorMsg + " module does not implement destroy method");
+            if (!runPlugins.call(this, dcore.HOOK_MODULE_REGISTER, moduleId, moduleFactory)) {
+                return this;
+            }
             this.modules[moduleId] = {
                 create: moduleFactory,
                 instances: {}
             };
+            runPlugins.call(this, dcore.HOOK_MODULE_REGISTERED, moduleId, moduleFactory);
             return this;
         };
         /**
@@ -225,18 +239,21 @@ var dcore;
         Instance.prototype.start = function (moduleId, options) {
             var module = this.modules[moduleId];
             options = options || {};
-            var errorMsg = moduleId + " initialization failed:";
-            typeGuard("object", module, errorMsg + " module not found.");
-            typeGuard("object", options, errorMsg + " module options must be an object.");
+            var errorMsg = "start() failed:";
+            typeGuard("object", module, errorMsg + " module not found - " + moduleId);
+            typeGuard("object", options, errorMsg + " module options must be an object");
             var instanceId = options["instanceId"] || moduleId;
             if (hasOwnProperty.call(module.instances, instanceId)) {
                 // already initialized
                 return this;
             }
-            runPlugins.call(this, HookType.Core_ModuleInit, moduleId, options);
+            if (!runPlugins.call(this, dcore.HOOK_MODULE_INITIALIZE, moduleId, options)) {
+                return this;
+            }
             var instance = module.create(new this.Sandbox(this, instanceId));
             module.instances[instanceId] = instance;
             instance.init(options);
+            runPlugins.call(this, dcore.HOOK_MODULE_INITIALIZED, moduleId, options);
             return this;
         };
         /**
@@ -248,9 +265,12 @@ var dcore;
             var module = this.modules[moduleId];
             var id = instanceId || moduleId;
             if (module && hasOwnProperty.call(module.instances, id)) {
-                runPlugins.call(this, HookType.Core_ModuleDestroy, moduleId, instanceId);
+                if (!runPlugins.call(this, dcore.HOOK_MODULE_DESTROY, moduleId, instanceId)) {
+                    return this;
+                }
                 try {
                     module.instances[id].destroy();
+                    runPlugins.call(this, dcore.HOOK_MODULE_DESTROYED, moduleId, instanceId);
                 }
                 catch (err) {
                     console.warn(moduleId + " destroy failed: An error has occured within the module:");
@@ -273,13 +293,16 @@ var dcore;
         };
         /**
          *  Hooks a given function to specific hook type.
-         *  @param {HookType} hookType The hook type.
-         *  @param {function} plugin The function needs to hook.
+         *  The execution pipeline depends on the hook type return parameter -
+         *  If it is evaluated to true, pipeline continues, if not, pipeline stops.
+         *  Errors do not affect the execution pipeline.
+         *  @param {string} hookType The hook type.
+         *  @param {function} plugin The function needs to hook. It must return true in order to continue the pipeline.
          */
         Instance.prototype.hook = function (hookType, plugin) {
-            var errorMsg = "Hook plugin failed:";
-            typeGuard("number", hookType, errorMsg + " hook type should be an HookType enum.");
-            typeGuard("function", plugin, errorMsg + " plugin should be a function.");
+            var errorMsg = "hook() failed:";
+            typeGuard("string", hookType, errorMsg + " hook type should be a string");
+            typeGuard("function", plugin, errorMsg + " plugin should be a function");
             if (!Array.isArray(this.hooks[hookType])) {
                 this.hooks[hookType] = [];
             }
@@ -312,7 +335,7 @@ var dcore;
             if (typeof this.beforeRunAction === "function") {
                 this.beforeRunAction();
             }
-            runPlugins.call(this, HookType.Core_DOMReady);
+            runPlugins.call(this, dcore.HOOK_DOM_READY);
         };
         return Instance;
     }());

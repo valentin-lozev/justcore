@@ -10,7 +10,7 @@
     stop(moduleId: string, instanceId?: string): this;
     listModules(): string[];
 
-    hook(hookType: dcore.HookType, plugin: Function): this;
+    hook(hookType: string, plugin: () => boolean): this;
     run(action?: Function): this;
 }
 
@@ -66,14 +66,14 @@ namespace dcore {
         }
     }
 
-    function runPlugins(hookType: HookType, ...params: any[]): void {
+    function runPlugins(hookType: string, ...params: any[]): boolean {
         if (!this.state.isRunning) {
-            throw new Error("Core is not running.");
+            throw new Error("runPlugins(): Core is not running");
         }
 
         let plugins = this.hooks[hookType];
         if (!Array.isArray(plugins)) {
-            return;
+            return true;
         }
 
         let argumentsLength = arguments.length;
@@ -84,12 +84,18 @@ namespace dcore {
 
         for (let i = 0, len = plugins.length; i < len; i++) {
             try {
-                plugins[i].apply(null, args);
-            } catch (ex) {
+                if (!plugins[i].apply(null, args)) {
+                    return false;
+                }
+            } catch (err) {
                 let argsDetails = args.length > 0 ? args.join(", ") : "none";
-                console.error(`Plugin execution failed on hook ${HookType[hookType]}. Arguments: ${argsDetails}. Message: ${ex}`);
+                console.error(`runPlugins(): Execution failed on hook ${hookType}`);
+                console.error(`runPlugins(): Execution arguments: ${argsDetails}`);
+                console.error(`runPlugins(): Error: ${err}`);
             }
         }
+
+        return true;
     }
 
     function addSubscriber(topic: string, handler: Function): string {
@@ -102,15 +108,16 @@ namespace dcore {
         return subscriptionID;
     }
 
-    export enum HookType {
-        Core_DOMReady = 0,
-        Core_ModuleDestroy,
-        Core_ModuleInit,
-        Core_ModuleRegister,
-        Core_Publish,
-        Core_Subscribe,
-        Core_Unsubscribe,
-    }
+    export const HOOK_DOM_READY = "dom-ready";
+    export const HOOK_MODULE_DESTROY = "module-destroy";
+    export const HOOK_MODULE_DESTROYED = "module-destroyed";
+    export const HOOK_MODULE_INITIALIZE = "module-init";
+    export const HOOK_MODULE_INITIALIZED = "module-initialized";
+    export const HOOK_MODULE_REGISTER = "module-register";
+    export const HOOK_MODULE_REGISTERED = "module-registered";
+    export const HOOK_MODULE_PUBLISH = "module-publish";
+    export const HOOK_MODULE_SUBSCRIBE = "module-subscribe";
+    export const HOOK_MODULE_UNSUBSCRIBE = "module-unsubscribe";
 
     export class Instance implements DCore {
         private subscribers: SubscriberList = {};
@@ -135,11 +142,15 @@ namespace dcore {
          *  @returns {Object}
          */
         subscribe(topics: string[], handler: (topic: string, data: any) => void): DSubscriptionToken {
-            let errorMsg = "Subscribing failed:";
+            let errorMsg = "subscribe() failed:";
             typeGuard("function", handler, `${errorMsg} message handler should be a function.`);
             typeGuard("array", topics, `${errorMsg} topics should be passed as an array of strings.`);
 
-            runPlugins.call(this, HookType.Core_Subscribe, topics);
+            if (!runPlugins.call(this, HOOK_MODULE_SUBSCRIBE, topics)) {
+                return {
+                    destroy: function () { }
+                };
+            }
 
             let token = {};
             for (let i = 0, len = topics.length; i < len; i++) {
@@ -153,7 +164,7 @@ namespace dcore {
                 destroy: function (topic?: string): void {
                     if (arguments.length === 0) {
                         Object.keys(token).forEach(t => {
-                            runPlugins.call(that, HookType.Core_Unsubscribe, t);
+                            runPlugins.call(that, HOOK_MODULE_UNSUBSCRIBE, t);
                             let subscriptionID = token[t];
                             delete that.subscribers[t][subscriptionID];
                         });
@@ -161,7 +172,7 @@ namespace dcore {
                     }
 
                     if (hasOwnProperty.call(token, topic)) {
-                        runPlugins.call(that, HookType.Core_Unsubscribe, topic);
+                        runPlugins.call(that, HOOK_MODULE_UNSUBSCRIBE, topic);
                         let subscriptionID = token[topic];
                         delete that.subscribers[topic][subscriptionID];
                     }
@@ -176,10 +187,13 @@ namespace dcore {
          */
         publish(topic: string, data: any): this {
             if (!hasOwnProperty.call(this.subscribers, topic)) {
-                return;
+                return this;
             }
 
-            runPlugins.call(this, HookType.Core_Publish, topic, data);
+            if (!runPlugins.call(this, HOOK_MODULE_PUBLISH, topic, data)) {
+                return this;
+            }
+
             let subscriptions = this.subscribers[topic];
             Object.keys(subscriptions)
                 .forEach(key => {
@@ -194,6 +208,7 @@ namespace dcore {
                         }, 0);
                     }
                 });
+            return this;
         }
 
         /**
@@ -202,19 +217,23 @@ namespace dcore {
          *  @param {function} moduleFactory Function which provides an instance of the module.
          */
         register(moduleId: string, moduleFactory: (sb: DSandbox) => DModule): this {
-            let errorMsg = `${moduleId} registration failed:`;
-            typeGuard("string", moduleId, `${errorMsg} module ID must be a string.`);
-            typeGuard("string", moduleId, `${errorMsg} module ID must be a string.`);
-            typeGuard("undefined", this.modules[moduleId], `${errorMsg} module with such id has been already registered.`);
+            let errorMsg = `register() failed:`;
+            typeGuard("string", moduleId, `${errorMsg} module ID must be a string - ${moduleId}`);
+            typeGuard("undefined", this.modules[moduleId], `${errorMsg} module with such id has been already registered - ${moduleId}`);
             let tempModule = moduleFactory(new this.Sandbox(this, moduleId));
-            typeGuard("function", tempModule.init, `${errorMsg} module does not implement init method.`);
-            typeGuard("function", tempModule.destroy, `${errorMsg} module does not implement destroy method.`);
+            typeGuard("function", tempModule.init, `${errorMsg} module does not implement init method`);
+            typeGuard("function", tempModule.destroy, `${errorMsg} module does not implement destroy method`);
 
-            runPlugins.call(this, HookType.Core_ModuleRegister, moduleId, moduleFactory);
+            if (!runPlugins.call(this, HOOK_MODULE_REGISTER, moduleId, moduleFactory)) {
+                return this;
+            }
+
             this.modules[moduleId] = {
                 create: moduleFactory,
                 instances: {}
             };
+            runPlugins.call(this, HOOK_MODULE_REGISTERED, moduleId, moduleFactory);
+
             return this;
         }
 
@@ -227,9 +246,9 @@ namespace dcore {
             let module = this.modules[moduleId];
             options = options || {};
 
-            let errorMsg = `${moduleId} initialization failed:`;
-            typeGuard("object", module, `${errorMsg} module not found.`);
-            typeGuard("object", options, `${errorMsg} module options must be an object.`);
+            let errorMsg = `start() failed:`;
+            typeGuard("object", module, `${errorMsg} module not found - ${moduleId}`);
+            typeGuard("object", options, `${errorMsg} module options must be an object`);
 
             let instanceId = options["instanceId"] || moduleId;
             if (hasOwnProperty.call(module.instances, instanceId)) {
@@ -237,11 +256,15 @@ namespace dcore {
                 return this;
             }
 
-            runPlugins.call(this, HookType.Core_ModuleInit, moduleId, options);
+            if (!runPlugins.call(this, HOOK_MODULE_INITIALIZE, moduleId, options)) {
+                return this;
+            }
 
             let instance = module.create(new this.Sandbox(this, instanceId));
             module.instances[instanceId] = instance;
             instance.init(options);
+
+            runPlugins.call(this, HOOK_MODULE_INITIALIZED, moduleId, options);
             return this;
         }
 
@@ -254,9 +277,13 @@ namespace dcore {
             let module = this.modules[moduleId];
             let id = instanceId || moduleId;
             if (module && hasOwnProperty.call(module.instances, id)) {
-                runPlugins.call(this, HookType.Core_ModuleDestroy, moduleId, instanceId);
+                if (!runPlugins.call(this, HOOK_MODULE_DESTROY, moduleId, instanceId)) {
+                    return this;
+                }
+
                 try {
                     module.instances[id].destroy();
+                    runPlugins.call(this, HOOK_MODULE_DESTROYED, moduleId, instanceId);
                 } catch (err) {
                     console.warn(`${moduleId} destroy failed: An error has occured within the module:`);
                     console.error(err);
@@ -279,13 +306,16 @@ namespace dcore {
 
         /**
          *  Hooks a given function to specific hook type.
-         *  @param {HookType} hookType The hook type.
-         *  @param {function} plugin The function needs to hook.
+         *  The execution pipeline depends on the hook type return parameter -
+         *  If it is evaluated to true, pipeline continues, if not, pipeline stops.
+         *  Errors do not affect the execution pipeline.
+         *  @param {string} hookType The hook type.
+         *  @param {function} plugin The function needs to hook. It must return true in order to continue the pipeline.
          */
-        hook(hookType: HookType, plugin: Function): this {
-            let errorMsg = "Hook plugin failed:";
-            typeGuard("number", hookType, `${errorMsg} hook type should be an HookType enum.`);
-            typeGuard("function", plugin, `${errorMsg} plugin should be a function.`);
+        hook(hookType: string, plugin: () => boolean): this {
+            let errorMsg = "hook() failed:";
+            typeGuard("string", hookType, `${errorMsg} hook type should be a string`);
+            typeGuard("function", plugin, `${errorMsg} plugin should be a function`);
 
             if (!Array.isArray(this.hooks[hookType])) {
                 this.hooks[hookType] = [];
@@ -325,7 +355,7 @@ namespace dcore {
                 this.beforeRunAction();
             }
 
-            runPlugins.call(this, HookType.Core_DOMReady);
+            runPlugins.call(this, HOOK_DOM_READY);
         }
     }
 
