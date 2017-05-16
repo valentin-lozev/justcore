@@ -10,7 +10,7 @@
     stop(moduleId: string, instanceId?: string): this;
     listModules(): string[];
 
-    hook(hookType: string, plugin: () => boolean): this;
+    hook(hookType: string, plugin: (...args: any[]) => boolean): this;
     run(action?: Function): this;
 }
 
@@ -34,24 +34,11 @@ namespace dcore {
     let hasOwnProperty = Object.prototype.hasOwnProperty;
     let lastUsedSubscriptionID = 0;
 
-    interface HookList {
-        [name: string]: Function[];
-    }
-
-    interface SubscriberList {
-        [topic: string]: TopicHandlerList;
-    }
-
-    interface TopicHandlerList {
-        [tokenId: string]: Function;
-    }
-
-    interface ModuleList {
-        [id: string]: { create: (sb: DSandbox) => DModule, instances: ModuleHolders };
-    }
-
-    interface ModuleHolders {
-        [instanceId: string]: DModule;
+    interface ModulesList {
+        [id: string]: {
+            create: (sb: DSandbox) => DModule,
+            instances: { [instanceId: string]: DModule; }
+        };
     }
 
     function typeGuard(expected: string, value: any, errorMsg: string): void {
@@ -120,9 +107,9 @@ namespace dcore {
     export const HOOK_MODULE_UNSUBSCRIBE = "module-unsubscribe";
 
     export class Instance implements DCore {
-        private subscribers: SubscriberList = {};
-        private modules: ModuleList = {};
-        private hooks: HookList = {};
+        private subscribers: { [topic: string]: { [tokenId: string]: Function; }; } = {};
+        private modules: ModulesList = {};
+        private hooks: { [name: string]: Function[]; } = {};
         private beforeRunAction: Function;
         public state: DCoreState;
         public Sandbox: DSandboxConstructor;
@@ -220,7 +207,7 @@ namespace dcore {
             let errorMsg = `register() failed:`;
             typeGuard("string", moduleId, `${errorMsg} module ID must be a string - ${moduleId}`);
             typeGuard("undefined", this.modules[moduleId], `${errorMsg} module with such id has been already registered - ${moduleId}`);
-            let tempModule = moduleFactory(new this.Sandbox(this, moduleId));
+            let tempModule = moduleFactory(new this.Sandbox(this, moduleId, moduleId));
             typeGuard("function", tempModule.init, `${errorMsg} module does not implement init method`);
             typeGuard("function", tempModule.destroy, `${errorMsg} module does not implement destroy method`);
 
@@ -260,7 +247,7 @@ namespace dcore {
                 return this;
             }
 
-            let instance = module.create(new this.Sandbox(this, instanceId));
+            let instance = module.create(new this.Sandbox(this, moduleId, instanceId));
             module.instances[instanceId] = instance;
             instance.init(options);
 
@@ -312,7 +299,7 @@ namespace dcore {
          *  @param {string} hookType The hook type.
          *  @param {function} plugin The function needs to hook. It must return true in order to continue the pipeline.
          */
-        hook(hookType: string, plugin: () => boolean): this {
+        hook(hookType: string, plugin: (...args: any[]) => boolean): this {
             let errorMsg = "hook() failed:";
             typeGuard("string", hookType, `${errorMsg} hook type should be a string`);
             typeGuard("function", plugin, `${errorMsg} plugin should be a function`);

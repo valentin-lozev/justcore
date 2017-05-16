@@ -3,21 +3,25 @@
 
 describe("DSandbox", () => {
 
-    function getOne(core: DCore, moduleInstanceId: string = "testModule"): DSandbox {
-        return new core.Sandbox(core, moduleInstanceId);
+    const MODULE_ID = "testModule";
+
+    function getOne(core: DCore, moduleId: string = MODULE_ID, moduleInstanceId: string = MODULE_ID): DSandbox {
+        return new core.Sandbox(core, moduleId, moduleInstanceId);
     }
 
     it("should throw if core or module id are missing", () => {
         let core = dcore.createOne();
 
-        expect(() => new core.Sandbox(null, "")).toThrow();
-        expect(() => new core.Sandbox(core, null)).toThrow();
+        expect(() => new core.Sandbox(null, MODULE_ID, MODULE_ID)).toThrow();
+        expect(() => new core.Sandbox(core, null, MODULE_ID)).toThrow();
+        expect(() => new core.Sandbox(core, MODULE_ID, null)).toThrow();
     });
 
     it("should know which module it is serving for", () => {
         let sb = getOne(dcore.createOne());
 
-        expect(sb.moduleInstanceId).toEqual("testModule");
+        expect(sb.moduleId).toEqual(MODULE_ID);
+        expect(sb.moduleInstanceId).toEqual(MODULE_ID);
     });
 
     it("should subscribe by delegating to its core", () => {

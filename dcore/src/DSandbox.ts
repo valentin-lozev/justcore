@@ -1,8 +1,9 @@
 ﻿interface DSandboxConstructor {
-    new (core: DCore, moduleInstanceId: string): DSandbox;
+    new (core: DCore, moduleId: string, moduleInstanceId: string): DSandbox;
 }
 
 interface DSandbox {
+    moduleId: string;
     moduleInstanceId: string;
 
     subscribe(topics: string[], handler: (topic: string, data: any) => void): DSubscriptionToken;
@@ -20,15 +21,18 @@ namespace dcore {
      *  @property {String} moduleInstanceId - Id of the module it serves for.
      */
     export class DefaultSandbox implements DSandbox {
+
         private core: DCore;
+        public moduleId: string;
         public moduleInstanceId: string;
 
-        constructor(core: DCore, moduleInstanceId: string) {
-            if (!core || !moduleInstanceId) {
+        constructor(core: DCore, moduleId: string, moduleInstanceId: string) {
+            if (!core || !moduleId || !moduleInstanceId) {
                 throw new Error("DefaultSandbox: Missing core or module instance ID");
             }
 
             this.core = core;
+            this.moduleId = moduleId;
             this.moduleInstanceId = moduleInstanceId;
         }
 

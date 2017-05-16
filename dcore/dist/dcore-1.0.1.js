@@ -3,7 +3,7 @@
  *  Copyright © 2016 Valentin Lozev
  *  Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
  *  Source code: http://github.com/valentin-lozev/dcore
- */ 
+ */
 //# sourceMappingURL=license.js.map
 var dcore;
 (function (dcore) {
@@ -13,11 +13,12 @@ var dcore;
      *  @property {String} moduleInstanceId - Id of the module it serves for.
      */
     var DefaultSandbox = (function () {
-        function DefaultSandbox(core, moduleInstanceId) {
-            if (!core || !moduleInstanceId) {
+        function DefaultSandbox(core, moduleId, moduleInstanceId) {
+            if (!core || !moduleId || !moduleInstanceId) {
                 throw new Error("DefaultSandbox: Missing core or module instance ID");
             }
             this.core = core;
+            this.moduleId = moduleId;
             this.moduleInstanceId = moduleInstanceId;
         }
         /**
@@ -218,7 +219,7 @@ var dcore;
             var errorMsg = "register() failed:";
             typeGuard("string", moduleId, errorMsg + " module ID must be a string - " + moduleId);
             typeGuard("undefined", this.modules[moduleId], errorMsg + " module with such id has been already registered - " + moduleId);
-            var tempModule = moduleFactory(new this.Sandbox(this, moduleId));
+            var tempModule = moduleFactory(new this.Sandbox(this, moduleId, moduleId));
             typeGuard("function", tempModule.init, errorMsg + " module does not implement init method");
             typeGuard("function", tempModule.destroy, errorMsg + " module does not implement destroy method");
             if (!runPlugins.call(this, dcore.HOOK_MODULE_REGISTER, moduleId, moduleFactory)) {
@@ -250,7 +251,7 @@ var dcore;
             if (!runPlugins.call(this, dcore.HOOK_MODULE_INITIALIZE, moduleId, options)) {
                 return this;
             }
-            var instance = module.create(new this.Sandbox(this, instanceId));
+            var instance = module.create(new this.Sandbox(this, moduleId, instanceId));
             module.instances[instanceId] = instance;
             instance.init(options);
             runPlugins.call(this, dcore.HOOK_MODULE_INITIALIZED, moduleId, options);

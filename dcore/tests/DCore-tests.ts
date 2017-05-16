@@ -57,9 +57,8 @@ describe("DCore", () => {
 
         it("should initialize with custom sandbox type when such is provided", () => {
             class CustomSandbox implements DSandbox {
-                public moduleInstanceId: string;
-                constructor(core: DCore, moduleInstanceId: string) {
-                    this.moduleInstanceId = moduleInstanceId;
+
+                constructor(public core: DCore, public moduleId: string, public moduleInstanceId: string) {
                 }
 
                 subscribe(topics: string[], handler: (topic: string, data: any) => void): DSubscriptionToken {
@@ -136,7 +135,7 @@ describe("DCore", () => {
         it("should start a module", () => {
             let core = dcore.createOne().run();
             let id = "testModule";
-            let module = getModule(new core.Sandbox(core, id));
+            let module = getModule(new core.Sandbox(core, id, id));
             spyOn(module, "init");
 
             let modules = core
@@ -151,7 +150,7 @@ describe("DCore", () => {
         it("should start a module with options", () => {
             let core = dcore.createOne().run();
             let id = "testModule";
-            let module = getModule(new core.Sandbox(core, id));
+            let module = getModule(new core.Sandbox(core, id, id));
             spyOn(module, "init");
 
             let options = { count: 5 };
@@ -164,7 +163,7 @@ describe("DCore", () => {
         it("should not start an already started module", () => {
             let core = dcore.createOne().run();
             let id = "testModule";
-            let module = getModule(new core.Sandbox(core, id));
+            let module = getModule(new core.Sandbox(core, id, id));
             spyOn(module, "init");
 
             core.register(id, (sb: DSandbox): DModule => module)
@@ -174,10 +173,12 @@ describe("DCore", () => {
             expect(module.init).toHaveBeenCalledTimes(1);
         });
 
+        // TODO: Sandbox tests for moduleId and moduleInstanceId
+
         it("should start a module with another instance", () => {
             let core = dcore.createOne().run();
             let id = "testModule";
-            let module = getModule(new core.Sandbox(core, id));
+            let module = getModule(new core.Sandbox(core, id, id));
             spyOn(module, "init");
 
             core.register(id, (sb: DSandbox): DModule => module)
@@ -187,6 +188,41 @@ describe("DCore", () => {
             expect(module.init).toHaveBeenCalledTimes(2);
         });
 
+        it("should give sandbox that has same moduleId and moduleInstanceId when start a single instance module", () => {
+            let core = dcore.createOne().run();
+            let id = "testModule";
+            let actualSandbox: DSandbox;
+
+            core
+                .register(id, (sb: DSandbox): DModule => {
+                    actualSandbox = sb;
+                    return getModule(sb);
+                })
+                .start(id);
+
+            expect(actualSandbox).toBeDefined();
+            expect(actualSandbox.moduleId).toEqual(id);
+            expect(actualSandbox.moduleInstanceId).toEqual(id);
+        });
+
+        it("should give sandbox that has different moduleId and moduleInstanceId when start a given instance of a module", () => {
+            let core = dcore.createOne().run();
+            let id = "testModule";
+            let instanceId = "testModuleInstance";
+            let actualSandbox: DSandbox;
+
+            core
+                .register(id, (sb: DSandbox): DModule => {
+                    actualSandbox = sb;
+                    return getModule(sb);
+                })
+                .start(id, { instanceId: instanceId });
+
+            expect(actualSandbox).toBeDefined();
+            expect(actualSandbox.moduleId).toEqual(id);
+            expect(actualSandbox.moduleInstanceId).toEqual(instanceId);
+        });
+
         it("should not throw when stop not started module", () => {
             expect(() => dcore.createOne().stop("")).not.toThrow();
         });
@@ -194,7 +230,7 @@ describe("DCore", () => {
         it("should stop a module", () => {
             let core = dcore.createOne().run();
             let id = "testModule";
-            let module = getModule(new core.Sandbox(core, id));
+            let module = getModule(new core.Sandbox(core, id, id));
             spyOn(module, "destroy");
 
             core.register(id, (sb: DSandbox): DModule => module)
@@ -207,7 +243,7 @@ describe("DCore", () => {
         it("should stop a module having multiple instances", () => {
             let core = dcore.createOne().run();
             let id = "testModule";
-            let module = getModule(new core.Sandbox(core, id));
+            let module = getModule(new core.Sandbox(core, id, id));
             spyOn(module, "destroy");
 
             core.register(id, (sb: DSandbox): DModule => module)
@@ -305,7 +341,7 @@ describe("DCore", () => {
         it("should run plugin when hook into module destroy", () => {
             let moduleID = "module";
             let core = dcore.createOne().run();
-            let module = getModule(new core.Sandbox(core, moduleID));
+            let module = getModule(new core.Sandbox(core, moduleID, moduleID));
             let mock = jasmine.createSpyObj("mock", ["plugin"]);
 
             core.register(moduleID, (sb: DSandbox): DModule => module)
@@ -320,7 +356,7 @@ describe("DCore", () => {
         it("should run plugin when hook into module init", () => {
             let moduleID = "module";
             let core = dcore.createOne().run();
-            let module = getModule(new core.Sandbox(core, moduleID));
+            let module = getModule(new core.Sandbox(core, moduleID, moduleID));
             let spy = {
                 plugin: function (): boolean {
                     return true;
@@ -340,7 +376,7 @@ describe("DCore", () => {
         it("should run plugin when hook into module register", () => {
             let moduleID = "module";
             let core = dcore.createOne().run();
-            let module = getModule(new core.Sandbox(core, moduleID));
+            let module = getModule(new core.Sandbox(core, moduleID, moduleID));
             let creator = (sb: DSandbox): DModule => module;
             let mock = jasmine.createSpyObj("mock", ["plugin"]);
 
@@ -410,7 +446,7 @@ describe("DCore", () => {
         it("should stop pipeline when run stopper plugin", () => {
             let moduleID = "module";
             let core = dcore.createOne().run();
-            let module = getModule(new core.Sandbox(core, moduleID));
+            let module = getModule(new core.Sandbox(core, moduleID, moduleID));
             let spy = {
                 plugin1: function (): boolean { return false; },
                 plugin2: function (): boolean { return true; },
