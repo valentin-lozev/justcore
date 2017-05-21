@@ -1,5 +1,5 @@
 {
-  "name": "dcore.js",
+  "name": "dcore",
   "description": "Modular javascript application framework",
   "private": false,
   "main": "dist/dcore.js",
