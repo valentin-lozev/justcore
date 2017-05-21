@@ -8,7 +8,7 @@
   "ignore": [
     "src"
   ],
-  "keywords": [ "modular", "javascript", "framework" ],
+  "keywords": [ "modular", "javascript", "framework", "typescript" ],
   "authors": [ "Valentin Lozev <valentin.zh.lozev@gmail.com>" ],
   "repository": {
     "type": "git",
