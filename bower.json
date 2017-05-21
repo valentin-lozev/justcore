@@ -12,7 +12,9 @@
     "*.json",
     "*.cs",
     "gulpfile.js",
-    "jasmine.d.ts"
+    "jasmine.d.ts",
+    "*.sln",
+    "*.xproj"
   ],
   "keywords": [ "modular", "javascript", "framework", "typescript" ],
   "authors": [ "Valentin Lozev <valentin.zh.lozev@gmail.com>" ],
