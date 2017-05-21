@@ -9,14 +9,10 @@
     "src",
     "tests",
     "Properties",
-    "bower.json",
-    "chutzpah.json",
+    "*.json",
+    "*.cs",
     "gulpfile.js",
-    "jasmine.d.ts",
-    "package.json",
-    "Program.cs",
-    "project.json",
-    "tsconfig.json"
+    "jasmine.d.ts"
   ],
   "keywords": [ "modular", "javascript", "framework", "typescript" ],
   "authors": [ "Valentin Lozev <valentin.zh.lozev@gmail.com>" ],
