@@ -8,7 +8,8 @@
   "ignore": [
     "src",
     "tests",
-    "properties",
+    "Properties",
+    "bower.json",
     "chutzpah.json",
     "gulpfile.js",
     "jasmine.d.ts",
