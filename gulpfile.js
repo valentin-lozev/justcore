@@ -4,7 +4,6 @@ var concat = require('gulp-concat');
 var minify = require('gulp-minify');
 var es = require('event-stream');
 
-var version = 'dcore';
 var files = [
     "src/license",
     "src/DSandbox",
@@ -14,11 +13,11 @@ var files = [
 gulp.task('scripts', function () {
     return es.merge(
         gulp.src(files.map(file => file + '.ts'))
-            .pipe(concat(version + '.ts'))
+            .pipe(concat('dcore.ts'))
             .pipe(gulp.dest('dist')),
 
         gulp.src(files.map(file => file + '.js'))
-        .pipe(concat(version + '.js'))
+        .pipe(concat('dcore.js'))
         .pipe(minify({
             ext: { min: '.min.js' },
             mangle: false,

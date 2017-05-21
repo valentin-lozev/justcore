@@ -6,7 +6,16 @@
   "moduleType": "globals",
   "license": "MIT",
   "ignore": [
-    "src"
+    "src",
+    "tests",
+    "properties",
+    "chutzpah.json",
+    "gulpfile.js",
+    "jasmine.d.ts",
+    "package.json",
+    "Program.cs",
+    "project.json",
+    "tsconfig.json"
   ],
   "keywords": [ "modular", "javascript", "framework", "typescript" ],
   "authors": [ "Valentin Lozev <valentin.zh.lozev@gmail.com>" ],
@@ -15,6 +24,5 @@
     "url": "http://github.com/valentin-lozev/dcore.git"
   },
   "dependencies": {
-
   }
 }
