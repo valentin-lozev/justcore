@@ -12,7 +12,7 @@
   "authors": [ "Valentin Lozev <valentin.zh.lozev@gmail.com>" ],
   "repository": {
     "type": "git",
-    "url": "http://github.com/valentin-lozev/dcore"
+    "url": "http://github.com/valentin-lozev/dcore.git"
   },
   "dependencies": {
 
