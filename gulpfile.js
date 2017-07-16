@@ -6,6 +6,7 @@ var es = require('event-stream');
 
 var files = [
     "src/license",
+    "src/types",
     "src/DSandbox",
     "src/DCore",
 ];

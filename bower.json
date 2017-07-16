@@ -8,13 +8,14 @@
   "ignore": [
     "src",
     "tests",
+    "coverage",
     "Properties",
     "*.json",
     "*.cs",
     "gulpfile.js",
-    "jasmine.d.ts",
     "*.sln",
-    "*.xproj"
+    "karma.conf.js",
+    "*.csproj"
   ],
   "keywords": [ "modular", "javascript", "framework", "typescript" ],
   "authors": [ "Valentin Lozev <valentin.zh.lozev@gmail.com>" ],

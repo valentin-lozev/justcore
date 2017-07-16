@@ -9,10 +9,11 @@
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
-dcore/src/**/*.js
-dcore/src/**/*.js.map
-dcore/tests/**/*.js
-dcore/tests/**/*.js.map
+coverage
+src/**/*.js
+src/**/*.js.map
+tests/**/*.js
+tests/**/*.js.map
 
 # Build results
 [Dd]ebug/

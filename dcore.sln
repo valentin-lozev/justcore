@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26430.15
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "dcore", "dcore.xproj", "{4019C3E8-906E-4553-ADCA-E994B7D8302B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dcore", "dcore.csproj", "{89204F18-AAA1-4EBB-9172-FE2F10A22D4E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,10 +11,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{4019C3E8-906E-4553-ADCA-E994B7D8302B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4019C3E8-906E-4553-ADCA-E994B7D8302B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4019C3E8-906E-4553-ADCA-E994B7D8302B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4019C3E8-906E-4553-ADCA-E994B7D8302B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{89204F18-AAA1-4EBB-9172-FE2F10A22D4E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{89204F18-AAA1-4EBB-9172-FE2F10A22D4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{89204F18-AAA1-4EBB-9172-FE2F10A22D4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{89204F18-AAA1-4EBB-9172-FE2F10A22D4E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
