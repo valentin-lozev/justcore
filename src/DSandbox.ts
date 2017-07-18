@@ -1,35 +1,20 @@
-﻿interface DSandboxConstructor {
-    new (core: DCore, moduleId: string, moduleInstanceId: string): DSandbox;
-}
-
-interface DSandbox {
-    moduleId: string;
-    moduleInstanceId: string;
-
-    subscribe(topics: string[], handler: (topic: string, data: any) => void): DSubscriptionToken;
-    publish(topic: string, data: any): this;
-
-    start(moduleId: string, options?: Object): this;
-    stop(moduleId: string, instanceId?: string): this;
-}
-
-namespace dcore {
+﻿namespace dcore._private {
     "use strict";
 
     /**
-     *  @class Sandbox - Connects all modules to the outside world.
-     *  @property {String} moduleInstanceId - Id of the module it serves for.
+     *  @class DefaultSandbox - Connects the modules to the outside world.
      */
     export class DefaultSandbox implements DSandbox {
 
         private core: DCore;
-        public moduleId: string;
-        public moduleInstanceId: string;
+        private moduleId: string;
+        private moduleInstanceId: string;
 
         constructor(core: DCore, moduleId: string, moduleInstanceId: string) {
-            if (!core || !moduleId || !moduleInstanceId) {
-                throw new Error("DefaultSandbox: Missing core or module instance ID");
-            }
+            argumentGuard("DefaultSandbox: ")
+                .mustBeDefined(core, "core must be provided")
+                .mustBeNonEmptyString(moduleId, "module id must be a non empty string")
+                .mustBeNonEmptyString(moduleInstanceId, "module instance id must be a non empty string");
 
             this.core = core;
             this.moduleId = moduleId;
@@ -37,33 +22,64 @@ namespace dcore {
         }
 
         /**
+         *  Gets the module id it serves for.
+         *  @returns {String}
+         */
+        getModuleId(): string {
+            return this.moduleId;
+        }
+
+        /**
+         *  Gets the module instance id it serves for.
+         *  @returns {String}
+         */
+        getModuleInstanceId(): string {
+            return this.moduleInstanceId;
+        }
+
+        /**
+         *  Gets current application's state.
+         */
+        getAppState(): DCoreState {
+            return this.core.getState();
+        }
+
+        /**
+         *  Update current application's state by merging the provided object to the current state.
+         *  Also, "isRunning" and "isDebug" are being skipped.
+         *  "isRunning" is used internaly, "isDebug" can be set only on first initialization.
+         */
+        setAppState<TState extends keyof DCoreState>(value: Pick<DCoreState, TState>): void {
+            this.core.setState(value);
+        }
+
+        /**
          *  Subscribes for given topics.
-         *  @param {Array} topics Array of topics to subscribe for.
-         *  @param {Function} handler The message handler.
          *  @returns {Object}
          */
-        subscribe(topics: string[], handler: (topic: string, data: any) => void): DSubscriptionToken {
+        subscribe(topic: string, handler: (topic: string, message: any) => void): DSubscriptionToken;
+        subscribe(topics: string[], handler: (topic: string, message: any) => void): DSubscriptionToken;
+        subscribe(topics: any, handler: (topic: string, message: any) => void): DSubscriptionToken {
+            topics = Array.isArray(topics) ? topics : [topics];
             return this.core.subscribe(topics, handler);
         }
 
         /**
          *  Publishes a message.
          *  @param {String} topic The topic of the message.
-         *  @param {*} [data] Optional data.
+         *  @param {*} message The message.
          */
-        publish(topic: string, data: any): this {
-            this.core.publish(topic, data);
-            return this;
+        publish(topic: string, message: any): void {
+            this.core.publish(topic, message);
         }
 
         /**
          *  Starts an instance of given module and initializes it.
          *  @param {string} moduleId Id of the module which must be started.
-         *  @param {object} [options] Optional options.
+         *  @param {object} [props] Optional. Module properties.
          */
-        start(moduleId: string, options?: Object): this {
-            this.core.start(moduleId, options);
-            return this;
+        start<TProps>(moduleId: string, props?: DModuleProps & TProps): void {
+            this.core.start(moduleId, props);
         }
 
         /**
@@ -71,9 +87,8 @@ namespace dcore {
          *  @param {string} moduleId Id of the module which must be stopped.
          *  @param {string} [instanceId] Optional. Specific module's instance id.
          */
-        stop(moduleId: string, instanceId?: string): this {
+        stop(moduleId: string, instanceId?: string): void {
             this.core.stop(moduleId, instanceId);
-            return this;
         }
     }
 }

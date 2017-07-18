@@ -1,125 +1,59 @@
-﻿interface DCore {
-    Sandbox: DSandboxConstructor;
-    state: DCoreState;
-
-    subscribe(topics: string[], handler: (topic: string, data: any) => void): DSubscriptionToken;
-    publish(topic: string, data: any): this;
-
-    register(moduleId: string, moduleFactory: (sb: DSandbox) => DModule): this;
-    start(moduleId: string, options?: Object): this;
-    stop(moduleId: string, instanceId?: string): this;
-    listModules(): string[];
-
-    hook(hookType: string, plugin: (...args: any[]) => boolean): this;
-    run(action?: Function): this;
-}
-
-interface DCoreState {
-    isRunning: boolean;
-    isDebug: boolean;
-}
-
-interface DSubscriptionToken {
-    destroy(topic?: string): void;
-}
-
-interface DModule {
-    init(options?: Object): void;
-    destroy(): void;
-}
-
-namespace dcore {
+﻿namespace dcore {
     "use strict";
+    
+    import _privateData = _private;
 
-    let hasOwnProperty = Object.prototype.hasOwnProperty;
-    let lastUsedSubscriptionID = 0;
-
-    interface ModulesList {
+    interface ModulesMap {
         [id: string]: {
-            create: (sb: DSandbox) => DModule,
-            instances: { [instanceId: string]: DModule; }
+            create: (sb: DSandbox) => DModule<any>,
+            instances: { [instanceId: string]: DModule<any>; }
         };
     }
 
-    function typeGuard(expected: string, value: any, errorMsg: string): void {
-        let toThrow = false;
-        switch (expected) {
-            case "array": toThrow = !Array.isArray(value); break;
-            default: toThrow = typeof value !== expected || value === null;
-        }
-
-        if (toThrow) {
-            throw new TypeError(errorMsg);
-        }
+    function isDocumentReady(): boolean {
+        return document.readyState === "complete" ||
+            document.readyState === "interactive" ||
+            document.readyState === "loaded"; /* old safari browsers */
     }
 
-    function runPlugins(hookType: string, ...params: any[]): boolean {
-        if (!this.state.isRunning) {
-            throw new Error("runPlugins(): Core is not running");
-        }
+    let hasOwnProperty = Object.prototype.hasOwnProperty;
 
-        let plugins = this.hooks[hookType];
-        if (!Array.isArray(plugins)) {
-            return true;
-        }
+    class DefaultCore implements DCore {
 
-        let argumentsLength = arguments.length;
-        let args = new Array(argumentsLength - 1);
-        for (let i = 1; i < argumentsLength; i++) {
-            args[i - 1] = arguments[i];
-        }
-
-        for (let i = 0, len = plugins.length; i < len; i++) {
-            try {
-                if (!plugins[i].apply(null, args)) {
-                    return false;
-                }
-            } catch (err) {
-                let argsDetails = args.length > 0 ? args.join(", ") : "none";
-                console.error(`runPlugins(): Execution failed on hook ${hookType}`);
-                console.error(`runPlugins(): Execution arguments: ${argsDetails}`);
-                console.error(`runPlugins(): Error: ${err}`);
-            }
-        }
-
-        return true;
-    }
-
-    function addSubscriber(topic: string, handler: Function): string {
-        if (!hasOwnProperty.call(this.subscribers, topic)) {
-            this.subscribers[topic] = {};
-        }
-
-        let subscriptionID = "sbscrptn" + (++lastUsedSubscriptionID);
-        this.subscribers[topic][subscriptionID] = handler;
-        return subscriptionID;
-    }
-
-    export const HOOK_DOM_READY = "dom-ready";
-    export const HOOK_MODULE_DESTROY = "module-destroy";
-    export const HOOK_MODULE_DESTROYED = "module-destroyed";
-    export const HOOK_MODULE_INITIALIZE = "module-init";
-    export const HOOK_MODULE_INITIALIZED = "module-initialized";
-    export const HOOK_MODULE_REGISTER = "module-register";
-    export const HOOK_MODULE_REGISTERED = "module-registered";
-    export const HOOK_MODULE_PUBLISH = "module-publish";
-    export const HOOK_MODULE_SUBSCRIBE = "module-subscribe";
-    export const HOOK_MODULE_UNSUBSCRIBE = "module-unsubscribe";
-
-    export class Instance implements DCore {
-        private subscribers: { [topic: string]: { [tokenId: string]: Function; }; } = {};
-        private modules: ModulesList = {};
-        private hooks: { [name: string]: Function[]; } = {};
-        private beforeRunAction: Function;
-        public state: DCoreState;
         public Sandbox: DSandboxConstructor;
 
-        constructor(sandboxType?: DSandboxConstructor, isDebug = true) {
-            this.Sandbox = typeof sandboxType === "function" ? sandboxType : DefaultSandbox;
+        private mediator: DMediator;
+        private modules: ModulesMap = {};
+        private beforeRunAction: Function;
+        private state: DCoreState;
+
+        constructor(isDebug = true, mediator: DMediator = new _privateData.DefaultMediator()) {
+            this.Sandbox = _privateData.DefaultSandbox;
+            this.mediator = mediator;
             this.state = {
-                isDebug: !!isDebug,
+                isDebug: isDebug,
                 isRunning: false
             };
+        }
+
+        /**
+         *  Gets current core's state.
+         */
+        getState(): DCoreState {
+            return <any>Object.assign({}, this.state);
+        }
+
+        /**
+         *  Update current core's state by merging the provided object to the current state.
+         *  Also, "isRunning" and "isDebug" are being skipped.
+         *  "isRunning" is used internaly, "isDebug" can be set only on first initialization.
+         */
+        setState<TState extends keyof DCoreState>(value: Pick<DCoreState, TState>): void {
+            if (typeof value === "object") {
+                value.isRunning = this.state.isRunning;
+                value.isDebug = this.state.isDebug;
+                this.state = <any>Object.assign({}, this.state, <any>value);
+            }
         }
 
         /**
@@ -128,74 +62,17 @@ namespace dcore {
          *  @param {Function} handler The message handler.
          *  @returns {Object}
          */
-        subscribe(topics: string[], handler: (topic: string, data: any) => void): DSubscriptionToken {
-            let errorMsg = "subscribe() failed:";
-            typeGuard("function", handler, `${errorMsg} message handler should be a function.`);
-            typeGuard("array", topics, `${errorMsg} topics should be passed as an array of strings.`);
-
-            if (!runPlugins.call(this, HOOK_MODULE_SUBSCRIBE, topics)) {
-                return {
-                    destroy: function () { }
-                };
-            }
-
-            let token = {};
-            for (let i = 0, len = topics.length; i < len; i++) {
-                let topic = topics[i];
-                let subscriptionID = addSubscriber.call(this, topic, handler);
-                token[topic] = subscriptionID;
-            }
-
-            let that = this;
-            return {
-                destroy: function (topic?: string): void {
-                    if (arguments.length === 0) {
-                        Object.keys(token).forEach(t => {
-                            runPlugins.call(that, HOOK_MODULE_UNSUBSCRIBE, t);
-                            let subscriptionID = token[t];
-                            delete that.subscribers[t][subscriptionID];
-                        });
-                        return;
-                    }
-
-                    if (hasOwnProperty.call(token, topic)) {
-                        runPlugins.call(that, HOOK_MODULE_UNSUBSCRIBE, topic);
-                        let subscriptionID = token[topic];
-                        delete that.subscribers[topic][subscriptionID];
-                    }
-                }
-            };
+        subscribe(topics: string[], handler: (topic: string, message: any) => void): DSubscriptionToken {
+            return this.mediator.subscribe(topics, handler);
         }
 
         /**
          *  Publishes a message.
-         *  @param {String} topic he topic of the message.
-         *  @param {*} [data] Optional data.
+         *  @param {String} topic The topic of the message.
+         *  @param {*} message The message.
          */
-        publish(topic: string, data: any): this {
-            if (!hasOwnProperty.call(this.subscribers, topic)) {
-                return this;
-            }
-
-            if (!runPlugins.call(this, HOOK_MODULE_PUBLISH, topic, data)) {
-                return this;
-            }
-
-            let subscriptions = this.subscribers[topic];
-            Object.keys(subscriptions)
-                .forEach(key => {
-                    let handler = subscriptions[key];
-                    try {
-                        // let the browser breathе
-                        setTimeout(() => handler(topic, data), 0);
-                    } catch (ex) {
-                        setTimeout(() => {
-                            console.info(`${topic} message publishing failed. Subscriber:`);
-                            console.info(handler);
-                        }, 0);
-                    }
-                });
-            return this;
+        publish(topic: string, message: any): void {
+            this.mediator.publish(topic, message);
         }
 
         /**
@@ -203,85 +80,64 @@ namespace dcore {
          *  @param {string} moduleId
          *  @param {function} moduleFactory Function which provides an instance of the module.
          */
-        register(moduleId: string, moduleFactory: (sb: DSandbox) => DModule): this {
-            let errorMsg = `register() failed:`;
-            typeGuard("string", moduleId, `${errorMsg} module ID must be a string - ${moduleId}`);
-            typeGuard("undefined", this.modules[moduleId], `${errorMsg} module with such id has been already registered - ${moduleId}`);
-            let tempModule = moduleFactory(new this.Sandbox(this, moduleId, moduleId));
-            typeGuard("function", tempModule.init, `${errorMsg} module does not implement init method`);
-            typeGuard("function", tempModule.destroy, `${errorMsg} module does not implement destroy method`);
+        register(moduleId: string, moduleFactory: (sb: DSandbox) => DModule<any>): void {
+            _privateData.argumentGuard("register(): ")
+                .mustBeNonEmptyString(moduleId, "module id must be a non empty string")
+                .mustBeUndefined(this.modules[moduleId], `module with such id has been already registered - ${moduleId}`);
 
-            if (!runPlugins.call(this, HOOK_MODULE_REGISTER, moduleId, moduleFactory)) {
-                return this;
-            }
+            let tempModule = moduleFactory(new this.Sandbox(this, moduleId, moduleId));
+            _privateData.argumentGuard("register(): ")
+                .mustBeFunction(tempModule.init, "module must implement init method")
+                .mustBeFunction(tempModule.destroy, "module must implement destroy method");
 
             this.modules[moduleId] = {
                 create: moduleFactory,
                 instances: {}
             };
-            runPlugins.call(this, HOOK_MODULE_REGISTERED, moduleId, moduleFactory);
-
-            return this;
         }
 
         /**
          *  Starts an instance of given module and initializes it.
          *  @param {string} moduleId Id of the module which must be started.
-         *  @param {object} [options] Optional options.
+         *  @param {object} [props] Optional. Module properties.
          */
-        start(moduleId: string, options?: Object): this {
+        start<TProps>(moduleId: string, props?: DModuleProps & TProps): void {
             let module = this.modules[moduleId];
-            options = options || {};
+            _privateData.argumentGuard("start(): ")
+                .mustBeDefined(module, `module not found - ${moduleId}`);
 
-            let errorMsg = `start() failed:`;
-            typeGuard("object", module, `${errorMsg} module not found - ${moduleId}`);
-            typeGuard("object", options, `${errorMsg} module options must be an object`);
-
-            let instanceId = options["instanceId"] || moduleId;
+            let instanceId = props && props.instanceId ? props.instanceId : moduleId;
             if (hasOwnProperty.call(module.instances, instanceId)) {
                 // already initialized
-                return this;
-            }
-
-            if (!runPlugins.call(this, HOOK_MODULE_INITIALIZE, moduleId, options)) {
-                return this;
+                return;
             }
 
             let instance = module.create(new this.Sandbox(this, moduleId, instanceId));
             module.instances[instanceId] = instance;
-            instance.init(options);
-
-            runPlugins.call(this, HOOK_MODULE_INITIALIZED, moduleId, options);
-            return this;
+            instance.init(props);
         }
 
         /**
          *  Stops a given module.
-         *  @param {string} moduleId Id of the module, which must be stopped.
+         *  @param {string} moduleId Id of the module which must be stopped.
          *  @param {string} [instanceId] Specific module's instance id.
          */
-        stop(moduleId: string, instanceId?: string): this {
+        stop(moduleId: string, instanceId?: string): void {
             let module = this.modules[moduleId];
             let id = instanceId || moduleId;
-            if (module && hasOwnProperty.call(module.instances, id)) {
-                if (!runPlugins.call(this, HOOK_MODULE_DESTROY, moduleId, instanceId)) {
-                    return this;
-                }
-
-                try {
-                    module.instances[id].destroy();
-                    runPlugins.call(this, HOOK_MODULE_DESTROYED, moduleId, instanceId);
-                } catch (err) {
-                    console.warn(`${moduleId} destroy failed: An error has occured within the module:`);
-                    console.error(err);
-                } finally {
-                    delete module.instances[id];
-                }
-            } else {
-                console.warn(`${moduleId} destroy failed: ${instanceId} instance not found.`);
+            if (!module || !hasOwnProperty.call(module.instances, id)) {
+                console.warn(`stop(): "${moduleId}" destroy failed. "${instanceId}" instance not found.`);
+                return;
             }
 
-            return this;
+            try {
+                module.instances[id].destroy();
+            } catch (err) {
+                console.error(`stop(): "${moduleId}" destroy failed. An error has occured within the module`);
+                console.error(err);
+            } finally {
+                delete module.instances[id];
+            }
         }
 
         /**
@@ -292,66 +148,37 @@ namespace dcore {
         }
 
         /**
-         *  Hooks a given function to specific hook type.
-         *  The execution pipeline depends on the hook type return parameter -
-         *  If it is evaluated to true, pipeline continues, if not, pipeline stops.
-         *  Errors do not affect the execution pipeline.
-         *  @param {string} hookType The hook type.
-         *  @param {function} plugin The function needs to hook. It must return true in order to continue the pipeline.
-         */
-        hook(hookType: string, plugin: (...args: any[]) => boolean): this {
-            let errorMsg = "hook() failed:";
-            typeGuard("string", hookType, `${errorMsg} hook type should be a string`);
-            typeGuard("function", plugin, `${errorMsg} plugin should be a function`);
-
-            if (!Array.isArray(this.hooks[hookType])) {
-                this.hooks[hookType] = [];
-            }
-
-            this.hooks[hookType].push(plugin);
-            return this;
-        }
-
-        /**
          *  Runs the core.
          *  @param {Function} [action] Optional. A setup action executed before core run.
          */
-        run(action?: () => void): this {
+        run(action?: () => void): void {
             if (this.state.isRunning) {
                 return;
             }
 
             this.beforeRunAction = action;
-            this._onDomReady = this._onDomReady.bind(this);
-
-            if (document.readyState === "complete" ||
-                document.readyState === "interactive" ||
-                document.readyState === "loaded" /* old safari browsers */) {
+            if (isDocumentReady()) {
                 this._onDomReady(null);
             } else {
+                this._onDomReady = this._onDomReady.bind(this);
                 document.addEventListener("DOMContentLoaded", this._onDomReady);
             }
-
-            return this;
         }
 
         private _onDomReady(ev: Event): void {
             document.removeEventListener("DOMContentLoaded", this._onDomReady);
+
             this.state.isRunning = true;
             if (typeof this.beforeRunAction === "function") {
                 this.beforeRunAction();
             }
-
-            runPlugins.call(this, HOOK_DOM_READY);
         }
     }
 
     /**
      *  Creates an application core instance.
-     * @param {function} [sandboxType] Optional. Custom sandbox type.
-     * @returns {Core}
      */
-    export function createOne(sandboxType?: DSandboxConstructor, isDebug = true): DCore {
-        return new Instance(sandboxType, isDebug);
+    export function createOne(isDebug = true, mediator: DMediator = new _privateData.DefaultMediator()): DCore {
+        return new DefaultCore(isDebug, mediator);
     }
 }

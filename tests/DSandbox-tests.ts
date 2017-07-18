@@ -1,7 +1,4 @@
-﻿/// <reference path="../jasmine.d.ts" />
-/// <chutzpah_reference path="jasmine.js" />
-
-describe("DSandbox", () => {
+﻿describe("DSandbox", () => {
 
     const MODULE_ID = "testModule";
 
@@ -9,22 +6,55 @@ describe("DSandbox", () => {
         return new core.Sandbox(core, moduleId, moduleInstanceId);
     }
 
-    it("should throw if core or module id are missing", () => {
+    it("should throw when created with invalid arguments", () => {
         let core = dcore.createOne();
 
-        expect(() => new core.Sandbox(null, MODULE_ID, MODULE_ID)).toThrow();
-        expect(() => new core.Sandbox(core, null, MODULE_ID)).toThrow();
-        expect(() => new core.Sandbox(core, MODULE_ID, null)).toThrow();
+        expect(() => new dcore._private.DefaultSandbox(null, MODULE_ID, MODULE_ID)).toThrow();
+        expect(() => new dcore._private.DefaultSandbox(core, null, MODULE_ID)).toThrow();
+        expect(() => new dcore._private.DefaultSandbox(core, MODULE_ID, null)).toThrow();
     });
 
     it("should know which module it is serving for", () => {
         let sb = getOne(dcore.createOne());
 
-        expect(sb.moduleId).toEqual(MODULE_ID);
-        expect(sb.moduleInstanceId).toEqual(MODULE_ID);
+        expect(sb.getModuleId()).toEqual(MODULE_ID);
+        expect(sb.getModuleInstanceId()).toEqual(MODULE_ID);
     });
 
-    it("should subscribe by delegating to its core", () => {
+    it("should subscribe by delegating a single topic to its core", () => {
+        let core = dcore.createOne();
+        spyOn(core, "subscribe");
+        let sb = getOne(core);
+        let topic = "on";
+        let handler = (topic: string, data: any) => true;
+
+        sb.subscribe(topic, handler);
+
+        expect(core.subscribe).toHaveBeenCalledWith([topic], handler);
+    });
+
+    it("should be able to get its core's current state", () => {
+        let core = dcore.createOne();
+        spyOn(core, "getState");
+        let sb = getOne(core);
+
+        sb.getAppState();
+
+        expect(core.getState).toHaveBeenCalledWith();
+    });
+
+    it("should be able to update its core's current state", () => {
+        let core = dcore.createOne();
+        spyOn(core, "setState");
+        let sb = getOne(core);
+
+        let newState = {};
+        sb.setAppState(newState);
+
+        expect(core.setState).toHaveBeenCalledWith(newState);
+    });
+
+    it("should subscribe by delegating array of topics to its core", () => {
         let core = dcore.createOne();
         spyOn(core, "subscribe");
         let sb = getOne(core);
@@ -40,12 +70,12 @@ describe("DSandbox", () => {
         let core = dcore.createOne();
         spyOn(core, "publish");
         let sb = getOne(core);
-        let type = "on";
-        let data = 8;
+        let topic = "on";
+        let message = 8;
 
-        sb.publish(type, data);
+        sb.publish(topic, message);
 
-        expect(core.publish).toHaveBeenCalledWith(type, data);
+        expect(core.publish).toHaveBeenCalledWith(topic, message);
     });
 
     it("should start a module by delegating to its core", () => {

@@ -7,8 +7,11 @@ var es = require('event-stream');
 var files = [
     "src/license",
     "src/types",
+    "src/argumentGuard",
+    "src/DMediator",
     "src/DSandbox",
     "src/DCore",
+    "src/bootstrap",
 ];
 
 gulp.task('scripts', function () {
