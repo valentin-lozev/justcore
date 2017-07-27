@@ -1,13 +1,25 @@
 ﻿namespace dcore {
     "use strict";
-    
+
     import _privateData = _private;
+    delete dcore._private; // comment before run unit tests
+
+    export namespace hooks {
+        export const CORE_REGISTER = "core.register";
+        export const CORE_RUN = "core.run";
+        export const MODULE_INIT = "module.init";
+        export const MODULE_DESTROY = "module.destroy";
+    }
+
+    interface ModuleData {
+        create: (sb: DSandbox) => DModule<any>;
+        instances: {
+            [instanceId: string]: DModule<any>;
+        };
+    }
 
     interface ModulesMap {
-        [id: string]: {
-            create: (sb: DSandbox) => DModule<any>,
-            instances: { [instanceId: string]: DModule<any>; }
-        };
+        [id: string]: ModuleData;
     }
 
     function isDocumentReady(): boolean {
@@ -16,20 +28,25 @@
             document.readyState === "loaded"; /* old safari browsers */
     }
 
-    let hasOwnProperty = Object.prototype.hasOwnProperty;
+    const hasOwnProperty = Object.prototype.hasOwnProperty;
 
-    class DefaultCore implements DCore {
+    /**
+     *  A mediator between the modules and base libraries.
+     */
+    export class Application implements DCore {
 
         public Sandbox: DSandboxConstructor;
 
-        private mediator: DMediator;
+        private pluginsPipeline: _privateData.DPluginsPipeline;
+        private messagesAggregator: _privateData.DMessagesAggregator;
         private modules: ModulesMap = {};
-        private beforeRunAction: Function;
+        private onApplicationRun: Function;
         private state: DCoreState;
 
-        constructor(isDebug = true, mediator: DMediator = new _privateData.DefaultMediator()) {
+        constructor(isDebug = true) {
             this.Sandbox = _privateData.DefaultSandbox;
-            this.mediator = mediator;
+            this.pluginsPipeline = new _privateData.DPluginsPipeline();
+            this.messagesAggregator = new _privateData.DMessagesAggregator();
             this.state = {
                 isDebug: isDebug,
                 isRunning: false
@@ -37,14 +54,14 @@
         }
 
         /**
-         *  Gets current core's state.
+         *  Gets current state.
          */
-        getState(): DCoreState {
+        getState(): Readonly<DCoreState> {
             return <any>Object.assign({}, this.state);
         }
 
         /**
-         *  Update current core's state by merging the provided object to the current state.
+         *  Update current state by merging the provided object to the current state.
          *  Also, "isRunning" and "isDebug" are being skipped.
          *  "isRunning" is used internaly, "isDebug" can be set only on first initialization.
          */
@@ -58,27 +75,20 @@
 
         /**
          *  Subscribes for given topics.
-         *  @param {Array} topics Array of topics to subscribe for.
-         *  @param {Function} handler The message handler.
-         *  @returns {Object}
          */
         subscribe(topics: string[], handler: (topic: string, message: any) => void): DSubscriptionToken {
-            return this.mediator.subscribe(topics, handler);
+            return this.messagesAggregator.subscribe(topics, handler);
         }
 
         /**
-         *  Publishes a message.
-         *  @param {String} topic The topic of the message.
-         *  @param {*} message The message.
+         *  Publishes a message asynchronously.
          */
         publish(topic: string, message: any): void {
-            this.mediator.publish(topic, message);
+            this.messagesAggregator.publish(topic, message);
         }
 
         /**
          *  Registers a module.
-         *  @param {string} moduleId
-         *  @param {function} moduleFactory Function which provides an instance of the module.
          */
         register(moduleId: string, moduleFactory: (sb: DSandbox) => DModule<any>): void {
             _privateData.argumentGuard("register(): ")
@@ -90,53 +100,56 @@
                 .mustBeFunction(tempModule.init, "module must implement init method")
                 .mustBeFunction(tempModule.destroy, "module must implement destroy method");
 
-            this.modules[moduleId] = {
-                create: moduleFactory,
-                instances: {}
-            };
+            this.pluginsPipeline.pipe(
+                hooks.CORE_REGISTER,
+                this.__register,
+                this,
+                moduleId, moduleFactory);
         }
 
         /**
          *  Starts an instance of given module and initializes it.
-         *  @param {string} moduleId Id of the module which must be started.
-         *  @param {object} [props] Optional. Module properties.
          */
         start<TProps>(moduleId: string, props?: DModuleProps & TProps): void {
-            let module = this.modules[moduleId];
+            let moduleData = this.modules[moduleId];
             _privateData.argumentGuard("start(): ")
-                .mustBeDefined(module, `module not found - ${moduleId}`);
+                .mustBeDefined(moduleData, `module not found - ${moduleId}`);
 
             let instanceId = props && props.instanceId ? props.instanceId : moduleId;
-            if (hasOwnProperty.call(module.instances, instanceId)) {
-                // already initialized
-                return;
-            }
-
-            let instance = module.create(new this.Sandbox(this, moduleId, instanceId));
-            module.instances[instanceId] = instance;
-            instance.init(props);
-        }
-
-        /**
-         *  Stops a given module.
-         *  @param {string} moduleId Id of the module which must be stopped.
-         *  @param {string} [instanceId] Specific module's instance id.
-         */
-        stop(moduleId: string, instanceId?: string): void {
-            let module = this.modules[moduleId];
-            let id = instanceId || moduleId;
-            if (!module || !hasOwnProperty.call(module.instances, id)) {
-                console.warn(`stop(): "${moduleId}" destroy failed. "${instanceId}" instance not found.`);
+            let alreadyInitialized = hasOwnProperty.call(moduleData.instances, instanceId);
+            if (alreadyInitialized) {
                 return;
             }
 
             try {
-                module.instances[id].destroy();
+                this.__startModule(moduleId, instanceId, moduleData, props);
+            } catch (err) {
+                delete moduleData.instances[instanceId];
+                console.error(`start(): "${moduleId}" instance init failed`);
+                console.error(err);
+            }
+        }
+
+        /**
+         *  Stops a given module.
+         */
+        stop(moduleId: string, instanceId?: string): void {
+            let moduleData = this.modules[moduleId];
+            let id = instanceId || moduleId;
+            if (!moduleData || !hasOwnProperty.call(moduleData.instances, id)) {
+                console.warn(`stop(): "${moduleId}" destroy failed. "${instanceId}" instance not found.`);
+                return;
+            }
+
+            let instance = moduleData.instances[id];
+            try {
+                this.pluginsPipeline.pipe(hooks.MODULE_DESTROY, instance.destroy, instance);
             } catch (err) {
                 console.error(`stop(): "${moduleId}" destroy failed. An error has occured within the module`);
                 console.error(err);
             } finally {
-                delete module.instances[id];
+                delete moduleData.instances[id];
+                instance = null;
             }
         }
 
@@ -148,37 +161,85 @@
         }
 
         /**
-         *  Runs the core.
-         *  @param {Function} [action] Optional. A setup action executed before core run.
+         *  Hooks a plugin to given hook name from dcore.hooks constants.
          */
-        run(action?: () => void): void {
+        hook<TResponse>(hookName: string, plugin: DPlugin<TResponse>): void {
+            this.pluginsPipeline.hook(hookName, plugin);
+        }
+
+        /**
+         *  Runs all plugins for given hook as pipeline.
+         *  It is useful when you want to provide hooks in your own plugin.
+         */
+        pipe<TResponse>(
+            hookName: string,
+            hookInvoker: (...args: any[]) => TResponse,
+            hookContext: any,
+            ...args: any[]): TResponse {
+            return this.pluginsPipeline.pipe.apply(
+                this.pluginsPipeline,
+                [hookName, hookInvoker, hookContext].concat(args));
+        }
+
+        /**
+         *  Runs the core.
+         */
+        run(onRunCallback?: Function): void {
             if (this.state.isRunning) {
                 return;
             }
 
-            this.beforeRunAction = action;
+            this.onApplicationRun = onRunCallback;
             if (isDocumentReady()) {
-                this._onDomReady(null);
+                this.__onDomReady(null);
             } else {
-                this._onDomReady = this._onDomReady.bind(this);
-                document.addEventListener("DOMContentLoaded", this._onDomReady);
+                this.__onDomReady = this.__onDomReady.bind(this);
+                document.addEventListener("DOMContentLoaded", this.__onDomReady);
             }
         }
 
-        private _onDomReady(ev: Event): void {
-            document.removeEventListener("DOMContentLoaded", this._onDomReady);
-
+        private __onDomReady(ev: Event): void {
+            document.removeEventListener("DOMContentLoaded", this.__onDomReady);
             this.state.isRunning = true;
-            if (typeof this.beforeRunAction === "function") {
-                this.beforeRunAction();
+            if (typeof this.onApplicationRun === "function") {
+                try {
+                    this.onApplicationRun();
+                } catch (err) {
+                    console.error(`run(): onRunCallback failed`);
+                    console.error(err);
+                }
             }
-        }
-    }
 
-    /**
-     *  Creates an application core instance.
-     */
-    export function createOne(isDebug = true, mediator: DMediator = new _privateData.DefaultMediator()): DCore {
-        return new DefaultCore(isDebug, mediator);
+            delete this.onApplicationRun;
+            this.pluginsPipeline.pipe(hooks.CORE_RUN, function (): void { }, this);
+        }
+
+        private __register(moduleId: string, moduleFactory: (sb: DSandbox) => DModule<any>): void {
+            this.modules[moduleId] = {
+                create: moduleFactory,
+                instances: {}
+            };
+        }
+
+        private __startModule(
+            moduleId: string,
+            instanceId: string,
+            moduleData: ModuleData,
+            props?: DModuleProps): void {
+
+            props = props || { instanceId: instanceId };
+            let sb = new this.Sandbox(this, moduleId, instanceId);
+            let instance = moduleData.create(sb);
+            moduleData.instances[instanceId] = instance;
+
+            this.pluginsPipeline.pipe(
+                hooks.MODULE_INIT,
+                function (): void {
+                    instance.init(props);
+                    instance = null;
+                },
+                instance,
+                props, sb);
+        }
     }
 }

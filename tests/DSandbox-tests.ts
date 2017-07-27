@@ -1,30 +1,36 @@
-﻿describe("DSandbox", () => {
+﻿interface DSandboxTestsContext {
+    moduleId: string;
+    getOne(core: DCore, moduleId?: string, moduleInstanceId?: string): DSandbox;
+}
 
-    const MODULE_ID = "testModule";
+describe("DSandbox", () => {
 
-    function getOne(core: DCore, moduleId: string = MODULE_ID, moduleInstanceId: string = MODULE_ID): DSandbox {
-        return new core.Sandbox(core, moduleId, moduleInstanceId);
-    }
-
-    it("should throw when created with invalid arguments", () => {
-        let core = dcore.createOne();
-
-        expect(() => new dcore._private.DefaultSandbox(null, MODULE_ID, MODULE_ID)).toThrow();
-        expect(() => new dcore._private.DefaultSandbox(core, null, MODULE_ID)).toThrow();
-        expect(() => new dcore._private.DefaultSandbox(core, MODULE_ID, null)).toThrow();
+    beforeEach(function (this: DSandboxTestsContext): void {
+        this.moduleId = "testModule";
+        this.getOne = function (core: DCore, moduleId: string = this.moduleId, moduleInstanceId: string = this.moduleId): DSandbox {
+            return new core.Sandbox(core, moduleId, moduleInstanceId);
+        };
     });
 
-    it("should know which module it is serving for", () => {
-        let sb = getOne(dcore.createOne());
+    it("should throw when created with invalid arguments", function (this: DSandboxTestsContext) {
+        let core = new dcore.Application();
 
-        expect(sb.getModuleId()).toEqual(MODULE_ID);
-        expect(sb.getModuleInstanceId()).toEqual(MODULE_ID);
+        expect(() => new dcore._private.DefaultSandbox(null, this.moduleId, this.moduleId)).toThrow();
+        expect(() => new dcore._private.DefaultSandbox(core, null, this.moduleId)).toThrow();
+        expect(() => new dcore._private.DefaultSandbox(core, this.moduleId, null)).toThrow();
     });
 
-    it("should subscribe by delegating a single topic to its core", () => {
-        let core = dcore.createOne();
-        spyOn(core, "subscribe");
-        let sb = getOne(core);
+    it("should know which module it is serving for", function (this: DSandboxTestsContext) {
+        let sb = this.getOne(new dcore.Application());
+
+        expect(sb.getModuleId()).toEqual(this.moduleId);
+        expect(sb.getModuleInstanceId()).toEqual(this.moduleId);
+    });
+
+    it("should subscribe by delegating a single topic to its core", function (this: DSandboxTestsContext) {
+        let core = new dcore.Application();
+        spyOn(core, "subscribe").and.callThrough();
+        let sb = this.getOne(core);
         let topic = "on";
         let handler = (topic: string, data: any) => true;
 
@@ -33,20 +39,20 @@
         expect(core.subscribe).toHaveBeenCalledWith([topic], handler);
     });
 
-    it("should be able to get its core's current state", () => {
-        let core = dcore.createOne();
+    it("should be able to get its core's current state", function (this: DSandboxTestsContext) {
+        let core = new dcore.Application();
         spyOn(core, "getState");
-        let sb = getOne(core);
+        let sb = this.getOne(core);
 
         sb.getAppState();
 
         expect(core.getState).toHaveBeenCalledWith();
     });
 
-    it("should be able to update its core's current state", () => {
-        let core = dcore.createOne();
+    it("should be able to update its core's current state", function (this: DSandboxTestsContext) {
+        let core = new dcore.Application();
         spyOn(core, "setState");
-        let sb = getOne(core);
+        let sb = this.getOne(core);
 
         let newState = {};
         sb.setAppState(newState);
@@ -54,10 +60,10 @@
         expect(core.setState).toHaveBeenCalledWith(newState);
     });
 
-    it("should subscribe by delegating array of topics to its core", () => {
-        let core = dcore.createOne();
+    it("should subscribe by delegating array of topics to its core", function (this: DSandboxTestsContext) {
+        let core = new dcore.Application();
         spyOn(core, "subscribe");
-        let sb = getOne(core);
+        let sb = this.getOne(core);
         let topics = ["on", "off"];
         let handler = (topic: string, data: any) => true;
 
@@ -66,10 +72,10 @@
         expect(core.subscribe).toHaveBeenCalledWith(topics, handler);
     });
 
-    it("should publish by delegating to its core", () => {
-        let core = dcore.createOne();
+    it("should publish by delegating to its core", function (this: DSandboxTestsContext) {
+        let core = new dcore.Application();
         spyOn(core, "publish");
-        let sb = getOne(core);
+        let sb = this.getOne(core);
         let topic = "on";
         let message = 8;
 
@@ -78,10 +84,10 @@
         expect(core.publish).toHaveBeenCalledWith(topic, message);
     });
 
-    it("should start a module by delegating to its core", () => {
-        let core = dcore.createOne();
+    it("should start a module by delegating to its core", function (this: DSandboxTestsContext) {
+        let core = new dcore.Application();
         spyOn(core, "start");
-        let sb = getOne(core);
+        let sb = this.getOne(core);
         let moduleId = "test-module";
         let options = { isTest: true };
 
@@ -90,10 +96,10 @@
         expect(core.start).toHaveBeenCalledWith(moduleId, options);
     });
 
-    it("should stop a module by delegating to its core", () => {
-        let core = dcore.createOne();
+    it("should stop a module by delegating to its core", function (this: DSandboxTestsContext) {
+        let core = new dcore.Application();
         spyOn(core, "stop");
-        let sb = getOne(core);
+        let sb = this.getOne(core);
         let moduleId = "test-module";
         let instanceId = "instanceID";
 

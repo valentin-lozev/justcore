@@ -5,10 +5,11 @@
         [topic: string]: { [tokenId: string]: Function; };
     }
 
-    let hasOwnProperty = Object.prototype.hasOwnProperty;
+    const hasOwnProperty = Object.prototype.hasOwnProperty;
+
     let lastUsedSubscriptionID = 0;
 
-    export class DefaultMediator implements DMediator {
+    export class DMessagesAggregator {
 
         private subscribers: SubscribersMap = {};
 
@@ -18,17 +19,17 @@
                 .mustBeArray(topics, "topics should be passed as an array of strings.");
 
             let token = {};
-            topics.forEach(topic => token[topic] = this.addSubscriber(topic, handler));
+            topics.forEach(topic => token[topic] = this.__addSubscriber(topic, handler));
 
             let that = this;
             return {
                 destroy: function (topic?: string): void {
                     if (arguments.length > 0) {
-                        that.unsubscribe(topic, token);
+                        that.__unsubscribe(topic, token);
                         return;
                     }
 
-                    Object.keys(token).forEach(topic => that.unsubscribe(topic, token));
+                    Object.keys(token).forEach(topic => that.__unsubscribe(topic, token));
                 }
             };
         }
@@ -41,8 +42,6 @@
             let subscriptions = this.subscribers[topic];
             Object.keys(subscriptions).forEach(key => {
                 let handler = subscriptions[key];
-
-                // let the browser breathе
                 setTimeout(() => {
                     try {
                         handler(topic, message);
@@ -56,7 +55,7 @@
             });
         }
 
-        private addSubscriber(topic: string, handler: Function): string {
+        private __addSubscriber(topic: string, handler: Function): string {
             if (!hasOwnProperty.call(this.subscribers, topic)) {
                 this.subscribers[topic] = {};
             }
@@ -66,7 +65,7 @@
             return subscriptionID;
         }
 
-        private unsubscribe(topic: string, token: { [topic: string]: string; }): void {
+        private __unsubscribe(topic: string, token: { [topic: string]: string; }): void {
             if (!hasOwnProperty.call(token, topic)) {
                 return;
             }

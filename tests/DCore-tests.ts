@@ -1,54 +1,62 @@
-﻿describe("DCore", () => {
-
-    function getRunningCore(onStart?: Function): DCore {
-        let isDebug = true;
-        mockMediator = jasmine.createSpyObj("mockMediator", ["subscribe", "publish"]);
-        let result = dcore.createOne(isDebug, mockMediator);
-        result.run(onStart);
-        return result;
-    }
-
-    function moduleFactory(sb: DSandbox): DModule<any> {
-        mockModule.sb = sb;
-        return mockModule;
-    }
-
-    const mockModule = {
-        sb: <DSandbox>null,
-        init: (options?: DModuleProps): void => undefined,
-        destroy: (): void => undefined,
+﻿interface DCoreTestsContext {
+    mockModule: {
+        sb: DSandbox;
+        init(options?: DModuleProps): void;
+        destroy(): void;
     };
+    getRunningCore(onStart?: Function): DCore;
+    moduleFactory(sb: DSandbox): DModule<any>;
+}
 
-    let mockMediator: DMediator;
+describe("DCore", () => {
 
-    it("should be in debug mode by default", () => {
-        expect(dcore.createOne().getState().isDebug).toBeTruthy();
+    beforeEach(function (this: DCoreTestsContext): void {
+        this.mockModule = {
+            sb: null,
+            init: (options?: DModuleProps): void => undefined,
+            destroy: (): void => undefined,
+        };
+
+        this.moduleFactory = (sb: DSandbox): DModule<any> => {
+            this.mockModule.sb = sb;
+            return this.mockModule;
+        };
+
+        this.getRunningCore = (onStart?: Function) => {
+            let result = new dcore.Application();
+            result.run(onStart);
+            return result;
+        };
     });
 
-    it("should not be in running mode by default", () => {
-        expect(dcore.createOne().getState().isRunning).toBeFalsy();
+    it("should be in debug mode by default", function (this: DCoreTestsContext) {
+        expect(new dcore.Application().getState().isDebug).toBeTruthy();
     });
 
-    it("should be in running mode after run", () => {
-        let core = getRunningCore();
+    it("should not be in running mode by default", function (this: DCoreTestsContext) {
+        expect(new dcore.Application().getState().isRunning).toBeFalsy();
+    });
+
+    it("should be in running mode after run", function (this: DCoreTestsContext) {
+        let core = this.getRunningCore();
 
         expect(core.getState().isRunning).toBeTruthy();
     });
 
-    it("should be able to execute an action on DOMContentLoaded", () => {
+    it("should be able to execute an action on DOMContentLoaded", function (this: DCoreTestsContext) {
         let spy = { action: function (): void { return; } };
         spyOn(spy, "action");
-        let core = getRunningCore(spy.action);
+        let core = this.getRunningCore(spy.action);
 
         document.dispatchEvent(new Event("DOMContentLoaded"));
 
         expect(spy.action).toHaveBeenCalled();
     });
 
-    it("should not run again when has already been started", () => {
+    it("should not run again when has already been started", function (this: DCoreTestsContext) {
         let spy = { action: function (): void { return; } };
         spyOn(spy, "action");
-        let core = getRunningCore(spy.action);
+        let core = this.getRunningCore(spy.action);
 
         document.dispatchEvent(new Event("DOMContentLoaded"));
         core.run(spy.action);
@@ -56,30 +64,32 @@
         expect(spy.action).toHaveBeenCalledTimes(1);
     });
 
-    it("should be initialized with default sandbox type", () => {
-        expect(dcore.createOne().Sandbox).toBe(dcore._private.DefaultSandbox);
+    it("should be initialized with default sandbox type", function (this: DCoreTestsContext) {
+        expect(new dcore.Application().Sandbox).toBe(dcore._private.DefaultSandbox);
     });
 
-    it("should be initialized with default mediator type", () => {
-        let core = dcore.createOne();
+    it("should be initialized with default messages aggregator type", function (this: DCoreTestsContext) {
+        let core = new dcore.Application();
 
         expect(() => core.publish("topic", "message")).not.toThrow();
         expect(() => core.subscribe(["topic"], function () { })).not.toThrow();
     });
 
-    it("should return its state as immutable", () => {
-        let core = getRunningCore();
+    it("should return its state as immutable", function (this: DCoreTestsContext) {
+        let core = this.getRunningCore();
         let state = core.getState();
 
         expect(state.isRunning).toBeTruthy();
-        state.isRunning = false;
+        Object.keys(state).forEach(key => {
+            state[key] = false;
+        });
 
         expect(state.isRunning).toBeFalsy();
         expect(core.getState().isRunning).toBeTruthy();
     });
 
-    it("should be able to update its state by merging the provided object", () => {
-        let core = getRunningCore();
+    it("should be able to update its state by merging the provided object", function (this: DCoreTestsContext) {
+        let core = this.getRunningCore();
         let oldState = core.getState();
         let newPropName = "version";
         let update = {
@@ -95,8 +105,8 @@
         expect(newState.isDebug).toEqual(oldState.isDebug);
     });
 
-    it("setState() should not be able to stop the core when it is already running", () => {
-        let core = getRunningCore();
+    it("setState() should not be able to stop the core when it is already running", function (this: DCoreTestsContext) {
+        let core = this.getRunningCore();
         let update = {
             isRunning: false
         };
@@ -107,8 +117,8 @@
         expect(newState.isRunning).toBeTruthy();
     });
 
-    it("setState() should not be able to change the debug mode after first initialization", () => {
-        let core = getRunningCore();
+    it("setState() should not be able to change the debug mode after first initialization", function (this: DCoreTestsContext) {
+        let core = this.getRunningCore();
         let update = {
             isDebug: false
         };
@@ -121,20 +131,20 @@
 
     describe("Modules", () => {
 
-        it("should haven't any registered modules by default", () => {
-            let modules = dcore.createOne().listModules();
+        it("should haven't any registered modules by default", function (this: DCoreTestsContext) {
+            let modules = new dcore.Application().listModules();
 
             expect(Array.isArray(modules)).toBeTruthy();
             expect(modules.length).toEqual(0);
         });
 
-        it("should throw when register a module with invalid arguments", () => {
-            let core = dcore.createOne();
+        it("should throw when register a module with invalid arguments", function (this: DCoreTestsContext) {
+            let core = new dcore.Application();
             let validId = "testModule";
             let tests = [
-                function emptyString(): void { core.register("", moduleFactory); },
-                function nullString(): void { core.register(null, moduleFactory); },
-                function undefinedString(): void { core.register(undefined, moduleFactory); },
+                function emptyString(): void { core.register("", this.moduleFactory); },
+                function nullString(): void { core.register(null, this.moduleFactory); },
+                function undefinedString(): void { core.register(undefined, this.moduleFactory); },
                 function nullCreator(): void { core.register(validId, null); },
                 function undefinedCreator(): void { core.register(validId, undefined); }
             ];
@@ -142,11 +152,11 @@
             tests.forEach(test => expect(test).toThrow());
         });
 
-        it("should be able to register a module", () => {
+        it("should be able to register a module", function (this: DCoreTestsContext) {
             let id = "testModule";
-            let core = getRunningCore();
+            let core = this.getRunningCore();
 
-            core.register(id, moduleFactory);
+            core.register(id, this.moduleFactory);
             let modules = core.listModules();
 
             expect(Array.isArray(modules)).toBeTruthy();
@@ -154,149 +164,124 @@
             expect(modules[0]).toEqual(id);
         });
 
-        it("should throw when start not registered module", () => {
-            expect(() => dcore.createOne().start("test")).toThrow();
+        it("should throw when start not registered module", function (this: DCoreTestsContext) {
+            expect(() => new dcore.Application().start("test")).toThrow();
         });
 
-        it("should throw when register an already registered module", () => {
+        it("should throw when register an already registered module", function (this: DCoreTestsContext) {
             let id = "testModule";
-            let core = getRunningCore();
+            let core = this.getRunningCore();
 
-            core.register(id, moduleFactory);
+            core.register(id, this.moduleFactory);
 
-            expect(() => core.register(id, moduleFactory)).toThrow();
+            expect(() => core.register(id, this.moduleFactory)).toThrow();
             let modules = core.listModules();
             expect(modules.length).toEqual(1);
         });
 
-        it("should be able to start a module", () => {
+        it("should be able to start a module", function (this: DCoreTestsContext) {
             let id = "testModule";
-            let core = getRunningCore();
-            core.register(id, moduleFactory);
-            spyOn(mockModule, "init");
+            let core = this.getRunningCore();
+            core.register(id, this.moduleFactory);
+            spyOn(this.mockModule, "init");
 
             core.start(id);
             let modules = core.listModules();
 
             expect(modules[0]).toEqual(id);
-            expect(mockModule.init).toHaveBeenCalled();
+            expect(this.mockModule.init).toHaveBeenCalled();
         });
 
-        it("should be able to start a module with properties", () => {
+        it("should be able to start a module with properties", function (this: DCoreTestsContext) {
             let id = "testModule";
-            let core = getRunningCore();
-            core.register(id, moduleFactory);
-            spyOn(mockModule, "init");
+            let core = this.getRunningCore();
+            core.register(id, this.moduleFactory);
+            spyOn(this.mockModule, "init");
 
             let props = { count: 5 };
             core.start(id, props);
 
-            expect(mockModule.init).toHaveBeenCalledWith(props);
+            expect(this.mockModule.init).toHaveBeenCalledWith(props);
         });
 
-        it("should not start an already started module", () => {
+        it("should not start an already started module", function (this: DCoreTestsContext) {
             let id = "testModule";
-            let core = getRunningCore();
-            spyOn(mockModule, "init");
-            core.register(id, moduleFactory);
+            let core = this.getRunningCore();
+            spyOn(this.mockModule, "init");
+            core.register(id, this.moduleFactory);
 
             core.start(id)
             core.start(id);
 
-            expect(mockModule.init).toHaveBeenCalledTimes(1);
+            expect(this.mockModule.init).toHaveBeenCalledTimes(1);
         });
 
-        it("should be able to start another module instance", () => {
+        it("should be able to start another module instance", function (this: DCoreTestsContext) {
             let id = "testModule";
-            let core = getRunningCore();
-            spyOn(mockModule, "init");
-            core.register(id, moduleFactory);
+            let core = this.getRunningCore();
+            spyOn(this.mockModule, "init");
+            core.register(id, this.moduleFactory);
 
             core.start(id);
             core.start(id, { instanceId: "test2" });
 
-            expect(mockModule.init).toHaveBeenCalledTimes(2);
+            expect(this.mockModule.init).toHaveBeenCalledTimes(2);
         });
 
-        it("should provide a sandbox that has same moduleId and moduleInstanceId when start a single instance module", () => {
+        it("should provide a sandbox that has same moduleId and moduleInstanceId when start a single instance module", function (this: DCoreTestsContext) {
             let id = "testModule";
-            let core = getRunningCore();
-            core.register(id, moduleFactory);
+            let core = this.getRunningCore();
+            core.register(id, this.moduleFactory);
 
             core.start(id);
 
-            expect(mockModule.sb).toBeDefined();
-            expect(mockModule.sb.getModuleId()).toEqual(id);
-            expect(mockModule.sb.getModuleInstanceId()).toEqual(id);
+            expect(this.mockModule.sb).toBeDefined();
+            expect(this.mockModule.sb.getModuleId()).toEqual(id);
+            expect(this.mockModule.sb.getModuleInstanceId()).toEqual(id);
         });
 
-        it("should provide a sandbox that has different moduleId and moduleInstanceId when start a given instance of a module", () => {
+        it("should provide a sandbox that has different moduleId and moduleInstanceId when start a given instance of a module", function (this: DCoreTestsContext) {
             let id = "testModule";
             let instanceId = "test-instance";
-            let core = getRunningCore();
-            core.register(id, moduleFactory);
+            let core = this.getRunningCore();
+            core.register(id, this.moduleFactory);
 
             core.start(id, { instanceId: instanceId });
 
-            expect(mockModule.sb).toBeDefined();
-            expect(mockModule.sb.getModuleId()).toEqual(id);
-            expect(mockModule.sb.getModuleInstanceId()).toEqual(instanceId);
+            expect(this.mockModule.sb).toBeDefined();
+            expect(this.mockModule.sb.getModuleId()).toEqual(id);
+            expect(this.mockModule.sb.getModuleInstanceId()).toEqual(instanceId);
         });
 
-        it("should not throw when stop not started module", () => {
-            expect(() => dcore.createOne().stop("")).not.toThrow();
+        it("should not throw when stop not started module", function (this: DCoreTestsContext) {
+            expect(() => new dcore.Application().stop("")).not.toThrow();
         });
 
-        it("should be able to stop a module", () => {
+        it("should be able to stop a module", function (this: DCoreTestsContext) {
             let id = "testModule";
-            let core = getRunningCore();
-            spyOn(mockModule, "destroy");
-            core.register(id, moduleFactory);
+            let core = this.getRunningCore();
+            spyOn(this.mockModule, "destroy");
+            core.register(id, this.moduleFactory);
             core.start(id);
 
             core.stop(id);
 
-            expect(mockModule.destroy).toHaveBeenCalledTimes(1);
+            expect(this.mockModule.destroy).toHaveBeenCalledTimes(1);
         });
 
-        it("should be able to stop a given module instance", () => {
+        it("should be able to stop a given module instance", function (this: DCoreTestsContext) {
             let id = "testModule";
             let instanceId = "another";
-            let core = getRunningCore()
-            spyOn(mockModule, "destroy");
-            core.register(id, moduleFactory);
+            let core = this.getRunningCore()
+            spyOn(this.mockModule, "destroy");
+            core.register(id, this.moduleFactory);
             core.start(id);
             core.start(id, { instanceId: instanceId });
 
             core.stop(id);
             core.stop(id, instanceId);
 
-            expect(mockModule.destroy).toHaveBeenCalledTimes(2);
-        });
-    });
-
-    describe("Communication", () => {
-
-        it("should delegate to its mediator when subscribe", () => {
-            let topics = ["change", "destroy"];
-            let subscriber = (data?: any): void => undefined;
-            let core = getRunningCore();
-
-            core.subscribe(topics, subscriber);
-
-            expect(mockMediator.subscribe).toHaveBeenCalledTimes(1);
-            expect(mockMediator.subscribe).toHaveBeenCalledWith(topics, subscriber);
-        });
-
-        it("should delegate to its mediator when publish", () => {
-            let topic = "topic";
-            let message = "message";
-            let core = getRunningCore();
-
-            core.publish(topic, message);
-
-            expect(mockMediator.publish).toHaveBeenCalledTimes(1);
-            expect(mockMediator.publish).toHaveBeenCalledWith(topic, message);
+            expect(this.mockModule.destroy).toHaveBeenCalledTimes(2);
         });
     });
 });

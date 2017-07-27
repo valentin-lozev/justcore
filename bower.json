@@ -8,7 +8,6 @@
   "ignore": [
     "src",
     "tests",
-    "coverage",
     "Properties",
     "*.json",
     "*.cs",

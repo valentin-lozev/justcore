@@ -1,8 +1,17 @@
-﻿namespace dcore._private {
+﻿namespace dcore.hooks {
+    "use strict";
+
+    export const SANDBOX_SUBSCRIBE = "sandbox.subscribe";
+    export const SANDBOX_PUBLISH = "sandbox.publish";
+    export const SANDBOX_START = "sandbox.start";
+    export const SANDBOX_STOP = "sandbox.stop";
+}
+
+namespace dcore._private {
     "use strict";
 
     /**
-     *  @class DefaultSandbox - Connects the modules to the outside world.
+     *  Connects the modules to the outside world. Facade of the core.
      */
     export class DefaultSandbox implements DSandbox {
 
@@ -23,7 +32,6 @@
 
         /**
          *  Gets the module id it serves for.
-         *  @returns {String}
          */
         getModuleId(): string {
             return this.moduleId;
@@ -31,21 +39,20 @@
 
         /**
          *  Gets the module instance id it serves for.
-         *  @returns {String}
          */
         getModuleInstanceId(): string {
             return this.moduleInstanceId;
         }
 
         /**
-         *  Gets current application's state.
+         *  Gets application's current state.
          */
-        getAppState(): DCoreState {
+        getAppState(): Readonly<DCoreState> {
             return this.core.getState();
         }
 
         /**
-         *  Update current application's state by merging the provided object to the current state.
+         *  Update application's current state by merging the provided object to the current state.
          *  Also, "isRunning" and "isDebug" are being skipped.
          *  "isRunning" is used internaly, "isDebug" can be set only on first initialization.
          */
@@ -55,39 +62,63 @@
 
         /**
          *  Subscribes for given topics.
-         *  @returns {Object}
          */
         subscribe(topic: string, handler: (topic: string, message: any) => void): DSubscriptionToken;
         subscribe(topics: string[], handler: (topic: string, message: any) => void): DSubscriptionToken;
         subscribe(topics: any, handler: (topic: string, message: any) => void): DSubscriptionToken {
-            topics = Array.isArray(topics) ? topics : [topics];
-            return this.core.subscribe(topics, handler);
+            return this.core.pipe(
+                hooks.SANDBOX_SUBSCRIBE,
+                this.__subscribe,
+                this,
+                Array.isArray(topics) ? topics : [topics], handler);
         }
 
         /**
-         *  Publishes a message.
-         *  @param {String} topic The topic of the message.
-         *  @param {*} message The message.
+         *  Publishes a message asynchronously.
          */
         publish(topic: string, message: any): void {
-            this.core.publish(topic, message);
+            this.core.pipe(
+                hooks.SANDBOX_PUBLISH,
+                this.__publish,
+                this,
+                topic, message);
         }
 
         /**
          *  Starts an instance of given module and initializes it.
-         *  @param {string} moduleId Id of the module which must be started.
-         *  @param {object} [props] Optional. Module properties.
          */
         start<TProps>(moduleId: string, props?: DModuleProps & TProps): void {
-            this.core.start(moduleId, props);
+            this.core.pipe(
+                hooks.SANDBOX_START,
+                this.__start,
+                this,
+                moduleId, props);
         }
 
         /**
          *  Stops a given module.
-         *  @param {string} moduleId Id of the module which must be stopped.
-         *  @param {string} [instanceId] Optional. Specific module's instance id.
          */
         stop(moduleId: string, instanceId?: string): void {
+            this.core.pipe(
+                hooks.SANDBOX_STOP,
+                this.__stop,
+                this,
+                moduleId, instanceId);
+        }
+
+        private __subscribe(topics: string[], handler: (topic: string, message: any) => void): DSubscriptionToken {
+            return this.core.subscribe(topics, handler);
+        }
+
+        private __publish(topic: string, message: any): void {
+            this.core.publish(topic, message);
+        }
+
+        private __start<TProps>(moduleId: string, props?: DModuleProps & TProps): void {
+            this.core.start(moduleId, props);
+        }
+
+        private __stop(moduleId: string, instanceId?: string): void {
             this.core.stop(moduleId, instanceId);
         }
     }

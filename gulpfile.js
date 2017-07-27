@@ -5,13 +5,12 @@ var minify = require('gulp-minify');
 var es = require('event-stream');
 
 var files = [
-    "src/license",
     "src/types",
     "src/argumentGuard",
-    "src/DMediator",
+    "src/DMessagesAggregator",
+    "src/DPluginsPipeline",
     "src/DSandbox",
     "src/DCore",
-    "src/bootstrap",
 ];
 
 gulp.task('scripts', function () {

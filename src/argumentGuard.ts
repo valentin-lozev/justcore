@@ -1,8 +1,14 @@
 ﻿namespace dcore._private {
+    "use strict";
 
     class ArgumentGuard {
 
         constructor(private errorMsgPrefix = "") {
+        }
+
+        mustBeTrue(arg: boolean, msg: string): this {
+            if (!arg) throw new Error(this.errorMsgPrefix + msg);
+            return this;
         }
 
         mustBeDefined(arg: any, msg: string): this {
