@@ -6,7 +6,7 @@ var es = require('event-stream');
 
 var files = [
     "src/types",
-    "src/argumentGuard",
+    "src/DArgumentGuard",
     "src/DMessagesAggregator",
     "src/DPluginsPipeline",
     "src/DSandbox",

@@ -5,7 +5,6 @@
  *  Source code: http://github.com/valentin-lozev/dcore
  */
 
-
 declare interface ObjectConstructor {
     assign(target: Object, ...objects: Object[]): Object;
 }
@@ -127,7 +126,7 @@ interface DSandbox {
 namespace dcore._private {
     "use strict";
 
-    class ArgumentGuard {
+    class DArgumentGuard {
 
         constructor(private errorMsgPrefix = "") {
         }
@@ -163,8 +162,8 @@ namespace dcore._private {
         }
     }
 
-    export function argumentGuard(errorMsgPrefix = ""): ArgumentGuard {
-        return new ArgumentGuard(errorMsgPrefix);
+    export function argumentGuard(errorMsgPrefix = ""): DArgumentGuard {
+        return new DArgumentGuard(errorMsgPrefix);
     }
 }
 namespace dcore._private {
@@ -300,20 +299,22 @@ namespace dcore.hooks {
     export const SANDBOX_STOP = "sandbox.stop";
 }
 
-namespace dcore._private {
+namespace dcore {
     "use strict";
 
+    import _privateData = _private;
+    
     /**
      *  Connects the modules to the outside world. Facade of the core.
      */
-    export class DefaultSandbox implements DSandbox {
+    export class Sandbox implements DSandbox {
 
         private core: DCore;
         private moduleId: string;
         private moduleInstanceId: string;
 
         constructor(core: DCore, moduleId: string, moduleInstanceId: string) {
-            argumentGuard("DefaultSandbox: ")
+            _privateData.argumentGuard("DefaultSandbox: ")
                 .mustBeDefined(core, "core must be provided")
                 .mustBeNonEmptyString(moduleId, "module id must be a non empty string")
                 .mustBeNonEmptyString(moduleInstanceId, "module instance id must be a non empty string");
@@ -462,7 +463,7 @@ namespace dcore {
         private state: DCoreState;
 
         constructor(isDebug = true) {
-            this.Sandbox = _privateData.DefaultSandbox;
+            this.Sandbox = Sandbox;
             this.pluginsPipeline = new _privateData.DPluginsPipeline();
             this.messagesAggregator = new _privateData.DMessagesAggregator();
             this.state = {

@@ -15,9 +15,9 @@ describe("DSandbox", () => {
     it("should throw when created with invalid arguments", function (this: DSandboxTestsContext) {
         let core = new dcore.Application();
 
-        expect(() => new dcore._private.DefaultSandbox(null, this.moduleId, this.moduleId)).toThrow();
-        expect(() => new dcore._private.DefaultSandbox(core, null, this.moduleId)).toThrow();
-        expect(() => new dcore._private.DefaultSandbox(core, this.moduleId, null)).toThrow();
+        expect(() => new dcore.Sandbox(null, this.moduleId, this.moduleId)).toThrow();
+        expect(() => new dcore.Sandbox(core, null, this.moduleId)).toThrow();
+        expect(() => new dcore.Sandbox(core, this.moduleId, null)).toThrow();
     });
 
     it("should know which module it is serving for", function (this: DSandboxTestsContext) {

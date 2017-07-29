@@ -63,46 +63,46 @@ var dcore;
     var _private;
     (function (_private) {
         "use strict";
-        var ArgumentGuard = (function () {
-            function ArgumentGuard(errorMsgPrefix) {
+        var DArgumentGuard = (function () {
+            function DArgumentGuard(errorMsgPrefix) {
                 if (errorMsgPrefix === void 0) { errorMsgPrefix = ""; }
                 this.errorMsgPrefix = errorMsgPrefix;
             }
-            ArgumentGuard.prototype.mustBeTrue = function (arg, msg) {
+            DArgumentGuard.prototype.mustBeTrue = function (arg, msg) {
                 if (!arg)
                     throw new Error(this.errorMsgPrefix + msg);
                 return this;
             };
-            ArgumentGuard.prototype.mustBeDefined = function (arg, msg) {
+            DArgumentGuard.prototype.mustBeDefined = function (arg, msg) {
                 if (typeof arg === "undefined" || arg === null)
                     throw new Error(this.errorMsgPrefix + msg);
                 return this;
             };
-            ArgumentGuard.prototype.mustBeUndefined = function (arg, msg) {
+            DArgumentGuard.prototype.mustBeUndefined = function (arg, msg) {
                 if (typeof arg !== "undefined" && arg !== null)
                     throw new Error(this.errorMsgPrefix + msg);
                 return this;
             };
-            ArgumentGuard.prototype.mustBeNonEmptyString = function (arg, msg) {
+            DArgumentGuard.prototype.mustBeNonEmptyString = function (arg, msg) {
                 if (typeof arg !== "string" || !arg.length)
                     throw new Error(this.errorMsgPrefix + msg);
                 return this;
             };
-            ArgumentGuard.prototype.mustBeFunction = function (arg, msg) {
+            DArgumentGuard.prototype.mustBeFunction = function (arg, msg) {
                 if (typeof arg !== "function")
                     throw new Error(this.errorMsgPrefix + msg);
                 return this;
             };
-            ArgumentGuard.prototype.mustBeArray = function (arg, msg) {
+            DArgumentGuard.prototype.mustBeArray = function (arg, msg) {
                 if (!Array.isArray(arg))
                     throw new Error(this.errorMsgPrefix + msg);
                 return this;
             };
-            return ArgumentGuard;
+            return DArgumentGuard;
         }());
         function argumentGuard(errorMsgPrefix) {
             if (errorMsgPrefix === void 0) { errorMsgPrefix = ""; }
-            return new ArgumentGuard(errorMsgPrefix);
+            return new DArgumentGuard(errorMsgPrefix);
         }
         _private.argumentGuard = argumentGuard;
     })(_private = dcore._private || (dcore._private = {}));
@@ -237,85 +237,83 @@ var dcore;
     })(hooks = dcore.hooks || (dcore.hooks = {}));
 })(dcore || (dcore = {}));
 (function (dcore) {
-    var _private;
-    (function (_private) {
-        "use strict";
+    "use strict";
+    var _privateData = dcore._private;
+    /**
+     *  Connects the modules to the outside world. Facade of the core.
+     */
+    var Sandbox = (function () {
+        function Sandbox(core, moduleId, moduleInstanceId) {
+            _privateData.argumentGuard("DefaultSandbox: ")
+                .mustBeDefined(core, "core must be provided")
+                .mustBeNonEmptyString(moduleId, "module id must be a non empty string")
+                .mustBeNonEmptyString(moduleInstanceId, "module instance id must be a non empty string");
+            this.core = core;
+            this.moduleId = moduleId;
+            this.moduleInstanceId = moduleInstanceId;
+        }
         /**
-         *  Connects the modules to the outside world. Facade of the core.
+         *  Gets the module id it serves for.
          */
-        var DefaultSandbox = (function () {
-            function DefaultSandbox(core, moduleId, moduleInstanceId) {
-                _private.argumentGuard("DefaultSandbox: ")
-                    .mustBeDefined(core, "core must be provided")
-                    .mustBeNonEmptyString(moduleId, "module id must be a non empty string")
-                    .mustBeNonEmptyString(moduleInstanceId, "module instance id must be a non empty string");
-                this.core = core;
-                this.moduleId = moduleId;
-                this.moduleInstanceId = moduleInstanceId;
-            }
-            /**
-             *  Gets the module id it serves for.
-             */
-            DefaultSandbox.prototype.getModuleId = function () {
-                return this.moduleId;
-            };
-            /**
-             *  Gets the module instance id it serves for.
-             */
-            DefaultSandbox.prototype.getModuleInstanceId = function () {
-                return this.moduleInstanceId;
-            };
-            /**
-             *  Gets application's current state.
-             */
-            DefaultSandbox.prototype.getAppState = function () {
-                return this.core.getState();
-            };
-            /**
-             *  Update application's current state by merging the provided object to the current state.
-             *  Also, "isRunning" and "isDebug" are being skipped.
-             *  "isRunning" is used internaly, "isDebug" can be set only on first initialization.
-             */
-            DefaultSandbox.prototype.setAppState = function (value) {
-                this.core.setState(value);
-            };
-            DefaultSandbox.prototype.subscribe = function (topics, handler) {
-                return this.core.pipe(dcore.hooks.SANDBOX_SUBSCRIBE, this.__subscribe, this, Array.isArray(topics) ? topics : [topics], handler);
-            };
-            /**
-             *  Publishes a message asynchronously.
-             */
-            DefaultSandbox.prototype.publish = function (topic, message) {
-                this.core.pipe(dcore.hooks.SANDBOX_PUBLISH, this.__publish, this, topic, message);
-            };
-            /**
-             *  Starts an instance of given module and initializes it.
-             */
-            DefaultSandbox.prototype.start = function (moduleId, props) {
-                this.core.pipe(dcore.hooks.SANDBOX_START, this.__start, this, moduleId, props);
-            };
-            /**
-             *  Stops a given module.
-             */
-            DefaultSandbox.prototype.stop = function (moduleId, instanceId) {
-                this.core.pipe(dcore.hooks.SANDBOX_STOP, this.__stop, this, moduleId, instanceId);
-            };
-            DefaultSandbox.prototype.__subscribe = function (topics, handler) {
-                return this.core.subscribe(topics, handler);
-            };
-            DefaultSandbox.prototype.__publish = function (topic, message) {
-                this.core.publish(topic, message);
-            };
-            DefaultSandbox.prototype.__start = function (moduleId, props) {
-                this.core.start(moduleId, props);
-            };
-            DefaultSandbox.prototype.__stop = function (moduleId, instanceId) {
-                this.core.stop(moduleId, instanceId);
-            };
-            return DefaultSandbox;
-        }());
-        _private.DefaultSandbox = DefaultSandbox;
-    })(_private = dcore._private || (dcore._private = {}));
+        Sandbox.prototype.getModuleId = function () {
+            return this.moduleId;
+        };
+        /**
+         *  Gets the module instance id it serves for.
+         */
+        Sandbox.prototype.getModuleInstanceId = function () {
+            return this.moduleInstanceId;
+        };
+        /**
+         *  Gets application's current state.
+         */
+        Sandbox.prototype.getAppState = function () {
+            return this.core.getState();
+        };
+        /**
+         *  Update application's current state by merging the provided object to the current state.
+         *  Also, "isRunning" and "isDebug" are being skipped.
+         *  "isRunning" is used internaly, "isDebug" can be set only on first initialization.
+         */
+        Sandbox.prototype.setAppState = function (value) {
+            this.core.setState(value);
+        };
+        Sandbox.prototype.subscribe = function (topics, handler) {
+            return this.core.pipe(dcore.hooks.SANDBOX_SUBSCRIBE, this.__subscribe, this, Array.isArray(topics) ? topics : [topics], handler);
+        };
+        /**
+         *  Publishes a message asynchronously.
+         */
+        Sandbox.prototype.publish = function (topic, message) {
+            this.core.pipe(dcore.hooks.SANDBOX_PUBLISH, this.__publish, this, topic, message);
+        };
+        /**
+         *  Starts an instance of given module and initializes it.
+         */
+        Sandbox.prototype.start = function (moduleId, props) {
+            this.core.pipe(dcore.hooks.SANDBOX_START, this.__start, this, moduleId, props);
+        };
+        /**
+         *  Stops a given module.
+         */
+        Sandbox.prototype.stop = function (moduleId, instanceId) {
+            this.core.pipe(dcore.hooks.SANDBOX_STOP, this.__stop, this, moduleId, instanceId);
+        };
+        Sandbox.prototype.__subscribe = function (topics, handler) {
+            return this.core.subscribe(topics, handler);
+        };
+        Sandbox.prototype.__publish = function (topic, message) {
+            this.core.publish(topic, message);
+        };
+        Sandbox.prototype.__start = function (moduleId, props) {
+            this.core.start(moduleId, props);
+        };
+        Sandbox.prototype.__stop = function (moduleId, instanceId) {
+            this.core.stop(moduleId, instanceId);
+        };
+        return Sandbox;
+    }());
+    dcore.Sandbox = Sandbox;
 })(dcore || (dcore = {}));
 
 var dcore;
@@ -343,7 +341,7 @@ var dcore;
         function Application(isDebug) {
             if (isDebug === void 0) { isDebug = true; }
             this.modules = {};
-            this.Sandbox = _privateData.DefaultSandbox;
+            this.Sandbox = dcore.Sandbox;
             this.pluginsPipeline = new _privateData.DPluginsPipeline();
             this.messagesAggregator = new _privateData.DMessagesAggregator();
             this.state = {

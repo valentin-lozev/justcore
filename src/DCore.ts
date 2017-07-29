@@ -44,7 +44,7 @@
         private state: DCoreState;
 
         constructor(isDebug = true) {
-            this.Sandbox = _privateData.DefaultSandbox;
+            this.Sandbox = Sandbox;
             this.pluginsPipeline = new _privateData.DPluginsPipeline();
             this.messagesAggregator = new _privateData.DMessagesAggregator();
             this.state = {

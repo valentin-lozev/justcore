@@ -5,7 +5,6 @@
  *  Source code: http://github.com/valentin-lozev/dcore
  */
 
-
 declare interface ObjectConstructor {
     assign(target: Object, ...objects: Object[]): Object;
 }

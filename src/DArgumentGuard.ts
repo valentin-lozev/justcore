@@ -1,7 +1,7 @@
 ﻿namespace dcore._private {
     "use strict";
 
-    class ArgumentGuard {
+    class DArgumentGuard {
 
         constructor(private errorMsgPrefix = "") {
         }
@@ -37,7 +37,7 @@
         }
     }
 
-    export function argumentGuard(errorMsgPrefix = ""): ArgumentGuard {
-        return new ArgumentGuard(errorMsgPrefix);
+    export function argumentGuard(errorMsgPrefix = ""): DArgumentGuard {
+        return new DArgumentGuard(errorMsgPrefix);
     }
 }

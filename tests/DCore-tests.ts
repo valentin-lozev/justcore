@@ -65,7 +65,7 @@ describe("DCore", () => {
     });
 
     it("should be initialized with default sandbox type", function (this: DCoreTestsContext) {
-        expect(new dcore.Application().Sandbox).toBe(dcore._private.DefaultSandbox);
+        expect(new dcore.Application().Sandbox).toBe(dcore.Sandbox);
     });
 
     it("should be initialized with default messages aggregator type", function (this: DCoreTestsContext) {

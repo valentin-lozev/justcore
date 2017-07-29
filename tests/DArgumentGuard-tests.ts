@@ -1,4 +1,4 @@
-﻿describe("argumentGuard", () => {
+﻿describe("DArgumentGuard", () => {
 
     it("mustBeDefined should pass", () => {
         let guard = dcore._private.argumentGuard();

@@ -7,20 +7,22 @@
     export const SANDBOX_STOP = "sandbox.stop";
 }
 
-namespace dcore._private {
+namespace dcore {
     "use strict";
 
+    import _privateData = _private;
+    
     /**
      *  Connects the modules to the outside world. Facade of the core.
      */
-    export class DefaultSandbox implements DSandbox {
+    export class Sandbox implements DSandbox {
 
         private core: DCore;
         private moduleId: string;
         private moduleInstanceId: string;
 
         constructor(core: DCore, moduleId: string, moduleInstanceId: string) {
-            argumentGuard("DefaultSandbox: ")
+            _privateData.argumentGuard("DefaultSandbox: ")
                 .mustBeDefined(core, "core must be provided")
                 .mustBeNonEmptyString(moduleId, "module id must be a non empty string")
                 .mustBeNonEmptyString(moduleInstanceId, "module instance id must be a non empty string");
