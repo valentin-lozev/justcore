@@ -320,7 +320,7 @@ var dcore;
 (function (dcore) {
     "use strict";
     var _privateData = dcore._private;
-    delete dcore._private; // comment before run unit tests
+    // delete dcore._private; // comment before run unit tests
     var hooks;
     (function (hooks) {
         hooks.CORE_REGISTER = "core.register";
@@ -423,9 +423,9 @@ var dcore;
                 console.warn("stop(): \"" + moduleId + "\" destroy failed. \"" + instanceId + "\" instance not found.");
                 return;
             }
-            var instance = moduleData.instances[id];
+            var data = moduleData.instances[id];
             try {
-                this.pluginsPipeline.pipe(hooks.MODULE_DESTROY, instance.destroy, instance);
+                this.pluginsPipeline.pipe(hooks.MODULE_DESTROY, data.module.destroy, data.module, data.sb);
             }
             catch (err) {
                 console.error("stop(): \"" + moduleId + "\" destroy failed. An error has occured within the module");
@@ -433,7 +433,7 @@ var dcore;
             }
             finally {
                 delete moduleData.instances[id];
-                instance = null;
+                data = data.module = data.sb = null;
             }
         };
         /**
@@ -500,7 +500,10 @@ var dcore;
             props = props || { instanceId: instanceId };
             var sb = new this.Sandbox(this, moduleId, instanceId);
             var instance = moduleData.create(sb);
-            moduleData.instances[instanceId] = instance;
+            moduleData.instances[instanceId] = {
+                module: instance,
+                sb: sb
+            };
             this.pluginsPipeline.pipe(hooks.MODULE_INIT, function () {
                 instance.init(props);
                 instance = null;

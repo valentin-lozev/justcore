@@ -421,7 +421,7 @@ namespace dcore {
     "use strict";
 
     import _privateData = _private;
-    delete dcore._private; // comment before run unit tests
+    // delete dcore._private; // comment before run unit tests
 
     export namespace hooks {
         export const CORE_REGISTER = "core.register";
@@ -433,7 +433,10 @@ namespace dcore {
     interface ModuleData {
         create: (sb: DSandbox) => DModule<any>;
         instances: {
-            [instanceId: string]: DModule<any>;
+            [instanceId: string]: {
+                module: DModule<any>;
+                sb: DSandbox;
+            };
         };
     }
 
@@ -560,15 +563,19 @@ namespace dcore {
                 return;
             }
 
-            let instance = moduleData.instances[id];
+            let data = moduleData.instances[id];
             try {
-                this.pluginsPipeline.pipe(hooks.MODULE_DESTROY, instance.destroy, instance);
+                this.pluginsPipeline.pipe(
+                    hooks.MODULE_DESTROY,
+                    data.module.destroy,
+                    data.module,
+                    data.sb);
             } catch (err) {
                 console.error(`stop(): "${moduleId}" destroy failed. An error has occured within the module`);
                 console.error(err);
             } finally {
                 delete moduleData.instances[id];
-                instance = null;
+                data = data.module = data.sb = null;
             }
         }
 
@@ -649,7 +656,10 @@ namespace dcore {
             props = props || { instanceId: instanceId };
             let sb = new this.Sandbox(this, moduleId, instanceId);
             let instance = moduleData.create(sb);
-            moduleData.instances[instanceId] = instance;
+            moduleData.instances[instanceId] = {
+                module: instance,
+                sb: sb
+            };
 
             this.pluginsPipeline.pipe(
                 hooks.MODULE_INIT,

@@ -204,6 +204,19 @@ describe("DCore", () => {
             expect(this.mockModule.init).toHaveBeenCalledWith(props);
         });
 
+        it("should provide module's sandbox when hook in module init", function (this: DCoreTestsContext) {
+            let id = "testModule";
+            let myProps = { test: true };
+            let core = this.getRunningCore();
+            core.register(id, this.moduleFactory);
+
+            core.hook(dcore.hooks.MODULE_INIT, (next: (props: any) => void, props: any, sb: DSandbox) => {
+                expect(props).toBe(myProps);
+                expect(sb).toBe(this.mockModule.sb);
+            });
+            core.start(id, myProps);
+        });
+
         it("should not start an already started module", function (this: DCoreTestsContext) {
             let id = "testModule";
             let core = this.getRunningCore();
@@ -267,6 +280,18 @@ describe("DCore", () => {
             core.stop(id);
 
             expect(this.mockModule.destroy).toHaveBeenCalledTimes(1);
+        });
+
+        it("should provide module's sandbox when hook in module destroy", function (this: DCoreTestsContext) {
+            let id = "testModule";
+            let core = this.getRunningCore();
+            core.register(id, this.moduleFactory);
+
+            core.hook(dcore.hooks.MODULE_DESTROY, (next: () => void, sb: DSandbox) => {
+                expect(sb).toBe(this.mockModule.sb);
+            });
+            core.start(id);
+            core.stop(id);
         });
 
         it("should be able to stop a given module instance", function (this: DCoreTestsContext) {
