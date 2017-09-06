@@ -44,36 +44,13 @@
         private messagesAggregator: _privateData.DMessagesAggregator;
         private modules: ModulesMap = {};
         private onApplicationRun: Function;
-        private state: DCoreState;
+        private isRunning: boolean;
 
-        constructor(isDebug = true) {
+        constructor() {
             this.Sandbox = Sandbox;
             this.pluginsPipeline = new _privateData.DPluginsPipeline();
             this.messagesAggregator = new _privateData.DMessagesAggregator();
-            this.state = {
-                isDebug: isDebug,
-                isRunning: false
-            };
-        }
-
-        /**
-         *  Gets current state.
-         */
-        getState(): Readonly<DCoreState> {
-            return <any>Object.assign({}, this.state);
-        }
-
-        /**
-         *  Update current state by merging the provided object to the current state.
-         *  Also, "isRunning" and "isDebug" are being skipped.
-         *  "isRunning" is used internaly, "isDebug" can be set only on first initialization.
-         */
-        setState<TState extends keyof DCoreState>(value: Pick<DCoreState, TState>): void {
-            if (typeof value === "object") {
-                value.isRunning = this.state.isRunning;
-                value.isDebug = this.state.isDebug;
-                this.state = <any>Object.assign({}, this.state, <any>value);
-            }
+            this.isRunning = false;
         }
 
         /**
@@ -192,7 +169,7 @@
          *  Runs the core.
          */
         run(onRunCallback?: Function): void {
-            if (this.state.isRunning) {
+            if (this.isRunning) {
                 return;
             }
 
@@ -207,7 +184,7 @@
 
         private __onDomReady(ev: Event): void {
             document.removeEventListener("DOMContentLoaded", this.__onDomReady);
-            this.state.isRunning = true;
+            this.isRunning = true;
             if (typeof this.onApplicationRun === "function") {
                 try {
                     this.onApplicationRun();

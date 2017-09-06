@@ -4,27 +4,6 @@
  *  Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
  *  Source code: http://github.com/valentin-lozev/dcore
  */
-if (typeof Object.assign != 'function') {
-    Object.assign = function (target, varArgs) {
-        'use strict';
-        if (target == null) {
-            throw new TypeError('Cannot convert undefined or null to object');
-        }
-        var to = Object(target);
-        for (var index = 1; index < arguments.length; index++) {
-            var nextSource = arguments[index];
-            if (nextSource != null) {
-                for (var nextKey in nextSource) {
-                    // Avoid bugs when hasOwnProperty is shadowed
-                    if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
-                        to[nextKey] = nextSource[nextKey];
-                    }
-                }
-            }
-        }
-        return to;
-    };
-}
 // Production steps of ECMA-262, Edition 5, 15.4.4.22
 // Reference: http://es5.github.io/#x15.4.4.22
 if (typeof Array.prototype.reduceRight !== 'function') {
@@ -264,20 +243,6 @@ var dcore;
         Sandbox.prototype.getModuleInstanceId = function () {
             return this.moduleInstanceId;
         };
-        /**
-         *  Gets application's current state.
-         */
-        Sandbox.prototype.getAppState = function () {
-            return this.core.getState();
-        };
-        /**
-         *  Update application's current state by merging the provided object to the current state.
-         *  Also, "isRunning" and "isDebug" are being skipped.
-         *  "isRunning" is used internaly, "isDebug" can be set only on first initialization.
-         */
-        Sandbox.prototype.setAppState = function (value) {
-            this.core.setState(value);
-        };
         Sandbox.prototype.subscribe = function (topics, handler) {
             return this.core.pipe(dcore.hooks.SANDBOX_SUBSCRIBE, this.__subscribe, this, Array.isArray(topics) ? topics : [topics], handler);
         };
@@ -320,7 +285,7 @@ var dcore;
 (function (dcore) {
     "use strict";
     var _privateData = dcore._private;
-    // delete dcore._private; // comment before run unit tests
+    delete dcore._private; // comment before run unit tests
     var hooks;
     (function (hooks) {
         hooks.CORE_REGISTER = "core.register";
@@ -338,35 +303,13 @@ var dcore;
      *  A mediator between the modules and base libraries.
      */
     var Application = (function () {
-        function Application(isDebug) {
-            if (isDebug === void 0) { isDebug = true; }
+        function Application() {
             this.modules = {};
             this.Sandbox = dcore.Sandbox;
             this.pluginsPipeline = new _privateData.DPluginsPipeline();
             this.messagesAggregator = new _privateData.DMessagesAggregator();
-            this.state = {
-                isDebug: isDebug,
-                isRunning: false
-            };
+            this.isRunning = false;
         }
-        /**
-         *  Gets current state.
-         */
-        Application.prototype.getState = function () {
-            return Object.assign({}, this.state);
-        };
-        /**
-         *  Update current state by merging the provided object to the current state.
-         *  Also, "isRunning" and "isDebug" are being skipped.
-         *  "isRunning" is used internaly, "isDebug" can be set only on first initialization.
-         */
-        Application.prototype.setState = function (value) {
-            if (typeof value === "object") {
-                value.isRunning = this.state.isRunning;
-                value.isDebug = this.state.isDebug;
-                this.state = Object.assign({}, this.state, value);
-            }
-        };
         /**
          *  Subscribes for given topics.
          */
@@ -463,7 +406,7 @@ var dcore;
          *  Runs the core.
          */
         Application.prototype.run = function (onRunCallback) {
-            if (this.state.isRunning) {
+            if (this.isRunning) {
                 return;
             }
             this.onApplicationRun = onRunCallback;
@@ -477,7 +420,7 @@ var dcore;
         };
         Application.prototype.__onDomReady = function (ev) {
             document.removeEventListener("DOMContentLoaded", this.__onDomReady);
-            this.state.isRunning = true;
+            this.isRunning = true;
             if (typeof this.onApplicationRun === "function") {
                 try {
                     this.onApplicationRun();

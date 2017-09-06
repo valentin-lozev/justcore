@@ -5,35 +5,6 @@
  *  Source code: http://github.com/valentin-lozev/dcore
  */
 
-declare interface ObjectConstructor {
-    assign(target: Object, ...objects: Object[]): Object;
-}
-
-if (typeof Object.assign != 'function') {
-    Object.assign = function (target, varArgs) { // .length of function is 2
-        'use strict';
-        if (target == null) { // TypeError if undefined or null
-            throw new TypeError('Cannot convert undefined or null to object');
-        }
-
-        var to = Object(target);
-
-        for (var index = 1; index < arguments.length; index++) {
-            var nextSource = arguments[index];
-
-            if (nextSource != null) { // Skip over if undefined or null
-                for (var nextKey in nextSource) {
-                    // Avoid bugs when hasOwnProperty is shadowed
-                    if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
-                        to[nextKey] = nextSource[nextKey];
-                    }
-                }
-            }
-        }
-        return to;
-    };
-}
-
 // Production steps of ECMA-262, Edition 5, 15.4.4.22
 // Reference: http://es5.github.io/#x15.4.4.22
 if (typeof Array.prototype.reduceRight !== 'function') {
@@ -74,8 +45,6 @@ interface DSubscriptionToken {
 
 interface DCore {
     Sandbox: DSandboxConstructor;
-    getState(): Readonly<DCoreState>;
-    setState<TState extends keyof DCoreState>(value: Pick<DCoreState, TState>): void;
 
     subscribe(topics: string[], handler: (topic: string, message: any) => void): DSubscriptionToken;
     publish(topic: string, message: any): void;
@@ -89,11 +58,6 @@ interface DCore {
     pipe<TResponse>(hookName: string, hookInvoker: (...args: any[]) => TResponse, hookContext: any, ...args: any[]): TResponse;
 
     run(action?: Function): void;
-}
-
-interface DCoreState {
-    isRunning: boolean;
-    isDebug: boolean;
 }
 
 interface DModule<TProps> {
@@ -112,9 +76,6 @@ interface DSandboxConstructor {
 interface DSandbox {
     getModuleId(): string;
     getModuleInstanceId(): string;
-
-    getAppState(): Readonly<DCoreState>;
-    setAppState<TState extends keyof DCoreState>(value: Pick<DCoreState, TState>): void;
 
     subscribe(topic: string, handler: (topic: string, message: any) => void): DSubscriptionToken;
     subscribe(topics: string[], handler: (topic: string, message: any) => void): DSubscriptionToken;
@@ -339,22 +300,6 @@ namespace dcore {
         }
 
         /**
-         *  Gets application's current state.
-         */
-        getAppState(): Readonly<DCoreState> {
-            return this.core.getState();
-        }
-
-        /**
-         *  Update application's current state by merging the provided object to the current state.
-         *  Also, "isRunning" and "isDebug" are being skipped.
-         *  "isRunning" is used internaly, "isDebug" can be set only on first initialization.
-         */
-        setAppState<TState extends keyof DCoreState>(value: Pick<DCoreState, TState>): void {
-            this.core.setState(value);
-        }
-
-        /**
          *  Subscribes for given topics.
          */
         subscribe(topic: string, handler: (topic: string, message: any) => void): DSubscriptionToken;
@@ -421,7 +366,7 @@ namespace dcore {
     "use strict";
 
     import _privateData = _private;
-    // delete dcore._private; // comment before run unit tests
+    delete dcore._private; // comment before run unit tests
 
     export namespace hooks {
         export const CORE_REGISTER = "core.register";
@@ -463,36 +408,13 @@ namespace dcore {
         private messagesAggregator: _privateData.DMessagesAggregator;
         private modules: ModulesMap = {};
         private onApplicationRun: Function;
-        private state: DCoreState;
+        private isRunning: boolean;
 
-        constructor(isDebug = true) {
+        constructor() {
             this.Sandbox = Sandbox;
             this.pluginsPipeline = new _privateData.DPluginsPipeline();
             this.messagesAggregator = new _privateData.DMessagesAggregator();
-            this.state = {
-                isDebug: isDebug,
-                isRunning: false
-            };
-        }
-
-        /**
-         *  Gets current state.
-         */
-        getState(): Readonly<DCoreState> {
-            return <any>Object.assign({}, this.state);
-        }
-
-        /**
-         *  Update current state by merging the provided object to the current state.
-         *  Also, "isRunning" and "isDebug" are being skipped.
-         *  "isRunning" is used internaly, "isDebug" can be set only on first initialization.
-         */
-        setState<TState extends keyof DCoreState>(value: Pick<DCoreState, TState>): void {
-            if (typeof value === "object") {
-                value.isRunning = this.state.isRunning;
-                value.isDebug = this.state.isDebug;
-                this.state = <any>Object.assign({}, this.state, <any>value);
-            }
+            this.isRunning = false;
         }
 
         /**
@@ -611,7 +533,7 @@ namespace dcore {
          *  Runs the core.
          */
         run(onRunCallback?: Function): void {
-            if (this.state.isRunning) {
+            if (this.isRunning) {
                 return;
             }
 
@@ -626,7 +548,7 @@ namespace dcore {
 
         private __onDomReady(ev: Event): void {
             document.removeEventListener("DOMContentLoaded", this.__onDomReady);
-            this.state.isRunning = true;
+            this.isRunning = true;
             if (typeof this.onApplicationRun === "function") {
                 try {
                     this.onApplicationRun();

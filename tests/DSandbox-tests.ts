@@ -39,27 +39,6 @@ describe("DSandbox", () => {
         expect(core.subscribe).toHaveBeenCalledWith([topic], handler);
     });
 
-    it("should be able to get its core's current state", function (this: DSandboxTestsContext) {
-        let core = new dcore.Application();
-        spyOn(core, "getState");
-        let sb = this.getOne(core);
-
-        sb.getAppState();
-
-        expect(core.getState).toHaveBeenCalledWith();
-    });
-
-    it("should be able to update its core's current state", function (this: DSandboxTestsContext) {
-        let core = new dcore.Application();
-        spyOn(core, "setState");
-        let sb = this.getOne(core);
-
-        let newState = {};
-        sb.setAppState(newState);
-
-        expect(core.setState).toHaveBeenCalledWith(newState);
-    });
-
     it("should subscribe by delegating array of topics to its core", function (this: DSandboxTestsContext) {
         let core = new dcore.Application();
         spyOn(core, "subscribe");

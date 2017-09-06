@@ -29,20 +29,6 @@ describe("DCore", () => {
         };
     });
 
-    it("should be in debug mode by default", function (this: DCoreTestsContext) {
-        expect(new dcore.Application().getState().isDebug).toBeTruthy();
-    });
-
-    it("should not be in running mode by default", function (this: DCoreTestsContext) {
-        expect(new dcore.Application().getState().isRunning).toBeFalsy();
-    });
-
-    it("should be in running mode after run", function (this: DCoreTestsContext) {
-        let core = this.getRunningCore();
-
-        expect(core.getState().isRunning).toBeTruthy();
-    });
-
     it("should be able to execute an action on DOMContentLoaded", function (this: DCoreTestsContext) {
         let spy = { action: function (): void { return; } };
         spyOn(spy, "action");
@@ -73,60 +59,6 @@ describe("DCore", () => {
 
         expect(() => core.publish("topic", "message")).not.toThrow();
         expect(() => core.subscribe(["topic"], function () { })).not.toThrow();
-    });
-
-    it("should return its state as immutable", function (this: DCoreTestsContext) {
-        let core = this.getRunningCore();
-        let state = core.getState();
-
-        expect(state.isRunning).toBeTruthy();
-        Object.keys(state).forEach(key => {
-            state[key] = false;
-        });
-
-        expect(state.isRunning).toBeFalsy();
-        expect(core.getState().isRunning).toBeTruthy();
-    });
-
-    it("should be able to update its state by merging the provided object", function (this: DCoreTestsContext) {
-        let core = this.getRunningCore();
-        let oldState = core.getState();
-        let newPropName = "version";
-        let update = {
-            [newPropName]: 10
-        };
-
-        expect(oldState[newPropName]).toBeUndefined();
-        core.setState(<any>update);
-        let newState = core.getState();
-
-        expect(newState[newPropName]).toEqual(update.version);
-        expect(newState.isRunning).toEqual(oldState.isRunning);
-        expect(newState.isDebug).toEqual(oldState.isDebug);
-    });
-
-    it("setState() should not be able to stop the core when it is already running", function (this: DCoreTestsContext) {
-        let core = this.getRunningCore();
-        let update = {
-            isRunning: false
-        };
-
-        core.setState(<any>update);
-        let newState = core.getState();
-
-        expect(newState.isRunning).toBeTruthy();
-    });
-
-    it("setState() should not be able to change the debug mode after first initialization", function (this: DCoreTestsContext) {
-        let core = this.getRunningCore();
-        let update = {
-            isDebug: false
-        };
-
-        core.setState(<any>update);
-        let newState = core.getState();
-
-        expect(newState.isDebug).toBeTruthy();
     });
 
     describe("Modules", () => {

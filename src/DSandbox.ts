@@ -47,22 +47,6 @@ namespace dcore {
         }
 
         /**
-         *  Gets application's current state.
-         */
-        getAppState(): Readonly<DCoreState> {
-            return this.core.getState();
-        }
-
-        /**
-         *  Update application's current state by merging the provided object to the current state.
-         *  Also, "isRunning" and "isDebug" are being skipped.
-         *  "isRunning" is used internaly, "isDebug" can be set only on first initialization.
-         */
-        setAppState<TState extends keyof DCoreState>(value: Pick<DCoreState, TState>): void {
-            this.core.setState(value);
-        }
-
-        /**
          *  Subscribes for given topics.
          */
         subscribe(topic: string, handler: (topic: string, message: any) => void): DSubscriptionToken;

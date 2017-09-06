@@ -5,35 +5,6 @@
  *  Source code: http://github.com/valentin-lozev/dcore
  */
 
-declare interface ObjectConstructor {
-    assign(target: Object, ...objects: Object[]): Object;
-}
-
-if (typeof Object.assign != 'function') {
-    Object.assign = function (target, varArgs) { // .length of function is 2
-        'use strict';
-        if (target == null) { // TypeError if undefined or null
-            throw new TypeError('Cannot convert undefined or null to object');
-        }
-
-        var to = Object(target);
-
-        for (var index = 1; index < arguments.length; index++) {
-            var nextSource = arguments[index];
-
-            if (nextSource != null) { // Skip over if undefined or null
-                for (var nextKey in nextSource) {
-                    // Avoid bugs when hasOwnProperty is shadowed
-                    if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
-                        to[nextKey] = nextSource[nextKey];
-                    }
-                }
-            }
-        }
-        return to;
-    };
-}
-
 // Production steps of ECMA-262, Edition 5, 15.4.4.22
 // Reference: http://es5.github.io/#x15.4.4.22
 if (typeof Array.prototype.reduceRight !== 'function') {
@@ -74,8 +45,6 @@ interface DSubscriptionToken {
 
 interface DCore {
     Sandbox: DSandboxConstructor;
-    getState(): Readonly<DCoreState>;
-    setState<TState extends keyof DCoreState>(value: Pick<DCoreState, TState>): void;
 
     subscribe(topics: string[], handler: (topic: string, message: any) => void): DSubscriptionToken;
     publish(topic: string, message: any): void;
@@ -89,11 +58,6 @@ interface DCore {
     pipe<TResponse>(hookName: string, hookInvoker: (...args: any[]) => TResponse, hookContext: any, ...args: any[]): TResponse;
 
     run(action?: Function): void;
-}
-
-interface DCoreState {
-    isRunning: boolean;
-    isDebug: boolean;
 }
 
 interface DModule<TProps> {
@@ -112,9 +76,6 @@ interface DSandboxConstructor {
 interface DSandbox {
     getModuleId(): string;
     getModuleInstanceId(): string;
-
-    getAppState(): Readonly<DCoreState>;
-    setAppState<TState extends keyof DCoreState>(value: Pick<DCoreState, TState>): void;
 
     subscribe(topic: string, handler: (topic: string, message: any) => void): DSubscriptionToken;
     subscribe(topics: string[], handler: (topic: string, message: any) => void): DSubscriptionToken;
