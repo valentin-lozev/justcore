@@ -98,6 +98,9 @@ var dcore;
             function DMessagesAggregator() {
                 this.subscribers = {};
             }
+            /**
+             *  Subscribes for given topics.
+             */
             DMessagesAggregator.prototype.subscribe = function (topics, handler) {
                 var _this = this;
                 _private.argumentGuard("subscribe(): ")
@@ -116,6 +119,9 @@ var dcore;
                     }
                 };
             };
+            /**
+             *  Publishes a message asynchronously.
+             */
             DMessagesAggregator.prototype.publish = function (topic, message) {
                 if (!hasOwnProperty.call(this.subscribers, topic)) {
                     return;
@@ -166,6 +172,9 @@ var dcore;
             function DPluginsPipeline() {
                 this.pluginsMap = {};
             }
+            /**
+             *  Hooks a plugin to given hook name from dcore.hooks constants.
+             */
             DPluginsPipeline.prototype.hook = function (hookName, plugin) {
                 _private.argumentGuard("hook(): ")
                     .mustBeNonEmptyString(hookName, "hook name must be a non empty string")
@@ -176,6 +185,10 @@ var dcore;
                 }
                 list.push(plugin);
             };
+            /**
+             *  Runs all plugins for given hook as pipeline.
+             *  It is useful when you want to provide hooks in your own plugin.
+             */
             DPluginsPipeline.prototype.pipe = function (hookName, hookInvoker, hookContext) {
                 var args = [];
                 for (var _i = 3; _i < arguments.length; _i++) {
@@ -187,14 +200,10 @@ var dcore;
                     .slice(0)
                     .reduceRight(function (next, pipeline) {
                     return function () {
-                        var args = [];
-                        for (var _i = 0; _i < arguments.length; _i++) {
-                            args[_i] = arguments[_i];
-                        }
-                        return pipeline.apply(this, [next].concat(args));
+                        return pipeline.apply(hookContext, [next].concat(args));
                     };
-                }, hookInvoker);
-                var result = pipeline.apply(hookContext, args);
+                }, function () { return hookInvoker.apply(hookContext, args); });
+                var result = pipeline(null);
                 pipeline = null;
                 return result;
             };
@@ -244,31 +253,31 @@ var dcore;
             return this.moduleInstanceId;
         };
         Sandbox.prototype.subscribe = function (topics, handler) {
-            return this.core.pipe(dcore.hooks.SANDBOX_SUBSCRIBE, this.__subscribe, this, Array.isArray(topics) ? topics : [topics], handler);
+            return this.core.pipeline.pipe(dcore.hooks.SANDBOX_SUBSCRIBE, this.__subscribe, this, Array.isArray(topics) ? topics : [topics], handler);
         };
         /**
          *  Publishes a message asynchronously.
          */
         Sandbox.prototype.publish = function (topic, message) {
-            this.core.pipe(dcore.hooks.SANDBOX_PUBLISH, this.__publish, this, topic, message);
+            this.core.pipeline.pipe(dcore.hooks.SANDBOX_PUBLISH, this.__publish, this, topic, message);
         };
         /**
          *  Starts an instance of given module and initializes it.
          */
         Sandbox.prototype.start = function (moduleId, props) {
-            this.core.pipe(dcore.hooks.SANDBOX_START, this.__start, this, moduleId, props);
+            this.core.pipeline.pipe(dcore.hooks.SANDBOX_START, this.__start, this, moduleId, props);
         };
         /**
          *  Stops a given module.
          */
         Sandbox.prototype.stop = function (moduleId, instanceId) {
-            this.core.pipe(dcore.hooks.SANDBOX_STOP, this.__stop, this, moduleId, instanceId);
+            this.core.pipeline.pipe(dcore.hooks.SANDBOX_STOP, this.__stop, this, moduleId, instanceId);
         };
         Sandbox.prototype.__subscribe = function (topics, handler) {
-            return this.core.subscribe(topics, handler);
+            return this.core.messages.subscribe(topics, handler);
         };
         Sandbox.prototype.__publish = function (topic, message) {
-            this.core.publish(topic, message);
+            this.core.messages.publish(topic, message);
         };
         Sandbox.prototype.__start = function (moduleId, props) {
             this.core.start(moduleId, props);
@@ -306,34 +315,19 @@ var dcore;
         function Application() {
             this.modules = {};
             this.Sandbox = dcore.Sandbox;
-            this.pluginsPipeline = new _privateData.DPluginsPipeline();
-            this.messagesAggregator = new _privateData.DMessagesAggregator();
+            this.pipeline = new _privateData.DPluginsPipeline();
+            this.messages = new _privateData.DMessagesAggregator();
             this.isRunning = false;
         }
-        /**
-         *  Subscribes for given topics.
-         */
-        Application.prototype.subscribe = function (topics, handler) {
-            return this.messagesAggregator.subscribe(topics, handler);
-        };
-        /**
-         *  Publishes a message asynchronously.
-         */
-        Application.prototype.publish = function (topic, message) {
-            this.messagesAggregator.publish(topic, message);
-        };
         /**
          *  Registers a module.
          */
         Application.prototype.register = function (moduleId, moduleFactory) {
             _privateData.argumentGuard("register(): ")
                 .mustBeNonEmptyString(moduleId, "module id must be a non empty string")
-                .mustBeUndefined(this.modules[moduleId], "module with such id has been already registered - " + moduleId);
-            var tempModule = moduleFactory(new this.Sandbox(this, moduleId, moduleId));
-            _privateData.argumentGuard("register(): ")
-                .mustBeFunction(tempModule.init, "module must implement init method")
-                .mustBeFunction(tempModule.destroy, "module must implement destroy method");
-            this.pluginsPipeline.pipe(hooks.CORE_REGISTER, this.__register, this, moduleId, moduleFactory);
+                .mustBeUndefined(this.modules[moduleId], "module with such id has been already registered - " + moduleId)
+                .mustBeFunction(moduleFactory, "module factory must be a function");
+            this.pipeline.pipe(hooks.CORE_REGISTER, this.__register, this, moduleId, moduleFactory);
         };
         /**
          *  Starts an instance of given module and initializes it.
@@ -368,15 +362,15 @@ var dcore;
             }
             var data = moduleData.instances[id];
             try {
-                this.pluginsPipeline.pipe(hooks.MODULE_DESTROY, data.module.destroy, data.module, data.sb);
+                this.pipeline.pipe(hooks.MODULE_DESTROY, data.module.destroy, data.module, data.sb);
             }
             catch (err) {
-                console.error("stop(): \"" + moduleId + "\" destroy failed. An error has occured within the module");
+                console.error("stop(): an error has occured during \"" + moduleId + "\" destroy");
                 console.error(err);
             }
             finally {
                 delete moduleData.instances[id];
-                data = data.module = data.sb = null;
+                data.module = data.sb = null;
             }
         };
         /**
@@ -384,23 +378,6 @@ var dcore;
          */
         Application.prototype.listModules = function () {
             return Object.keys(this.modules);
-        };
-        /**
-         *  Hooks a plugin to given hook name from dcore.hooks constants.
-         */
-        Application.prototype.hook = function (hookName, plugin) {
-            this.pluginsPipeline.hook(hookName, plugin);
-        };
-        /**
-         *  Runs all plugins for given hook as pipeline.
-         *  It is useful when you want to provide hooks in your own plugin.
-         */
-        Application.prototype.pipe = function (hookName, hookInvoker, hookContext) {
-            var args = [];
-            for (var _i = 3; _i < arguments.length; _i++) {
-                args[_i - 3] = arguments[_i];
-            }
-            return this.pluginsPipeline.pipe.apply(this.pluginsPipeline, [hookName, hookInvoker, hookContext].concat(args));
         };
         /**
          *  Runs the core.
@@ -431,7 +408,7 @@ var dcore;
                 }
             }
             delete this.onApplicationRun;
-            this.pluginsPipeline.pipe(hooks.CORE_RUN, function () { }, this);
+            this.pipeline.pipe(hooks.CORE_RUN, function () { }, this);
         };
         Application.prototype.__register = function (moduleId, moduleFactory) {
             this.modules[moduleId] = {
@@ -443,13 +420,15 @@ var dcore;
             props = props || { instanceId: instanceId };
             var sb = new this.Sandbox(this, moduleId, instanceId);
             var instance = moduleData.create(sb);
+            _privateData.argumentGuard("start(): ")
+                .mustBeFunction(instance.init, "module must implement init method")
+                .mustBeFunction(instance.destroy, "module must implement destroy method");
             moduleData.instances[instanceId] = {
                 module: instance,
                 sb: sb
             };
-            this.pluginsPipeline.pipe(hooks.MODULE_INIT, function () {
-                instance.init(props);
-                instance = null;
+            this.pipeline.pipe(hooks.MODULE_INIT, function (props) {
+                this.init(props);
             }, instance, props, sb);
         };
         return Application;

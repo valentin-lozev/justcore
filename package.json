@@ -17,6 +17,6 @@
   "license": "MIT",
   "dependencies": {},
   "scripts": {
-    "test": ""
+    "test": "karma start"
   }
 }
