@@ -1,14 +1,15 @@
 {
-  "compilerOptions": {
-    "target": "es5",
-    "noImplicitAny": false,
-    "noEmitOnError": true,
-    "removeComments": false,
-    "sourceMap": false
-  },
-  "compileOnSave": true,
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
+	"compilerOptions": {
+		"target": "es5",
+		"module": "es2015",
+		"sourceMap": false,
+		"noImplicitAny": false,
+		"noEmitOnError": true,
+		"removeComments": false
+	},
+	"compileOnSave": false,
+	"exclude": [
+		"node_modules",
+		"dist"
+	]
 }

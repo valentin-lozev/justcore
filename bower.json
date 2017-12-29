@@ -1,27 +1,38 @@
 {
-  "name": "dcore",
-  "description": "Modular javascript application framework",
-  "private": false,
-  "main": "dist/dcore.js",
-  "moduleType": "globals",
-  "license": "MIT",
-  "ignore": [
-    "src",
-    "tests",
-    "Properties",
-    "*.json",
-    "*.cs",
-    "gulpfile.js",
-    "*.sln",
-    "karma.conf.js",
-    "*.csproj"
-  ],
-  "keywords": [ "modular", "javascript", "framework", "typescript" ],
-  "authors": [ "Valentin Lozev <valentin.zh.lozev@gmail.com>" ],
-  "repository": {
-    "type": "git",
-    "url": "http://github.com/valentin-lozev/dcore.git"
-  },
-  "dependencies": {
-  }
+	"private": false,
+	"name": "dcore",
+	"description": "A javascript library that helps you build modular SPA applications",
+	"keywords": [
+		"modular",
+		"library",
+		"typescript"
+	],
+	"authors": [ "Valentin Lozev <valentin.zh.lozev@gmail.com>" ],
+	"repository": {
+		"type": "git",
+		"url": "http://github.com/valentin-lozev/dcore.git"
+	},
+	"dependencies": {
+	},
+	"main": [
+		"dist/dcore.umd.js",
+		"dist/dcore.d.ts"
+	],
+	"moduleType": [
+		"amd",
+		"globals",
+		"es6",
+		"node"
+	],
+	"license": "MIT",
+	"ignore": [
+		"node_modules",
+		"bower_components",
+		"Properties/",
+		"scripts/",
+		"src/",
+		"**/tests",
+		"coverage/",
+		"/*.*"
+	]
 }
