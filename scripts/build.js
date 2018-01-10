@@ -1,11 +1,11 @@
 ﻿const fs = require("fs-extra");
+const path = require("path");
+const karma = require("karma");
+const eslint = require("eslint");
 const rollup = require("rollup");
 const multiEntry = require("rollup-plugin-multi-entry");
 const uglify = require("rollup-plugin-uglify");
-const eslint = require("eslint");
 const typescript = require("rollup-plugin-typescript2");
-const path = require("path");
-const karma = require("karma");
 
 const DCORE = "dcore";
 const input = "src/components/DCore.ts";
@@ -18,7 +18,7 @@ const banner = `/**
  */
 `;
 
-function runEslint() {
+const runEslint = () => {
 	const cli = new eslint.CLIEngine({
 		extensions: [".ts"]
 	});
@@ -33,15 +33,16 @@ function runEslint() {
 	}
 }
 
-function copyDefinitions() {
-	const definition = `${DCORE}.d.ts`;
-	fs.copySync(`src/${definition}`, `${distFolder}/${definition}`);
+const cleanDistFolder = () =>
+	fs.remove(distFolder)
+		.then(() => console.info("dist cleaned up"));
 
-	console.info("Definitions copied successfully");
-}
+const copyDefinitions = () =>
+	fs.copy(`src/${DCORE}.d.ts`, `${distFolder}/${DCORE}.d.ts`)
+		.then(() => console.info("Definitions copied successfully"));
 
-function bundleUmdDev() {
-	return rollup
+const bundleUmdDev = () =>
+	rollup
 		.rollup({
 			input: input,
 			plugins: [
@@ -59,10 +60,9 @@ function bundleUmdDev() {
 				})
 				.then(() => console.info("DEV UMD bundled successfully"));
 		});
-}
 
-function bundleUmdProd() {
-	return rollup
+const bundleUmdProd = () =>
+	rollup
 		.rollup({
 			input: input,
 			plugins: [
@@ -86,10 +86,9 @@ function bundleUmdProd() {
 				})
 				.then(() => console.info("PROD UMD bundled successfully"));
 		});
-}
 
-function bundleES() {
-	return rollup
+const bundleES = () =>
+	rollup
 		.rollup({
 			input: input,
 			plugins: [
@@ -106,10 +105,9 @@ function bundleES() {
 				})
 				.then(() => console.info("ES6 bundled successfully"));
 		});
-}
 
-function bundleTests() {
-	return rollup
+const bundleTests = () =>
+	rollup
 		.rollup({
 			input: "tests/**/*-tests.ts",
 			plugins: [
@@ -128,18 +126,17 @@ function bundleTests() {
 				})
 				.then(() => console.info("TESTS bundled successfully"));
 		});
-}
 
-function runTests() {
+const runTests = () => {
 	const configPath = path.resolve('./karma.conf.js');
 	const config = karma.config.parseConfig(configPath);
 	new karma.Server(config).start();
-}
+};
 
-function build() {
+const build = () =>
 	Promise.resolve()
 		.then(() => runEslint())
-		.then(() => fs.removeSync(distFolder))
+		.then(() => cleanDistFolder())
 		.then(() => copyDefinitions())
 		.then(() => bundleUmdDev())
 		.then(() => bundleUmdProd())
@@ -147,6 +144,5 @@ function build() {
 		.then(() => bundleTests())
 		.then(() => runTests())
 		.catch(reason => console.error(reason));
-}
 
 build();
