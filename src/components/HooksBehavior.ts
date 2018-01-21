@@ -9,16 +9,16 @@ interface Plugin extends dcore.Func {
  */
 export class HooksBehavior {
 
-	private _plugins: { [hookName: string]: Plugin[]; } = Object.create(null);
+	private _plugins: { [hookType: string]: Plugin[]; } = Object.create(null);
 
-	createPipeline<T extends dcore.Func>(hook: dcore.LifecycleHook, method: T): T & dcore.FuncWithPipeline {
+	createHook<T extends dcore.Func>(type: dcore.HookType, method: T): T & dcore.Hook {
 		guard
-			.nonEmptyString(hook, "decorate(): hook must be a non empty string")
-			.function(method, `decorate(): "${hook}" method must be a function`);
+			.nonEmptyString(type, "m16")
+			.function(method, "m17", type);
 
-		const pipelineContext = this;
+		const hookContext = this;
 		const result = function (...args: any[]): any {
-			const plugins = pipelineContext._plugins[hook];
+			const plugins = hookContext._plugins[type];
 			if (!plugins) {
 				return method.apply(this, args);
 			}
@@ -27,18 +27,18 @@ export class HooksBehavior {
 				(pipeline, plugin) => () => plugin.apply(this, [pipeline, ...args]),
 				() => method.apply(this, args)
 			)();
-		} as T & dcore.FuncWithPipeline;
+		} as T & dcore.Hook;
 
 		result._withPipeline = true;
-		result._hook = hook;
+		result._hookType = type;
 		return result;
 	}
 
-	addPlugin(hook: dcore.LifecycleHook, plugin: Plugin): void {
+	addPlugin(hookType: dcore.HookType, plugin: Plugin): void {
 		guard
-			.nonEmptyString(hook, "addPlugin(): hook must be a non empty string")
-			.function(plugin, `addPlugin(): plugin must be a function`);
+			.nonEmptyString(hookType, "m18")
+			.function(plugin, "m19", hookType);
 
-		(this._plugins[hook] || (this._plugins[hook] = [])).push(plugin);
+		(this._plugins[hookType] || (this._plugins[hookType] = [])).push(plugin);
 	}
 }

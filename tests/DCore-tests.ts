@@ -14,6 +14,7 @@ interface TestsContext {
 		id: string;
 		sandbox: dcore.Sandbox;
 		init(options?: dcore.ModuleStartOptions): void;
+		moduleDidReceiveProps(nextProps: {}): void;
 		destroy(): void;
 	};
 	moduleFactory: dcore.ModuleFactory;
@@ -31,6 +32,7 @@ describe("DCore", () => {
 			id: "test-module",
 			sandbox: null,
 			init: () => true,
+			moduleDidReceiveProps: (nextProps: {}) => false,
 			destroy: () => true,
 		};
 		this.moduleFactory = (sb: dcore.Sandbox) => {
@@ -51,7 +53,7 @@ describe("DCore", () => {
 		});
 
 		it(`should have module-autosubscribe installed by default`, function (this: TestsContext) {
-			const extensions = this.dcore.listExtensions();
+			const extensions = this.dcore.extensions;
 
 			expect(extensions.indexOf(this.moduleAutosubscribeExtension.name)).toBeGreaterThanOrEqual(0);
 		});
@@ -73,23 +75,23 @@ describe("DCore", () => {
 			}, 10);
 		});
 
-		it("should delegate to hooks behavior when create pipeline", function (this: TestsContext) {
-			const createPipeline = spyOn(this.hooksBehavior, "createPipeline").and.callThrough();
+		it("should delegate to hooks behavior when create hook", function (this: TestsContext) {
+			const createHook = spyOn(this.hooksBehavior, "createHook").and.callThrough();
 			const noop = () => true;
-			const result = this.dcore.createPipeline("onCoreInit", noop);
+			const result = this.dcore.createHook("onCoreInit", noop);
 
-			expect(createPipeline).toHaveBeenCalledWith("onCoreInit", noop);
+			expect(createHook).toHaveBeenCalledWith("onCoreInit", noop);
 			expect(typeof result).toEqual("function");
 			expect(result._withPipeline).toEqual(true);
 		});
 
-		it("should create pipeline in onInit callback", function (this: TestsContext, done: DoneFn) {
+		it("should create hook in onInit callback", function (this: TestsContext, done: DoneFn) {
 			const onInit = spyOn({ onInit: () => true }, "onInit");
-			const createPipeline = spyOn(this.dcore, "createPipeline").and.callThrough();
+			const createHook = spyOn(this.dcore, "createHook").and.callThrough();
 
 			this.dcore.init(onInit);
 
-			expect(createPipeline).toHaveBeenCalledWith("onCoreInit", onInit);
+			expect(createHook).toHaveBeenCalledWith("onCoreInit", onInit);
 
 			setTimeout(() => {
 				expect(onInit).toHaveBeenCalledTimes(1);
@@ -97,72 +99,72 @@ describe("DCore", () => {
 			}, 10);
 		});
 
-		it("should create pipeline in addModule when init", function (this: TestsContext) {
-			const createPipeline = spyOn(this.dcore, "createPipeline").and.callThrough();
+		it("should create hook in addModule when init", function (this: TestsContext) {
+			const createHook = spyOn(this.dcore, "createHook").and.callThrough();
 			const initialMethod = this.dcore.addModule;
 
 			this.dcore.init();
 
-			expect(createPipeline).toHaveBeenCalledWith("onModuleAdd", initialMethod);
-			expect((this.dcore.addModule as dcore.FuncWithPipeline)._withPipeline).toEqual(true);
-			expect((this.dcore.addModule as dcore.FuncWithPipeline)._hook).toEqual("onModuleAdd");
+			expect(createHook).toHaveBeenCalledWith("onModuleAdd", initialMethod);
+			expect((this.dcore.addModule as dcore.Hook)._withPipeline).toEqual(true);
+			expect((this.dcore.addModule as dcore.Hook)._hookType).toEqual("onModuleAdd");
 		});
 
-		it("should create pipeline in startModule when init", function (this: TestsContext) {
-			const createPipeline = spyOn(this.dcore, "createPipeline").and.callThrough();
+		it("should create hook in startModule when init", function (this: TestsContext) {
+			const createHook = spyOn(this.dcore, "createHook").and.callThrough();
 			const initialMethod = this.dcore.startModule;
 
 			this.dcore.init();
 
-			expect(createPipeline).toHaveBeenCalledWith("onModuleStart", initialMethod);
-			expect((this.dcore.startModule as dcore.FuncWithPipeline)._withPipeline).toEqual(true);
-			expect((this.dcore.startModule as dcore.FuncWithPipeline)._hook).toEqual("onModuleStart");
+			expect(createHook).toHaveBeenCalledWith("onModuleStart", initialMethod);
+			expect((this.dcore.startModule as dcore.Hook)._withPipeline).toEqual(true);
+			expect((this.dcore.startModule as dcore.Hook)._hookType).toEqual("onModuleStart");
 		});
 
-		it("should create pipeline in stopModule when init", function (this: TestsContext) {
-			const createPipeline = spyOn(this.dcore, "createPipeline").and.callThrough();
+		it("should create hook in stopModule when init", function (this: TestsContext) {
+			const createHook = spyOn(this.dcore, "createHook").and.callThrough();
 			const initialMethod = this.dcore.stopModule;
 
 			this.dcore.init();
 
-			expect(createPipeline).toHaveBeenCalledWith("onModuleStop", initialMethod);
-			expect((this.dcore.stopModule as dcore.FuncWithPipeline)._withPipeline).toEqual(true);
-			expect((this.dcore.stopModule as dcore.FuncWithPipeline)._hook).toEqual("onModuleStop");
+			expect(createHook).toHaveBeenCalledWith("onModuleStop", initialMethod);
+			expect((this.dcore.stopModule as dcore.Hook)._withPipeline).toEqual(true);
+			expect((this.dcore.stopModule as dcore.Hook)._hookType).toEqual("onModuleStop");
 		});
 
-		it("should create pipeline in onMessage when init", function (this: TestsContext) {
-			const createPipeline = spyOn(this.dcore, "createPipeline").and.callThrough();
+		it("should create hook in onMessage when init", function (this: TestsContext) {
+			const createHook = spyOn(this.dcore, "createHook").and.callThrough();
 			const initialMethod = this.dcore.onMessage;
 
 			this.dcore.init();
 
-			expect(createPipeline).toHaveBeenCalledWith("onMessageSubscribe", initialMethod);
-			expect((this.dcore.onMessage as dcore.FuncWithPipeline)._withPipeline).toEqual(true);
-			expect((this.dcore.onMessage as dcore.FuncWithPipeline)._hook).toEqual("onMessageSubscribe");
+			expect(createHook).toHaveBeenCalledWith("onMessageSubscribe", initialMethod);
+			expect((this.dcore.onMessage as dcore.Hook)._withPipeline).toEqual(true);
+			expect((this.dcore.onMessage as dcore.Hook)._hookType).toEqual("onMessageSubscribe");
 		});
 
-		it("should create pipeline in publish when init", function (this: TestsContext) {
-			const createPipeline = spyOn(this.dcore, "createPipeline").and.callThrough();
+		it("should create hook in publish when init", function (this: TestsContext) {
+			const createHook = spyOn(this.dcore, "createHook").and.callThrough();
 			const initialMethod = this.dcore.publishAsync;
 
 			this.dcore.init();
 
-			expect(createPipeline).toHaveBeenCalledWith("onMessagePublish", initialMethod);
-			expect((this.dcore.publishAsync as dcore.FuncWithPipeline)._withPipeline).toEqual(true);
-			expect((this.dcore.publishAsync as dcore.FuncWithPipeline)._hook).toEqual("onMessagePublish");
+			expect(createHook).toHaveBeenCalledWith("onMessagePublish", initialMethod);
+			expect((this.dcore.publishAsync as dcore.Hook)._withPipeline).toEqual(true);
+			expect((this.dcore.publishAsync as dcore.Hook)._hookType).toEqual("onMessagePublish");
 		});
 	});
 
 	describe("Modules", () => {
 		it("should list registered modules as empty array in zero state", function (this: TestsContext) {
-			const modules = this.dcore.listModules();
+			const modules = this.dcore.modules;
 
 			expect(Array.isArray(modules)).toBeTruthy();
 			expect(modules.length).toEqual(0);
 		});
 
 		it("should list running modules as empty object in zero state", function (this: TestsContext) {
-			const modules = this.dcore.listRunningModules();
+			const modules = this.dcore.runningModules;
 
 			expect(typeof modules).toEqual("object");
 			expect(Object.keys(modules).length).toEqual(0);
@@ -181,8 +183,8 @@ describe("DCore", () => {
 
 		it("should add a module", function (this: TestsContext) {
 			this.dcore.addModule(this.module.id, this.moduleFactory);
-			const modules = this.dcore.listModules();
-			const runningModules = this.dcore.listRunningModules();
+			const modules = this.dcore.modules;
+			const runningModules = this.dcore.runningModules;
 
 			expect(modules.length).toEqual(1);
 			expect(Object.keys(runningModules).length).toEqual(1);
@@ -200,7 +202,7 @@ describe("DCore", () => {
 			this.dcore.addModule(this.module.id, this.moduleFactory);
 
 			expect(() => this.dcore.startModule(this.module.id)).toThrowError();
-			expect(Object.keys(this.dcore.listRunningModules()[this.module.id]).length).toEqual(0);
+			expect(Object.keys(this.dcore.runningModules[this.module.id]).length).toEqual(0);
 		});
 
 		it("should throw when start not added module", function (this: TestsContext) {
@@ -217,21 +219,21 @@ describe("DCore", () => {
 			this.dcore.startModule(this.module.id);
 
 			expect(init).toHaveBeenCalledTimes(1);
-			const runningModuls = this.dcore.listRunningModules();
+			const runningModuls = this.dcore.runningModules;
 			expect(Object.keys(runningModuls).length).toEqual(1);
 			expect(runningModuls[this.module.id][0]).toEqual(this.module.id);
 		});
 
-		it("should create pipeline in module init when start a module", function (this: TestsContext) {
+		it("should create hook in module init when start a module", function (this: TestsContext) {
 			this.dcore.init();
 			this.dcore.addModule(this.module.id, this.moduleFactory);
 			const fakePipeline = spyOn({ init: () => true }, "init");
-			const createPipeline = spyOn(this.dcore, "createPipeline").and.returnValue(fakePipeline);
+			const createHook = spyOn(this.dcore, "createHook").and.returnValue(fakePipeline);
 
 			this.dcore.startModule(this.module.id, this.moduleStartOptions);
 
-			expect(createPipeline).toHaveBeenCalledTimes(1);
-			expect(createPipeline).toHaveBeenCalledWith("onModuleInit", this.module.init);
+			expect(createHook).toHaveBeenCalledTimes(1);
+			expect(createHook).toHaveBeenCalledWith("onModuleInit", this.module.init);
 			expect(fakePipeline).toHaveBeenCalledTimes(1);
 			expect(fakePipeline).toHaveBeenCalledWith(this.moduleStartOptions.props);
 			expect(fakePipeline.calls.first().object).toBe(this.module);
@@ -278,15 +280,43 @@ describe("DCore", () => {
 			expect(init).toHaveBeenCalledWith(undefined);
 		});
 
-		it("should not throw when start an already started module", function (this: TestsContext) {
-			const init = spyOn(this.module, "init");
+		it("should create hook in moduleDidReceiveProps when start an already started module", function (this: TestsContext) {
 			this.dcore.init();
 			this.dcore.addModule(this.module.id, this.moduleFactory);
+			this.dcore.startModule(this.module.id, this.moduleStartOptions);
+			const fakePipeline = spyOn(this.module, "moduleDidReceiveProps");
+			const createHook = spyOn(this.dcore, "createHook").and.returnValue(fakePipeline);
 
-			this.dcore.startModule(this.module.id);
-			this.dcore.startModule(this.module.id);
+			this.dcore.startModule(this.module.id, this.moduleStartOptions);
 
-			expect(init).toHaveBeenCalledTimes(1);
+			expect(createHook).toHaveBeenCalledTimes(1);
+			expect(createHook).toHaveBeenCalledWith("onModuleReceiveProps", this.module.moduleDidReceiveProps);
+			expect(fakePipeline).toHaveBeenCalledTimes(1);
+			expect(fakePipeline).toHaveBeenCalledWith(this.moduleStartOptions.props);
+			expect(fakePipeline.calls.first().object).toBe(this.module);
+		});
+
+		it("should not call module init when start an already started module", function (this: TestsContext) {
+			this.dcore.init();
+			this.dcore.addModule(this.module.id, this.moduleFactory);
+			this.dcore.startModule(this.module.id);
+			const init = spyOn(this.module, "init");
+
+			this.dcore.startModule(this.module.id, this.moduleStartOptions.props);
+
+			expect(init).toHaveBeenCalledTimes(0);
+		});
+
+		it("should not call moduleDidReceiveProps when start an already started module and hook is not defined", function (this: TestsContext) {
+			this.dcore.init();
+			this.dcore.addModule(this.module.id, this.moduleFactory);
+			this.dcore.startModule(this.module.id);
+			const createHook = spyOn(this.dcore, "createHook");
+			this.module.moduleDidReceiveProps = null;
+
+			this.dcore.startModule(this.module.id, this.moduleStartOptions.props);
+
+			expect(createHook).toHaveBeenCalledTimes(0);
 		});
 
 		it("should not throw when start a module and its factory throws", function (this: TestsContext) {
@@ -298,7 +328,7 @@ describe("DCore", () => {
 			expect(() => this.dcore.startModule(this.module.id)).not.toThrowError();
 			expect(moduleFactory).toHaveBeenCalledTimes(1);
 			expect(init).toHaveBeenCalledTimes(0);
-			expect(Object.keys(this.dcore.listRunningModules()[this.module.id]).length).toEqual(0);
+			expect(Object.keys(this.dcore.runningModules[this.module.id]).length).toEqual(0);
 		});
 
 		it("should not throw when start a module and its initialization throws", function (this: TestsContext) {
@@ -308,7 +338,7 @@ describe("DCore", () => {
 
 			expect(() => this.dcore.startModule(this.module.id)).not.toThrowError();
 			expect(init).toHaveBeenCalledTimes(1);
-			expect(Object.keys(this.dcore.listRunningModules()[this.module.id]).length).toEqual(0);
+			expect(Object.keys(this.dcore.runningModules[this.module.id]).length).toEqual(0);
 		});
 
 		it("should not throw when stop a not registered module", function (this: TestsContext) {
@@ -345,17 +375,17 @@ describe("DCore", () => {
 			expect
 		});
 
-		it("should create pipeline in module destroy when stop a module", function (this: TestsContext) {
+		it("should create hook in module destroy when stop a module", function (this: TestsContext) {
 			this.dcore.init();
 			this.dcore.addModule(this.module.id, this.moduleFactory);
 			this.dcore.startModule(this.module.id, this.moduleStartOptions);
 			const fakePipeline = spyOn({ destroy: () => true }, "destroy");
-			const createPipeline = spyOn(this.dcore, "createPipeline").and.returnValue(fakePipeline);
+			const createHook = spyOn(this.dcore, "createHook").and.returnValue(fakePipeline);
 
 			this.dcore.stopModule(this.module.id, this.moduleStartOptions.instanceId);
 
-			expect(createPipeline).toHaveBeenCalledTimes(1);
-			expect(createPipeline).toHaveBeenCalledWith("onModuleDestroy", this.module.destroy);
+			expect(createHook).toHaveBeenCalledTimes(1);
+			expect(createHook).toHaveBeenCalledWith("onModuleDestroy", this.module.destroy);
 			expect(fakePipeline).toHaveBeenCalledTimes(1);
 			expect(fakePipeline.calls.first().object).toBe(this.module);
 		});
@@ -368,8 +398,8 @@ describe("DCore", () => {
 
 			expect(() => this.dcore.stopModule(this.module.id)).not.toThrowError();
 			expect(destroy).toHaveBeenCalledTimes(1);
-			expect(Object.keys(this.dcore.listRunningModules()).length).toEqual(1);
-			expect(this.dcore.listRunningModules()[this.module.id][0]).toEqual(this.module.id);
+			expect(Object.keys(this.dcore.runningModules).length).toEqual(1);
+			expect(this.dcore.runningModules[this.module.id][0]).toEqual(this.module.id);
 		});
 	});
 

@@ -13,18 +13,16 @@ export class MessageBus {
 
 	private _subscribers: SubscribersMap = Object.create(null);
 
-	onMessage(messageType: string, handler: dcore.MessageHandler): dcore.Unsubscribe {
+	onMessage(type: string, handler: dcore.MessageHandler): dcore.Unsubscribe {
 		guard
-			.function(handler, "onMessages(): message handler should be a function")
-			.nonEmptyString(messageType, "onMessage(): message type must be a non empty string");
+			.nonEmptyString(type, "m20")
+			.function(handler, "m21", type);
 
-		return this._addSubscriber(messageType, handler);
+		return this._addSubscriber(type, handler);
 	}
 
 	publishAsync<T extends dcore.Message>(message: T): void {
-		guard.true(
-			typeof message === "object",
-			"publishAsync(): message must be an object with defined type property as string");
+		guard.true(typeof message === "object", "m22");
 
 		if (!(message.type in this._subscribers)) {
 			return;

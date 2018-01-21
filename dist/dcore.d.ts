@@ -1,16 +1,8 @@
 ﻿declare global {
-	interface ObjectConstructor {
-		assign(target: Object, ...objects: Object[]): Object;
-	}
-
 	namespace dcore {
+
 		export interface Func<T = any> {
 			(...args: any[]): T;
-		}
-
-		export interface FuncWithPipeline extends Func {
-			_withPipeline: boolean;
-			_hook: LifecycleHook;
 		}
 
 		export interface PluginsMap {
@@ -21,44 +13,46 @@
 			onModuleAdd(this: Core, next: Func<void>, id: string, factory: ModuleFactory): void;
 			onModuleStart(this: Core, next: Func<void>, id: string, options?: ModuleStartOptions): void;
 			onModuleStop(this: Core, next: Func<void>, id: string, instanceId?: string): void;
-			onModuleInit(this: Module, next: Func<void>, props?: { [key: string]: any; }): void;
+			onModuleInit<TProps = {}>(this: Module, next: Func<void>, props?: TProps): void;
+			onModuleSubscribe(this: Module, next: Func<string[]>): string[];
+			onModuleReceiveMessage(this: Module, next: Func<void>, message: Message): void;
+			onModuleReceiveProps<TProps = {}>(this: Module, next: Func<void>, nextProps: TProps): void;
 			onModuleDestroy(this: Module, next: Func<void>): void;
 		}
 
-		export type LifecycleHook = keyof PluginsMap;
+		export interface Hook extends Func {
+			_withPipeline: boolean;
+			_hookType: HookType;
+		}
+
+		export type HookType = keyof PluginsMap;
 
 		export interface Extension {
 			name: string;
 			install: (dcore: Core) => Partial<PluginsMap>;
 		}
 
-		export interface MessageHandler {
-			(message: Message): void;
+		export interface CoreClass {
+			new(): Core;
 		}
 
-		export interface Message {
-			type: string;
-		}
+		export interface Core {
+			version: Readonly<string>;
+			extensions: Readonly<string[]>;
+			modules: Readonly<string[]>;
+			runningModules: Readonly<{ [id: string]: string[]; }>;
+			Sandbox: SandboxClass;
 
-		export interface Unsubscribe {
-			(): void;
-		}
+			use(extensions: Extension[]): void;
+			createHook<T extends Func>(type: HookType, method: T): T & Hook;
+			init(onInit?: Func<void>): void;
 
-		export interface ModuleFactory {
-			(sandbox: Sandbox): Module;
-		}
+			addModule(id: string, factory: ModuleFactory): void;
+			startModule(id: string, options?: ModuleStartOptions): void;
+			stopModule(id: string, instanceId?: string): void;
 
-		export interface Module {
-			sandbox: Sandbox;
-			messages?: string[];
-			init(props?: { [key: string]: any; }): void;
-			destroy(): void;
-			handleMessage?(message: Message): void;
-		}
-
-		export interface ModuleStartOptions {
-			instanceId?: string;
-			props?: { [key: string]: any; };
+			onMessage(type: string, handler: MessageHandler): Unsubscribe;
+			publishAsync<T extends Message>(message: T): void;
 		}
 
 		export interface SandboxClass {
@@ -75,28 +69,34 @@
 			publishAsync<T extends Message>(message: T): void;
 		}
 
-		export interface CoreClass {
-			new(): Core;
+		export interface ModuleFactory {
+			(sandbox: Sandbox): Module;
 		}
 
-		export interface Core {
-			version: Readonly<string>;
-			Sandbox: SandboxClass;
+		export interface Module<TProps = {}> {
+			sandbox: Sandbox;
+			init(props?: TProps): void;
+			moduleWillSubscribe?(): string[];
+			moduleDidReceiveMessage?(message: Message): void;
+			moduleDidReceiveProps?(nextProps: TProps): void;
+			destroy(): void;
+		}
 
-			use(extensions: Extension[]): void;
-			createPipeline<T extends Func>(hook: LifecycleHook, method: T): T & FuncWithPipeline;
-			init(onInit?: Func<void>): void;
+		export interface ModuleStartOptions<TProps = {}> {
+			instanceId?: string;
+			props?: TProps;
+		}
 
-			addModule(id: string, factory: ModuleFactory): void;
-			startModule(id: string, options?: ModuleStartOptions): void;
-			stopModule(id: string, instanceId?: string): void;
+		export interface MessageHandler {
+			(message: Message): void;
+		}
 
-			onMessage(messageType: string, handler: MessageHandler): Unsubscribe;
-			publishAsync<T extends Message>(message: T): void;
+		export interface Message {
+			type: string;
+		}
 
-			listExtensions(): string[];
-			listModules(): string[];
-			listRunningModules(): { [id: string]: string[]; };
+		export interface Unsubscribe {
+			(): void;
 		}
 	}
 }

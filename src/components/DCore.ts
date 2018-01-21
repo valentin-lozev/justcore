@@ -45,40 +45,65 @@ export class DCore implements dcore.Core {
 	}
 
 	/**
+	 *	Lists all installed extensions.
+	 */
+	get extensions(): string[] {
+		return Object.keys(this._extensions);
+	}
+
+	/**
+	 *  Lists all added module ids.
+	 */
+	get modules(): string[] {
+		return Object.keys(this._modules);
+	}
+
+	/**
+	 *  Lists all running module instances by their id.
+	 */
+	get runningModules(): { [id: string]: string[]; } {
+		return this.modules
+			.reduce((result, id) => {
+				result[id] = Object.keys(this._modules[id].instances);
+				return result;
+			}, Object.create(null));
+	}
+
+	/**
 	 *	Installs extensions.
 	 * @param extensions
 	 */
 	use(extensions: dcore.Extension[]): void {
 		guard
-			.false(this._isInitialized, "use(): extensions must be installed before init")
-			.array(extensions, "use(): extensions must be passed as an array");
+			.false(this._isInitialized, "m1")
+			.array(extensions, "m2");
 
 		extensions.forEach(x => {
 			guard
-				.object(x, "use(): extension must be an object")
-				.nonEmptyString(x.name, "use(): extension name must be a non empty string")
-				.function(x.install, `use(): "${x.name}" extension's install must be a function`)
-				.false(x.name in this._extensions, `use(): "${x.name}" extension has already been installed`);
+				.object(x, "m3")
+				.nonEmptyString(x.name, "m4")
+				.function(x.install, "m5", x.name)
+				.false(x.name in this._extensions, "m6", x.name);
 
 			this._extensions[x.name] = x;
 		});
 	}
 
 	/**
-	 *  Creates a pipeline from given method on given hook.
+	 *  Creates a hook from given method.
 	 */
-	createPipeline<T extends dcore.Func>(hook: dcore.LifecycleHook, method: T): T & dcore.FuncWithPipeline {
-		return this._hooksBehavior.createPipeline(hook, method);
+	createHook<T extends dcore.Func>(type: dcore.HookType, method: T): T & dcore.Hook {
+		return this._hooksBehavior.createHook(type, method);
 	}
 
 	/**
 	 *  Initializes dcore.
 	 */
 	init(onInit?: dcore.Func<void>): void {
-		guard.false(this._isInitialized, "init(): has already been initialized");
+		guard.false(this._isInitialized, "m7");
 
-		this._onInit = this.createPipeline("onCoreInit", onInit || function () { });
-		this._initHooks();
+		this._onInit = this.createHook("onCoreInit", onInit || function () { });
+		this._createHooks();
 		this._installExtensions();
 
 		if (isDocumentReady()) {
@@ -95,9 +120,9 @@ export class DCore implements dcore.Core {
 	 */
 	addModule(id: string, factory: dcore.ModuleFactory): void {
 		guard
-			.nonEmptyString(id, "addModule(): id must be a non empty string")
-			.undefined(this._modules[id], `addModule(): "${id}" has already been added`)
-			.function(factory, `addModule(): "${id}" factory must be a function`);
+			.nonEmptyString(id, "m8")
+			.false(id in this._modules, "m9")
+			.function(factory, "m10", id);
 
 		this._modules[id] = {
 			factory: factory,
@@ -109,24 +134,29 @@ export class DCore implements dcore.Core {
 	 *  Starts an instance of given module and initializes it.
 	 */
 	startModule(id: string, options: dcore.ModuleStartOptions = {}): void {
-		const moduleData = this._modules[id];
-		guard
-			.true(this._isInitialized, "startModule(): dcore must be initialized first")
-			.defined(moduleData, `startModule(): "${id}" not found`);
+		guard.true(this._isInitialized, "m11")
+			.true(id in this._modules, "m12", id);
 
+		const moduleData = this._modules[id];
 		const instanceId = options.instanceId || id;
-		if (instanceId in moduleData.instances) {
-			console.warn(`startModule(): "${id}" "${instanceId}" has already been initialized`);
+		let instance = moduleData.instances[instanceId];
+		if (instance) {
+			if (typeof instance.moduleDidReceiveProps === "function") {
+				this.createHook("onModuleReceiveProps", instance.moduleDidReceiveProps)
+					.call(instance, options.props);
+			}
+
 			return;
 		}
 
-		let instance = this._createModule(id, instanceId, moduleData.factory);
+		instance = this._createModule(id, instanceId, moduleData.factory);
 		if (!instance) {
 			return;
 		}
 
 		try {
-			this.createPipeline("onModuleInit", instance.init).call(instance, options.props);
+			this.createHook("onModuleInit", instance.init)
+				.call(instance, options.props);
 			moduleData.instances[instanceId] = instance;
 		} catch (err) {
 			console.error(`startModule(): "${id}" init failed`);
@@ -152,7 +182,7 @@ export class DCore implements dcore.Core {
 
 		try {
 			const instance = moduleData.instances[instanceId];
-			this.createPipeline("onModuleDestroy", instance.destroy).call(instance);
+			this.createHook("onModuleDestroy", instance.destroy).call(instance);
 			delete moduleData.instances[instanceId];
 		} catch (err) {
 			console.error(`stopModule(): "${id}" destroy failed`);
@@ -165,8 +195,8 @@ export class DCore implements dcore.Core {
 	 * @param messageType
 	 * @param handler
 	 */
-	onMessage(messageType: string, handler: dcore.MessageHandler): dcore.Unsubscribe {
-		return this._messageBus.onMessage(messageType, handler);
+	onMessage(type: string, handler: dcore.MessageHandler): dcore.Unsubscribe {
+		return this._messageBus.onMessage(type, handler);
 	}
 
 	/**
@@ -177,37 +207,12 @@ export class DCore implements dcore.Core {
 		this._messageBus.publishAsync(message);
 	}
 
-	/**
-	 *	Lists all installed extensions.
-	 */
-	listExtensions(): string[] {
-		return Object.keys(this._extensions);
-	}
-
-	/**
-	 *  Lists all added module ids.
-	 */
-	listModules(): string[] {
-		return Object.keys(this._modules);
-	}
-
-	/**
-	 *  Lists all running module instances by their id.
-	 */
-	listRunningModules(): { [id: string]: string[]; } {
-		return this.listModules()
-			.reduce((result, id) => {
-				result[id] = Object.keys(this._modules[id].instances);
-				return result;
-			}, Object.create(null));
-	}
-
-	private _initHooks(): void {
-		this.addModule = this.createPipeline("onModuleAdd", this.addModule);
-		this.startModule = this.createPipeline("onModuleStart", this.startModule);
-		this.stopModule = this.createPipeline("onModuleStop", this.stopModule);
-		this.onMessage = this.createPipeline("onMessageSubscribe", this.onMessage);
-		this.publishAsync = this.createPipeline("onMessagePublish", this.publishAsync);
+	private _createHooks(): void {
+		this.addModule = this.createHook("onModuleAdd", this.addModule);
+		this.startModule = this.createHook("onModuleStart", this.startModule);
+		this.stopModule = this.createHook("onModuleStop", this.stopModule);
+		this.onMessage = this.createHook("onMessageSubscribe", this.onMessage);
+		this.publishAsync = this.createHook("onMessagePublish", this.publishAsync);
 	}
 
 	private _installExtensions(): void {
@@ -220,8 +225,8 @@ export class DCore implements dcore.Core {
 		const plugins = extension.install(this) || {};
 		Object
 			.keys(plugins)
-			.forEach(hook =>
-				this._hooksBehavior.addPlugin(hook as dcore.LifecycleHook, plugins[hook])
+			.forEach(hookType =>
+				this._hooksBehavior.addPlugin(hookType as dcore.HookType, plugins[hookType])
 			);
 	}
 
@@ -235,9 +240,9 @@ export class DCore implements dcore.Core {
 		try {
 			result = factory(new this.Sandbox(this, id, instanceId));
 			guard
-				.true(result.sandbox instanceof this.Sandbox, `startModule(): "${id}.sandbox" must be a Sandbox instance`)
-				.function(result.init, `startModule(): "${id}" must implement init method`)
-				.function(result.destroy, `startModule(): "${id}" must implement destroy method`);
+				.true(result.sandbox instanceof this.Sandbox, "m13", id)
+				.function(result.init, "m14", id)
+				.function(result.destroy, "m15", id);
 		} catch (err) {
 			result = null;
 			console.error(err);

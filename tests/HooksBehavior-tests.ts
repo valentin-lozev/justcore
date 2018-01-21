@@ -1,7 +1,7 @@
 ﻿import { HooksBehavior } from "../src/components/HooksBehavior";
 
 interface TestsContext {
-	moduleHook: dcore.LifecycleHook;
+	moduleHook: dcore.HookType;
 	hooksBehavior: HooksBehavior;
 	module: {
 		callsOrder: string[];
@@ -41,7 +41,7 @@ describe("HooksBehavior", () => {
 		this.hooksBehavior = new HooksBehavior();
 		this.moduleHook = "onModuleStart";
 		this.module = new Module();
-		this.module.sum = this.hooksBehavior.createPipeline(this.moduleHook, this.module.sum);
+		this.module.sum = this.hooksBehavior.createHook(this.moduleHook, this.module.sum);
 		this.plugins = {
 			increaseResultBy1: function (this: Module, next: () => number, args: SumArgs): number {
 				this.callsOrder.push(increaseResultBy1Name);
@@ -57,17 +57,17 @@ describe("HooksBehavior", () => {
 		};
 	});
 
-	it("should throw on empty hook when create pipeline", function (this: TestsContext): void {
-		expect(() => this.hooksBehavior.createPipeline("" as any, this.module.sum)).toThrowError();
+	it("should throw on empty hook when create hook", function (this: TestsContext): void {
+		expect(() => this.hooksBehavior.createHook("" as any, this.module.sum)).toThrowError();
 	});
 
-	it("should throw on invalid method when create pipeline", function (this: TestsContext): void {
-		expect(() => this.hooksBehavior.createPipeline("onModuleAdd", null)).toThrowError();
+	it("should throw on invalid method when create hook", function (this: TestsContext): void {
+		expect(() => this.hooksBehavior.createHook("onModuleAdd", null)).toThrowError();
 	});
 
-	it("should attach custom attributes when create pipeline", function (this: TestsContext): void {
-		expect((this.module.sum as dcore.FuncWithPipeline)._withPipeline).toEqual(true);
-		expect((this.module.sum as dcore.FuncWithPipeline)._hook).toEqual(this.moduleHook);
+	it("should attach custom attributes when create hook", function (this: TestsContext): void {
+		expect((this.module.sum as dcore.Hook)._withPipeline).toEqual(true);
+		expect((this.module.sum as dcore.Hook)._hookType).toEqual(this.moduleHook);
 	});
 
 	it("should throw on empty hook when add plugin", function (this: TestsContext): void {

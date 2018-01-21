@@ -20,86 +20,51 @@ describe("utils", () => {
 
 	describe("ArgumentGuard", () => {
 
-		it("defined() should not throw", () => {
-			const cases = [
-				() => guard.defined(1, ""),
-				() => guard.defined(false, ""),
-				() => guard.defined({}, ""),
-				() => guard.defined([], ""),
-				() => guard.defined("", ""),
-			];
-
-			cases.forEach(x => expect(x).not.toThrowError());
-		});
-
-		it("defined() should throw when not defined", () => {
-			const cases = [
-				() => guard.defined(undefined, ""),
-				() => guard.defined(null, ""),
-			];
-
-			cases.forEach(x => expect(x).toThrowError());
-		});
-
-		it("undefined() should not throw", () => {
-			const cases = [
-				() => guard.undefined(undefined, ""),
-				() => guard.undefined(null, ""),
-			];
-
-			cases.forEach(x => expect(x).not.toThrowError());
-		});
-
-		it("undefined() should throw when defined", () => {
-			const cases = [
-				() => guard.undefined(1, ""),
-				() => guard.undefined(false, ""),
-				() => guard.undefined({}, ""),
-				() => guard.undefined([], ""),
-				() => guard.undefined("", ""),
-			];
-
-			cases.forEach(x => expect(x).toThrowError());
-		});
-
 		it("nonEmptyString() should not throw", () => {
-			expect(() => guard.nonEmptyString("123", "")).not.toThrowError();
+			expect(() => guard.nonEmptyString("123", "m1")).not.toThrowError();
 		});
 
 		it("nonEmptyString() should throw when empty", () => {
 			const cases = [
-				() => guard.nonEmptyString(<any>1, ""),
-				() => guard.nonEmptyString(<any>false, ""),
-				() => guard.nonEmptyString(<any>{}, ""),
-				() => guard.nonEmptyString(<any>[], ""),
-				() => guard.nonEmptyString("", ""),
+				() => guard.nonEmptyString(<any>1, "m1"),
+				() => guard.nonEmptyString(<any>false, "m1"),
+				() => guard.nonEmptyString(<any>{}, "m1"),
+				() => guard.nonEmptyString(<any>[], "m1"),
+				() => guard.nonEmptyString("", "m1")
 			];
 
 			cases.forEach(x => expect(x).toThrowError());
 		});
 
 		it("function() should not throw", () => {
-			expect(() => guard.function(() => true, "")).not.toThrowError();
+			expect(() => guard.function(() => true, "m1")).not.toThrowError();
 		});
 
 		it("function() should throw when not a function", () => {
-			expect(() => guard.function(<any>1, "")).toThrowError();
+			expect(() => guard.function(<any>1, "m1")).toThrowError();
 		});
 
 		it("array() should not throw", () => {
-			expect(() => guard.array([], "")).not.toThrowError();
+			expect(() => guard.array([], "m1")).not.toThrowError();
 		});
 
 		it("array() should throw when not an array", () => {
-			expect(() => guard.array(<any>1, "")).toThrowError();
+			expect(() => guard.array(<any>1, "m1")).toThrowError();
 		});
 
 		it("object() should not throw", () => {
-			expect(() => guard.object({}, "")).not.toThrowError();
+			expect(() => guard.object({}, "m1")).not.toThrowError();
 		});
 
 		it("object() should throw when not an object", () => {
-			expect(() => guard.object(<any>null, "")).toThrowError();
+			expect(() => guard.object(<any>null, "m1")).toThrowError();
+		});
+
+		it("should format exception message", () => {
+			const param = "test"
+			const expectedMsg = `use(): "${param}" install must be a function`;
+
+			expect(() => guard.false(true, "m5", param)).toThrowError(expectedMsg);
 		});
 	});
 

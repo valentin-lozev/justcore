@@ -21,7 +21,7 @@ describe("module-autosubscribe", () => {
 			sandbox: new Sandbox(this.dcore, this.moduleId, this.moduleId),
 			init: () => true,
 			destroy: () => true,
-			handleMessage: () => true
+			moduleDidReceiveMessage: () => true
 		};
 	});
 
@@ -66,42 +66,81 @@ describe("module-autosubscribe", () => {
 
 			it("should call next when init", function (this: TestsContext): void {
 				const init = spyOn(this.module, "init");
-				this.module.messages = this.messages;
+				this.module.moduleWillSubscribe = () => this.messages;
 
 				this.plugins.onModuleInit.call(this.module, init);
 
 				expect(init).toHaveBeenCalledTimes(1);
 			});
 
-			it("should bind handle message to the module", function (this: TestsContext): void {
-				this.module.messages = this.messages;
-				const initialHandleMessage = this.module.handleMessage;
+			it("should throw when moduleDidReceiveMessage hook is not defined", function (this: TestsContext): void {
+				this.module.moduleWillSubscribe = () => this.messages;
+				this.module.moduleDidReceiveMessage = null;
+
+				expect(() => this.plugins.onModuleInit.call(this.module, this.module.init)).toThrowError();
+			});
+
+			it("should call moduleWillSubscribe when subscribe", function (this: TestsContext): void {
+				this.module.moduleWillSubscribe = () => this.messages;
+				const moduleWillSubscribe = spyOn(this.module, "moduleWillSubscribe").and.callThrough();
+				const createHook = spyOn(this.dcore, "createHook").and.returnValue(moduleWillSubscribe);
 
 				this.plugins.onModuleInit.call(this.module, this.module.init);
 
-				expect(initialHandleMessage).not.toEqual(this.module.handleMessage);
-				expect(Object.create(initialHandleMessage.prototype)).toEqual(jasmine.any(this.module.handleMessage));
+				expect(createHook).toHaveBeenCalledTimes(2);
+				expect(createHook).toHaveBeenCalledWith("onModuleSubscribe", this.module.moduleWillSubscribe);
+				expect(moduleWillSubscribe).toHaveBeenCalledTimes(1);
+				expect(moduleWillSubscribe.calls.first().object).toBe(this.module);
 			});
 
-			it("should call subscribe", function (this: TestsContext): void {
+			it("should bind moduleDidReceiveMessage to its module", function (this: TestsContext): void {
+				const createHook = spyOn(this.dcore, "createHook").and.callThrough();
+				this.module.moduleWillSubscribe = () => this.messages;
+
+				this.plugins.onModuleInit.call(this.module, this.module.init);
+
+				expect(createHook).toHaveBeenCalledTimes(2);
+				const args = createHook.calls.argsFor(1);
+				const hookType = args[0];
+				const method = args[1];
+				expect(hookType).toEqual("onModuleReceiveMessage");
+				expect(Object.create(this.module.moduleDidReceiveMessage.prototype)).toEqual(jasmine.any(method));
+			});
+
+			it("should call subscribe for each message", function (this: TestsContext): void {
 				const onMessage = spyOn(this.dcore, "onMessage").and.callThrough();
-				this.module.messages = this.messages;
+				this.module.moduleWillSubscribe = () => this.messages;
 
 				this.plugins.onModuleInit.call(this.module, this.module.init);
 
 				expect(onMessage).toHaveBeenCalledTimes(this.messages.length);
 				expect(Object.keys(this.module.sandbox.unsubscribers).length).toEqual(this.messages.length);
-
 				Object.keys(this.module.sandbox.unsubscribers).forEach(message => {
 					expect(typeof this.module.sandbox.unsubscribers[message]).toEqual("function");
 				});
-				this.messages.forEach(message => {
-					expect(onMessage).toHaveBeenCalledWith(message, this.module.handleMessage);
+			});
+
+			it("should pass moduleDidReceiveMessage hook as handler for each message", function (this: TestsContext): void {
+				const onMessage = spyOn(this.dcore, "onMessage").and.callThrough();
+				this.module.moduleWillSubscribe = () => this.messages;
+
+				this.plugins.onModuleInit.call(this.module, this.module.init);
+
+				this.messages.forEach((message, index) => {
+					const args = onMessage.calls.argsFor(index);
+					const type = args[0];
+					const handler = args[1] as dcore.Hook;
+
+					expect(args.length).toEqual(2);
+					expect(type).toEqual(message);
+					expect(typeof handler).toEqual("function");
+					expect(handler._withPipeline).toEqual(true);
+					expect(handler._hookType).toEqual("onModuleReceiveMessage");
 				});
 			});
 
 			it("should call next before subscribe", function (this: TestsContext): void {
-				this.module.messages = this.messages;
+				this.module.moduleWillSubscribe = () => this.messages;
 				const callsOrder = [];
 				const init = spyOn(this.module, "init")
 					.and
@@ -133,7 +172,7 @@ describe("module-autosubscribe", () => {
 		describe("When some messages", () => {
 			it("should call next when destroy", function (this: TestsContext): void {
 				const destroy = spyOn(this.module, "destroy");
-				this.module.messages = this.messages;
+				this.module.moduleWillSubscribe = () => this.messages;
 
 				this.plugins.onModuleInit.call(this.module, this.module.init);
 				this.plugins.onModuleDestroy.call(this.module, destroy);
@@ -144,7 +183,7 @@ describe("module-autosubscribe", () => {
 			it("should call and delete the unsubscribers when destroy", function (this: TestsContext): void {
 				const unsubscribe = spyOn({ spy: () => true }, "spy");
 				spyOn(this.dcore, "onMessage").and.returnValue(unsubscribe);
-				this.module.messages = this.messages;
+				this.module.moduleWillSubscribe = () => this.messages;
 
 				this.plugins.onModuleInit.call(this.module, this.module.init);
 				this.plugins.onModuleDestroy.call(this.module, this.module.destroy);
@@ -162,7 +201,7 @@ describe("module-autosubscribe", () => {
 					.and
 					.callFake(() => callsOrder.push("unsubscribe"));
 				spyOn(this.dcore, "onMessage").and.returnValue(unsubscribe);
-				this.module.messages = this.messages;
+				this.module.moduleWillSubscribe = () => this.messages;
 
 				this.plugins.onModuleInit.call(this.module, this.module.init);
 				this.plugins.onModuleDestroy.call(this.module, destroy);
