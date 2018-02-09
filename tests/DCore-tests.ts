@@ -1,12 +1,12 @@
 ﻿import { VERSION } from "../src/utils";
 import { Sandbox } from "../src/components/Sandbox";
 import { MessageBus } from "../src/components/MessageBus";
-import { HooksBehavior } from "../src/components/HooksBehavior";
+import { HooksSystem } from "../src/components/HooksSystem";
 import { DCore } from "../src/components/DCore";
 import { moduleAutosubscribe } from "../src/extensions/module-autosubscribe";
 
 interface TestsContext {
-	hooksBehavior: HooksBehavior;
+	hooksSystem: HooksSystem;
 	messageBus: MessageBus;
 	dcore: dcore.Core;
 	moduleAutosubscribeExtension: dcore.Extension;
@@ -24,9 +24,9 @@ interface TestsContext {
 describe("DCore", () => {
 
 	beforeEach(function (this: TestsContext): void {
-		this.hooksBehavior = new HooksBehavior();
+		this.hooksSystem = new HooksSystem();
 		this.messageBus = new MessageBus();
-		this.dcore = new DCore(this.hooksBehavior, this.messageBus);
+		this.dcore = new DCore(this.hooksSystem, this.messageBus);
 		this.moduleAutosubscribeExtension = moduleAutosubscribe();
 		this.module = {
 			id: "test-module",
@@ -75,14 +75,15 @@ describe("DCore", () => {
 			}, 10);
 		});
 
-		it("should delegate to hooks behavior when create hook", function (this: TestsContext) {
-			const createHook = spyOn(this.hooksBehavior, "createHook").and.callThrough();
+		it("should delegate to hooks system when create hook", function (this: TestsContext) {
+			const createHook = spyOn(this.hooksSystem, "createHook").and.callThrough();
 			const noop = () => true;
-			const result = this.dcore.createHook("onCoreInit", noop);
+			const result = this.dcore.createHook("onCoreInit", noop, this.dcore);
 
-			expect(createHook).toHaveBeenCalledWith("onCoreInit", noop);
+			expect(createHook).toHaveBeenCalledWith("onCoreInit", noop, this.dcore);
 			expect(typeof result).toEqual("function");
 			expect(result._withPipeline).toEqual(true);
+			expect(result._hookType).toEqual("onCoreInit");
 		});
 
 		it("should create hook in onInit callback", function (this: TestsContext, done: DoneFn) {
@@ -91,8 +92,7 @@ describe("DCore", () => {
 
 			this.dcore.init(onInit);
 
-			expect(createHook).toHaveBeenCalledWith("onCoreInit", onInit);
-
+			expect(createHook).toHaveBeenCalledWith("onCoreInit", onInit, this.dcore);
 			setTimeout(() => {
 				expect(onInit).toHaveBeenCalledTimes(1);
 				done();
@@ -105,7 +105,7 @@ describe("DCore", () => {
 
 			this.dcore.init();
 
-			expect(createHook).toHaveBeenCalledWith("onModuleAdd", initialMethod);
+			expect(createHook).toHaveBeenCalledWith("onModuleAdd", initialMethod, this.dcore);
 			expect((this.dcore.addModule as dcore.Hook)._withPipeline).toEqual(true);
 			expect((this.dcore.addModule as dcore.Hook)._hookType).toEqual("onModuleAdd");
 		});
@@ -116,7 +116,7 @@ describe("DCore", () => {
 
 			this.dcore.init();
 
-			expect(createHook).toHaveBeenCalledWith("onModuleStart", initialMethod);
+			expect(createHook).toHaveBeenCalledWith("onModuleStart", initialMethod, this.dcore);
 			expect((this.dcore.startModule as dcore.Hook)._withPipeline).toEqual(true);
 			expect((this.dcore.startModule as dcore.Hook)._hookType).toEqual("onModuleStart");
 		});
@@ -127,7 +127,7 @@ describe("DCore", () => {
 
 			this.dcore.init();
 
-			expect(createHook).toHaveBeenCalledWith("onModuleStop", initialMethod);
+			expect(createHook).toHaveBeenCalledWith("onModuleStop", initialMethod, this.dcore);
 			expect((this.dcore.stopModule as dcore.Hook)._withPipeline).toEqual(true);
 			expect((this.dcore.stopModule as dcore.Hook)._hookType).toEqual("onModuleStop");
 		});
@@ -138,7 +138,7 @@ describe("DCore", () => {
 
 			this.dcore.init();
 
-			expect(createHook).toHaveBeenCalledWith("onMessageSubscribe", initialMethod);
+			expect(createHook).toHaveBeenCalledWith("onMessageSubscribe", initialMethod, this.dcore);
 			expect((this.dcore.onMessage as dcore.Hook)._withPipeline).toEqual(true);
 			expect((this.dcore.onMessage as dcore.Hook)._hookType).toEqual("onMessageSubscribe");
 		});
@@ -149,7 +149,7 @@ describe("DCore", () => {
 
 			this.dcore.init();
 
-			expect(createHook).toHaveBeenCalledWith("onMessagePublish", initialMethod);
+			expect(createHook).toHaveBeenCalledWith("onMessagePublish", initialMethod, this.dcore);
 			expect((this.dcore.publishAsync as dcore.Hook)._withPipeline).toEqual(true);
 			expect((this.dcore.publishAsync as dcore.Hook)._hookType).toEqual("onMessagePublish");
 		});
@@ -227,16 +227,16 @@ describe("DCore", () => {
 		it("should create hook in module init when start a module", function (this: TestsContext) {
 			this.dcore.init();
 			this.dcore.addModule(this.module.id, this.moduleFactory);
-			const fakePipeline = spyOn({ init: () => true }, "init");
-			const createHook = spyOn(this.dcore, "createHook").and.returnValue(fakePipeline);
+			const init = spyOn(this.module, "init");
+			const createHook = spyOn(this.dcore, "createHook").and.callThrough();
 
 			this.dcore.startModule(this.module.id, this.moduleStartOptions);
 
 			expect(createHook).toHaveBeenCalledTimes(1);
-			expect(createHook).toHaveBeenCalledWith("onModuleInit", this.module.init);
-			expect(fakePipeline).toHaveBeenCalledTimes(1);
-			expect(fakePipeline).toHaveBeenCalledWith(this.moduleStartOptions.props);
-			expect(fakePipeline.calls.first().object).toBe(this.module);
+			expect(createHook).toHaveBeenCalledWith("onModuleInit", this.module.init, this.module);
+			expect(init).toHaveBeenCalledTimes(1);
+			expect(init).toHaveBeenCalledWith(this.moduleStartOptions.props);
+			expect(init.calls.first().object).toBe(this.module);
 		});
 
 		it("should provide a sandbox in the module factory", function (this: TestsContext) {
@@ -284,16 +284,19 @@ describe("DCore", () => {
 			this.dcore.init();
 			this.dcore.addModule(this.module.id, this.moduleFactory);
 			this.dcore.startModule(this.module.id, this.moduleStartOptions);
-			const fakePipeline = spyOn(this.module, "moduleDidReceiveProps");
-			const createHook = spyOn(this.dcore, "createHook").and.returnValue(fakePipeline);
+			const moduleDidReceiveProps = spyOn(this.module, "moduleDidReceiveProps");
+			const createHook = spyOn(this.dcore, "createHook").and.callThrough();
 
 			this.dcore.startModule(this.module.id, this.moduleStartOptions);
 
 			expect(createHook).toHaveBeenCalledTimes(1);
-			expect(createHook).toHaveBeenCalledWith("onModuleReceiveProps", this.module.moduleDidReceiveProps);
-			expect(fakePipeline).toHaveBeenCalledTimes(1);
-			expect(fakePipeline).toHaveBeenCalledWith(this.moduleStartOptions.props);
-			expect(fakePipeline.calls.first().object).toBe(this.module);
+			expect(createHook).toHaveBeenCalledWith(
+				"onModuleReceiveProps",
+				this.module.moduleDidReceiveProps,
+				this.module);
+			expect(moduleDidReceiveProps).toHaveBeenCalledTimes(1);
+			expect(moduleDidReceiveProps).toHaveBeenCalledWith(this.moduleStartOptions.props);
+			expect(moduleDidReceiveProps.calls.first().object).toBe(this.module);
 		});
 
 		it("should not call module init when start an already started module", function (this: TestsContext) {
@@ -379,15 +382,15 @@ describe("DCore", () => {
 			this.dcore.init();
 			this.dcore.addModule(this.module.id, this.moduleFactory);
 			this.dcore.startModule(this.module.id, this.moduleStartOptions);
-			const fakePipeline = spyOn({ destroy: () => true }, "destroy");
-			const createHook = spyOn(this.dcore, "createHook").and.returnValue(fakePipeline);
+			const destroy = spyOn(this.module, "destroy");
+			const createHook = spyOn(this.dcore, "createHook").and.callThrough();
 
 			this.dcore.stopModule(this.module.id, this.moduleStartOptions.instanceId);
 
 			expect(createHook).toHaveBeenCalledTimes(1);
-			expect(createHook).toHaveBeenCalledWith("onModuleDestroy", this.module.destroy);
-			expect(fakePipeline).toHaveBeenCalledTimes(1);
-			expect(fakePipeline.calls.first().object).toBe(this.module);
+			expect(createHook).toHaveBeenCalledWith("onModuleDestroy", this.module.destroy, this.module);
+			expect(destroy).toHaveBeenCalledTimes(1);
+			expect(destroy.calls.first().object).toBe(this.module);
 		});
 
 		it("should not throw when stop a module and its destroy throws", function (this: TestsContext) {
@@ -494,8 +497,8 @@ describe("DCore", () => {
 			expect(args[0]).toBe(this.dcore);
 		});
 
-		it("should delegate to hooks behavior when add plugin", function (this: TestsContext) {
-			const addPlugin = spyOn(this.hooksBehavior, "addPlugin");
+		it("should delegate to hooks system when add plugin", function (this: TestsContext) {
+			const addPlugin = spyOn(this.hooksSystem, "addPlugin");
 			const plugins = {
 				onModuleInit: () => true,
 				onModuleDestroy: () => true

@@ -15,7 +15,7 @@ interface UnsubscribersMap {
 function subscribe(this: dcore.Module): void {
 	const dcore = this.sandbox._extensionsOnlyCore;
 	const messages = typeof this.moduleWillSubscribe === "function"
-		? dcore.createHook("onModuleSubscribe", this.moduleWillSubscribe).call(this)
+		? dcore.createHook("onModuleSubscribe", this.moduleWillSubscribe, this)()
 		: null;
 	const anyMessages = Array.isArray(messages) && messages.length >= 0;
 	if (!anyMessages) {
@@ -24,7 +24,10 @@ function subscribe(this: dcore.Module): void {
 
 	guard.function(this.moduleDidReceiveMessage, "m23", this.sandbox.moduleId);
 
-	const moduleDidReceiveMessage = dcore.createHook("onModuleReceiveMessage", this.moduleDidReceiveMessage.bind(this));
+	const moduleDidReceiveMessage = dcore.createHook(
+		"onModuleReceiveMessage",
+		this.moduleDidReceiveMessage,
+		this);
 	this.sandbox.unsubscribers = messages.reduce(
 		(map, message) => {
 			map[message] = dcore.onMessage(message, moduleDidReceiveMessage);

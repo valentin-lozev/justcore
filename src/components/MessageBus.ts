@@ -7,7 +7,7 @@ interface SubscribersMap {
 }
 
 /**
- *  Encapsulates communication behavior that is private to dcore.
+ *  Encapsulates communication behavior of dcore.
  */
 export class MessageBus {
 

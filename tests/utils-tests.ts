@@ -8,7 +8,7 @@
 describe("utils", () => {
 	describe("VERSION", () => {
 		it("should be string", () => {
-			expect(typeof VERSION).toEqual("string");
+			expect(VERSION).toEqual("3.0.1");
 		});
 	});
 

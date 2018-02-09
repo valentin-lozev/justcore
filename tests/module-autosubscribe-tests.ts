@@ -83,17 +83,20 @@ describe("module-autosubscribe", () => {
 			it("should call moduleWillSubscribe when subscribe", function (this: TestsContext): void {
 				this.module.moduleWillSubscribe = () => this.messages;
 				const moduleWillSubscribe = spyOn(this.module, "moduleWillSubscribe").and.callThrough();
-				const createHook = spyOn(this.dcore, "createHook").and.returnValue(moduleWillSubscribe);
+				const createHook = spyOn(this.dcore, "createHook").and.callThrough();
 
 				this.plugins.onModuleInit.call(this.module, this.module.init);
 
 				expect(createHook).toHaveBeenCalledTimes(2);
-				expect(createHook).toHaveBeenCalledWith("onModuleSubscribe", this.module.moduleWillSubscribe);
+				expect(createHook).toHaveBeenCalledWith(
+					"onModuleSubscribe",
+					this.module.moduleWillSubscribe,
+					this.module);
 				expect(moduleWillSubscribe).toHaveBeenCalledTimes(1);
 				expect(moduleWillSubscribe.calls.first().object).toBe(this.module);
 			});
 
-			it("should bind moduleDidReceiveMessage to its module", function (this: TestsContext): void {
+			it("should call moduleDidReceiveMessage with module as context", function (this: TestsContext): void {
 				const createHook = spyOn(this.dcore, "createHook").and.callThrough();
 				this.module.moduleWillSubscribe = () => this.messages;
 
@@ -103,8 +106,10 @@ describe("module-autosubscribe", () => {
 				const args = createHook.calls.argsFor(1);
 				const hookType = args[0];
 				const method = args[1];
+				const context = args[2];
 				expect(hookType).toEqual("onModuleReceiveMessage");
-				expect(Object.create(this.module.moduleDidReceiveMessage.prototype)).toEqual(jasmine.any(method));
+				expect(method).toBe(this.module.moduleDidReceiveMessage);
+				expect(context).toBe(this.module);
 			});
 
 			it("should call subscribe for each message", function (this: TestsContext): void {

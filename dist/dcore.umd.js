@@ -86,7 +86,7 @@ var Sandbox = /** @class */ (function () {
     return Sandbox;
 }());
 
-var VERSION = "3.0.0";
+var VERSION = "3.0.1";
 var errorCodes = {
     m1: function () { return "use(): extensions must be installed before init"; },
     m2: function () { return "use(): extensions must be passed as an array"; },
@@ -164,44 +164,43 @@ function uid() {
 }
 
 /**
- *  Encapsulates hooks behavior that is private to dcore.
+ *  Encapsulates hooks behavior of dcore.
  */
-var HooksBehavior = /** @class */ (function () {
-    function HooksBehavior() {
+var HooksSystem = /** @class */ (function () {
+    function HooksSystem() {
         this._plugins = Object.create(null);
     }
-    HooksBehavior.prototype.createHook = function (type, method) {
+    HooksSystem.prototype.createHook = function (type, method, context) {
         guard
             .nonEmptyString(type, "m16")
             .function(method, "m17", type);
-        var hookContext = this;
+        var hooksContext = this;
         var result = function () {
-            var _this = this;
             var args = [];
             for (var _i = 0; _i < arguments.length; _i++) {
                 args[_i] = arguments[_i];
             }
-            var plugins = hookContext._plugins[type];
+            var plugins = hooksContext._plugins[type];
             if (!plugins) {
-                return method.apply(this, args);
+                return method.apply(context, args);
             }
-            return plugins.reduceRight(function (pipeline, plugin) { return function () { return plugin.apply(_this, [pipeline].concat(args)); }; }, function () { return method.apply(_this, args); })();
+            return plugins.reduceRight(function (pipeline, plugin) { return function () { return plugin.apply(context, [pipeline].concat(args)); }; }, function () { return method.apply(context, args); })();
         };
         result._withPipeline = true;
         result._hookType = type;
         return result;
     };
-    HooksBehavior.prototype.addPlugin = function (hookType, plugin) {
+    HooksSystem.prototype.addPlugin = function (hookType, plugin) {
         guard
             .nonEmptyString(hookType, "m18")
             .function(plugin, "m19", hookType);
         (this._plugins[hookType] || (this._plugins[hookType] = [])).push(plugin);
     };
-    return HooksBehavior;
+    return HooksSystem;
 }());
 
 /**
- *  Encapsulates communication behavior that is private to dcore.
+ *  Encapsulates communication behavior of dcore.
  */
 var MessageBus = /** @class */ (function () {
     function MessageBus() {
@@ -253,14 +252,14 @@ var MessageBus = /** @class */ (function () {
 function subscribe() {
     var dcore = this.sandbox._extensionsOnlyCore;
     var messages = typeof this.moduleWillSubscribe === "function"
-        ? dcore.createHook("onModuleSubscribe", this.moduleWillSubscribe).call(this)
+        ? dcore.createHook("onModuleSubscribe", this.moduleWillSubscribe, this)()
         : null;
     var anyMessages = Array.isArray(messages) && messages.length >= 0;
     if (!anyMessages) {
         return;
     }
     guard.function(this.moduleDidReceiveMessage, "m23", this.sandbox.moduleId);
-    var moduleDidReceiveMessage = dcore.createHook("onModuleReceiveMessage", this.moduleDidReceiveMessage.bind(this));
+    var moduleDidReceiveMessage = dcore.createHook("onModuleReceiveMessage", this.moduleDidReceiveMessage, this);
     this.sandbox.unsubscribers = messages.reduce(function (map, message) {
         map[message] = dcore.onMessage(message, moduleDidReceiveMessage);
         return map;
@@ -298,17 +297,17 @@ function moduleAutosubscribe() {
  *  A mediator between the modules.
  */
 var DCore = /** @class */ (function () {
-    function DCore(hooksBehavior, messageBus) {
-        if (hooksBehavior === void 0) { hooksBehavior = new HooksBehavior(); }
+    function DCore(hooksSystem, messageBus) {
+        if (hooksSystem === void 0) { hooksSystem = new HooksSystem(); }
         if (messageBus === void 0) { messageBus = new MessageBus(); }
         this.Sandbox = Sandbox;
         this._isInitialized = false;
         this._onInit = null;
-        this._hooksBehavior = null;
+        this._hooksSystem = null;
         this._messageBus = null;
         this._extensions = Object.create(null);
         this._modules = Object.create(null);
-        this._hooksBehavior = hooksBehavior;
+        this._hooksSystem = hooksSystem;
         this._messageBus = messageBus;
         this._onDomReady = this._onDomReady.bind(this);
         this.use([
@@ -382,15 +381,15 @@ var DCore = /** @class */ (function () {
     /**
      *  Creates a hook from given method.
      */
-    DCore.prototype.createHook = function (type, method) {
-        return this._hooksBehavior.createHook(type, method);
+    DCore.prototype.createHook = function (type, method, context) {
+        return this._hooksSystem.createHook(type, method, context);
     };
     /**
      *  Initializes dcore.
      */
     DCore.prototype.init = function (onInit) {
         guard.false(this._isInitialized, "m7");
-        this._onInit = this.createHook("onCoreInit", onInit || function () { });
+        this._onInit = this.createHook("onCoreInit", onInit || function () { }, this);
         this._createHooks();
         this._installExtensions();
         if (isDocumentReady()) {
@@ -426,8 +425,7 @@ var DCore = /** @class */ (function () {
         var instance = moduleData.instances[instanceId];
         if (instance) {
             if (typeof instance.moduleDidReceiveProps === "function") {
-                this.createHook("onModuleReceiveProps", instance.moduleDidReceiveProps)
-                    .call(instance, options.props);
+                this.createHook("onModuleReceiveProps", instance.moduleDidReceiveProps, instance)(options.props);
             }
             return;
         }
@@ -436,8 +434,7 @@ var DCore = /** @class */ (function () {
             return;
         }
         try {
-            this.createHook("onModuleInit", instance.init)
-                .call(instance, options.props);
+            this.createHook("onModuleInit", instance.init, instance)(options.props);
             moduleData.instances[instanceId] = instance;
         }
         catch (err) {
@@ -461,7 +458,7 @@ var DCore = /** @class */ (function () {
         }
         try {
             var instance = moduleData.instances[instanceId];
-            this.createHook("onModuleDestroy", instance.destroy).call(instance);
+            this.createHook("onModuleDestroy", instance.destroy, instance)();
             delete moduleData.instances[instanceId];
         }
         catch (err) {
@@ -485,11 +482,11 @@ var DCore = /** @class */ (function () {
         this._messageBus.publishAsync(message);
     };
     DCore.prototype._createHooks = function () {
-        this.addModule = this.createHook("onModuleAdd", this.addModule);
-        this.startModule = this.createHook("onModuleStart", this.startModule);
-        this.stopModule = this.createHook("onModuleStop", this.stopModule);
-        this.onMessage = this.createHook("onMessageSubscribe", this.onMessage);
-        this.publishAsync = this.createHook("onMessagePublish", this.publishAsync);
+        this.addModule = this.createHook("onModuleAdd", this.addModule, this);
+        this.startModule = this.createHook("onModuleStart", this.startModule, this);
+        this.stopModule = this.createHook("onModuleStop", this.stopModule, this);
+        this.onMessage = this.createHook("onMessageSubscribe", this.onMessage, this);
+        this.publishAsync = this.createHook("onMessagePublish", this.publishAsync, this);
     };
     DCore.prototype._installExtensions = function () {
         var _this = this;
@@ -503,7 +500,7 @@ var DCore = /** @class */ (function () {
         Object
             .keys(plugins)
             .forEach(function (hookType) {
-            return _this._hooksBehavior.addPlugin(hookType, plugins[hookType]);
+            return _this._hooksSystem.addPlugin(hookType, plugins[hookType]);
         });
     };
     DCore.prototype._onDomReady = function () {

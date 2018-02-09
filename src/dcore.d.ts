@@ -44,7 +44,7 @@
 			Sandbox: SandboxClass;
 
 			use(extensions: Extension[]): void;
-			createHook<T extends Func>(type: HookType, method: T): T & Hook;
+			createHook<T extends Func>(type: HookType, method: T, context?: any): T & Hook;
 			init(onInit?: Func<void>): void;
 
 			addModule(id: string, factory: ModuleFactory): void;

@@ -1,8 +1,8 @@
-﻿import { HooksBehavior } from "../src/components/HooksBehavior";
+﻿import { HooksSystem } from "../src/components/HooksSystem";
 
 interface TestsContext {
 	moduleHook: dcore.HookType;
-	hooksBehavior: HooksBehavior;
+	hooksSystem: HooksSystem;
 	module: {
 		callsOrder: string[];
 		sum: (args: SumArgs) => number;
@@ -18,7 +18,7 @@ interface SumArgs {
 	b: number;
 }
 
-describe("HooksBehavior", () => {
+describe("HooksSystem", () => {
 
 	const sumName = "sum";
 	const increaseResultBy1Name = "increaseResultBy1";
@@ -38,10 +38,13 @@ describe("HooksBehavior", () => {
 			}
 		}
 
-		this.hooksBehavior = new HooksBehavior();
+		this.hooksSystem = new HooksSystem();
 		this.moduleHook = "onModuleStart";
 		this.module = new Module();
-		this.module.sum = this.hooksBehavior.createHook(this.moduleHook, this.module.sum);
+		this.module.sum = this.hooksSystem.createHook(
+			this.moduleHook,
+			this.module.sum,
+			this.module);
 		this.plugins = {
 			increaseResultBy1: function (this: Module, next: () => number, args: SumArgs): number {
 				this.callsOrder.push(increaseResultBy1Name);
@@ -58,11 +61,11 @@ describe("HooksBehavior", () => {
 	});
 
 	it("should throw on empty hook when create hook", function (this: TestsContext): void {
-		expect(() => this.hooksBehavior.createHook("" as any, this.module.sum)).toThrowError();
+		expect(() => this.hooksSystem.createHook("" as any, this.module.sum)).toThrowError();
 	});
 
 	it("should throw on invalid method when create hook", function (this: TestsContext): void {
-		expect(() => this.hooksBehavior.createHook("onModuleAdd", null)).toThrowError();
+		expect(() => this.hooksSystem.createHook("onModuleAdd", null)).toThrowError();
 	});
 
 	it("should attach custom attributes when create hook", function (this: TestsContext): void {
@@ -71,11 +74,11 @@ describe("HooksBehavior", () => {
 	});
 
 	it("should throw on empty hook when add plugin", function (this: TestsContext): void {
-		expect(() => this.hooksBehavior.addPlugin("" as any, () => true)).toThrowError();
+		expect(() => this.hooksSystem.addPlugin("" as any, () => true)).toThrowError();
 	});
 
 	it("should throw on invalid plugin when add plugin", function (this: TestsContext): void {
-		expect(() => this.hooksBehavior.addPlugin(this.moduleHook, null)).toThrowError();
+		expect(() => this.hooksSystem.addPlugin(this.moduleHook, null)).toThrowError();
 	});
 
 	describe("Zero state", () => {
@@ -104,8 +107,8 @@ describe("HooksBehavior", () => {
 		it("should call original", function (this: TestsContext): void {
 			const args: SumArgs = { a: 2, b: 3 };
 			const sum = spyOn(this.module, "sum").and.callThrough();
-			this.hooksBehavior.addPlugin(this.moduleHook, this.plugins.multiplyArgumentsBy2);
-			this.hooksBehavior.addPlugin(this.moduleHook, this.plugins.increaseResultBy1);
+			this.hooksSystem.addPlugin(this.moduleHook, this.plugins.multiplyArgumentsBy2);
+			this.hooksSystem.addPlugin(this.moduleHook, this.plugins.increaseResultBy1);
 
 			this.module.sum(args);
 
@@ -119,8 +122,8 @@ describe("HooksBehavior", () => {
 			const args: SumArgs = { a: 2, b: 3 };
 			const multiplyArgumentsBy2 = spyOn(this.plugins, "multiplyArgumentsBy2").and.callThrough();
 			const increaseResultBy1 = spyOn(this.plugins, "increaseResultBy1").and.callThrough();
-			this.hooksBehavior.addPlugin(this.moduleHook, multiplyArgumentsBy2);
-			this.hooksBehavior.addPlugin(this.moduleHook, increaseResultBy1);
+			this.hooksSystem.addPlugin(this.moduleHook, multiplyArgumentsBy2);
+			this.hooksSystem.addPlugin(this.moduleHook, increaseResultBy1);
 
 			this.module.sum(args);
 
@@ -136,8 +139,8 @@ describe("HooksBehavior", () => {
 
 		it("should call original and its the plugins in correct order", function (this: TestsContext): void {
 			const args: SumArgs = { a: 2, b: 3 };
-			this.hooksBehavior.addPlugin(this.moduleHook, this.plugins.multiplyArgumentsBy2);
-			this.hooksBehavior.addPlugin(this.moduleHook, this.plugins.increaseResultBy1);
+			this.hooksSystem.addPlugin(this.moduleHook, this.plugins.multiplyArgumentsBy2);
+			this.hooksSystem.addPlugin(this.moduleHook, this.plugins.increaseResultBy1);
 
 			this.module.sum(args);
 
@@ -151,8 +154,8 @@ describe("HooksBehavior", () => {
 		it("should return correct result", function (this: TestsContext): void {
 			const args: SumArgs = { a: 2, b: 3 };
 			const expectedSum = ((args.a + args.b) * 2) + 1;
-			this.hooksBehavior.addPlugin(this.moduleHook, this.plugins.multiplyArgumentsBy2);
-			this.hooksBehavior.addPlugin(this.moduleHook, this.plugins.increaseResultBy1);
+			this.hooksSystem.addPlugin(this.moduleHook, this.plugins.multiplyArgumentsBy2);
+			this.hooksSystem.addPlugin(this.moduleHook, this.plugins.increaseResultBy1);
 
 			const actualSum = this.module.sum(args);
 
@@ -164,8 +167,8 @@ describe("HooksBehavior", () => {
 			const expectedMessage = "test message";
 			const multiplyArgumentsBy2 = spyOn(this.plugins, "multiplyArgumentsBy2").and.throwError(expectedMessage);
 			const increaseResultBy1 = spyOn(this.plugins, "increaseResultBy1").and.callThrough();
-			this.hooksBehavior.addPlugin(this.moduleHook, multiplyArgumentsBy2);
-			this.hooksBehavior.addPlugin(this.moduleHook, increaseResultBy1);
+			this.hooksSystem.addPlugin(this.moduleHook, multiplyArgumentsBy2);
+			this.hooksSystem.addPlugin(this.moduleHook, increaseResultBy1);
 
 			expect(() => this.module.sum(args)).toThrowError(expectedMessage);
 			expect(increaseResultBy1).not.toHaveBeenCalled();

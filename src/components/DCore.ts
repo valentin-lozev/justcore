@@ -1,6 +1,6 @@
 ﻿import "../polyfills";
 import { Sandbox } from "./Sandbox";
-import { HooksBehavior } from "./HooksBehavior";
+import { HooksSystem } from "./HooksSystem";
 import { MessageBus } from "./MessageBus";
 import { moduleAutosubscribe } from "../extensions/module-autosubscribe";
 import {
@@ -22,13 +22,13 @@ export class DCore implements dcore.Core {
 	public Sandbox: dcore.SandboxClass = Sandbox;
 	private _isInitialized: boolean = false;
 	private _onInit: dcore.Func<void> = null;
-	private _hooksBehavior: HooksBehavior = null;
+	private _hooksSystem: HooksSystem = null;
 	private _messageBus: MessageBus = null;
 	private _extensions: { [name: string]: dcore.Extension; } = Object.create(null);
 	private _modules: { [id: string]: ModuleData; } = Object.create(null);
 
-	constructor(hooksBehavior = new HooksBehavior(), messageBus = new MessageBus()) {
-		this._hooksBehavior = hooksBehavior;
+	constructor(hooksSystem = new HooksSystem(), messageBus = new MessageBus()) {
+		this._hooksSystem = hooksSystem;
 		this._messageBus = messageBus;
 		this._onDomReady = this._onDomReady.bind(this);
 		this.use([
@@ -92,8 +92,8 @@ export class DCore implements dcore.Core {
 	/**
 	 *  Creates a hook from given method.
 	 */
-	createHook<T extends dcore.Func>(type: dcore.HookType, method: T): T & dcore.Hook {
-		return this._hooksBehavior.createHook(type, method);
+	createHook<T extends dcore.Func>(type: dcore.HookType, method: T, context?: any): T & dcore.Hook {
+		return this._hooksSystem.createHook(type, method, context);
 	}
 
 	/**
@@ -102,7 +102,7 @@ export class DCore implements dcore.Core {
 	init(onInit?: dcore.Func<void>): void {
 		guard.false(this._isInitialized, "m7");
 
-		this._onInit = this.createHook("onCoreInit", onInit || function () { });
+		this._onInit = this.createHook("onCoreInit", onInit || function () { }, this);
 		this._createHooks();
 		this._installExtensions();
 
@@ -142,10 +142,11 @@ export class DCore implements dcore.Core {
 		let instance = moduleData.instances[instanceId];
 		if (instance) {
 			if (typeof instance.moduleDidReceiveProps === "function") {
-				this.createHook("onModuleReceiveProps", instance.moduleDidReceiveProps)
-					.call(instance, options.props);
+				this.createHook(
+					"onModuleReceiveProps",
+					instance.moduleDidReceiveProps,
+					instance)(options.props);
 			}
-
 			return;
 		}
 
@@ -155,8 +156,10 @@ export class DCore implements dcore.Core {
 		}
 
 		try {
-			this.createHook("onModuleInit", instance.init)
-				.call(instance, options.props);
+			this.createHook(
+				"onModuleInit",
+				instance.init,
+				instance)(options.props);
 			moduleData.instances[instanceId] = instance;
 		} catch (err) {
 			console.error(`startModule(): "${id}" init failed`);
@@ -182,7 +185,7 @@ export class DCore implements dcore.Core {
 
 		try {
 			const instance = moduleData.instances[instanceId];
-			this.createHook("onModuleDestroy", instance.destroy).call(instance);
+			this.createHook("onModuleDestroy", instance.destroy, instance)();
 			delete moduleData.instances[instanceId];
 		} catch (err) {
 			console.error(`stopModule(): "${id}" destroy failed`);
@@ -208,11 +211,11 @@ export class DCore implements dcore.Core {
 	}
 
 	private _createHooks(): void {
-		this.addModule = this.createHook("onModuleAdd", this.addModule);
-		this.startModule = this.createHook("onModuleStart", this.startModule);
-		this.stopModule = this.createHook("onModuleStop", this.stopModule);
-		this.onMessage = this.createHook("onMessageSubscribe", this.onMessage);
-		this.publishAsync = this.createHook("onMessagePublish", this.publishAsync);
+		this.addModule = this.createHook("onModuleAdd", this.addModule, this);
+		this.startModule = this.createHook("onModuleStart", this.startModule, this);
+		this.stopModule = this.createHook("onModuleStop", this.stopModule, this);
+		this.onMessage = this.createHook("onMessageSubscribe", this.onMessage, this);
+		this.publishAsync = this.createHook("onMessagePublish", this.publishAsync, this);
 	}
 
 	private _installExtensions(): void {
@@ -226,7 +229,7 @@ export class DCore implements dcore.Core {
 		Object
 			.keys(plugins)
 			.forEach(hookType =>
-				this._hooksBehavior.addPlugin(hookType as dcore.HookType, plugins[hookType])
+				this._hooksSystem.addPlugin(hookType as dcore.HookType, plugins[hookType])
 			);
 	}
 

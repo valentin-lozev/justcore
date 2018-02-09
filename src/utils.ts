@@ -1,4 +1,4 @@
-﻿export const VERSION = "3.0.0";
+﻿export const VERSION = "3.0.1";
 
 const errorCodes = {
 	m1: () => "use(): extensions must be installed before init",

@@ -5,27 +5,27 @@ interface Plugin extends dcore.Func {
 }
 
 /**
- *  Encapsulates hooks behavior that is private to dcore.
+ *  Encapsulates hooks behavior of dcore.
  */
-export class HooksBehavior {
+export class HooksSystem {
 
 	private _plugins: { [hookType: string]: Plugin[]; } = Object.create(null);
 
-	createHook<T extends dcore.Func>(type: dcore.HookType, method: T): T & dcore.Hook {
+	createHook<T extends dcore.Func>(type: dcore.HookType, method: T, context?: any): T & dcore.Hook {
 		guard
 			.nonEmptyString(type, "m16")
 			.function(method, "m17", type);
 
-		const hookContext = this;
+		const hooksContext = this;
 		const result = function (...args: any[]): any {
-			const plugins = hookContext._plugins[type];
+			const plugins = hooksContext._plugins[type];
 			if (!plugins) {
-				return method.apply(this, args);
+				return method.apply(context, args);
 			}
 
 			return plugins.reduceRight(
-				(pipeline, plugin) => () => plugin.apply(this, [pipeline, ...args]),
-				() => method.apply(this, args)
+				(pipeline, plugin) => () => plugin.apply(context, [pipeline, ...args]),
+				() => method.apply(context, args)
 			)();
 		} as T & dcore.Hook;
 
