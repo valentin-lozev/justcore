@@ -1,5 +1,10 @@
 {
 	"author": "Valentin Lozev",
+	"typings": "dist/dcore.d.ts",
+	"main": "dist/dcore.umd.js",
+	"umd:main": "dist/dcore.umd.js",
+	"module": "dist/dcore.module.js",
+	"jsnext:main": "dist/dcore.module.js",
 	"devDependencies": {
 		"@types/jasmine": "2.8.2",
 		"eslint": "^4.14.0",

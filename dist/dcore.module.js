@@ -5,12 +5,6 @@
  *  Source code: http://github.com/valentin-lozev/dcore
  */
 
-(function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-	typeof define === 'function' && define.amd ? define(['exports'], factory) :
-	(factory((global.dcore = {})));
-}(this, (function (exports) { 'use strict';
-
 if (typeof Array.prototype.reduceRight !== 'function') {
     Array.prototype.reduceRight = function (callback /*, initialValue*/) {
         'use strict';
@@ -525,8 +519,4 @@ var DCore = /** @class */ (function () {
     return DCore;
 }());
 
-exports.DCore = DCore;
-
-Object.defineProperty(exports, '__esModule', { value: true });
-
-})));
+export { DCore };

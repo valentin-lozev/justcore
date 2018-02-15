@@ -101,7 +101,7 @@ const bundleES = () =>
 					name: DCORE,
 					format: "es",
 					banner: banner,
-					file: `${distFolder}/${DCORE}.es6.js`
+					file: `${distFolder}/${DCORE}.module.js`
 				})
 				.then(() => console.info("ES6 bundled successfully"));
 		});
