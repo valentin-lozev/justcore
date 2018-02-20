@@ -6,6 +6,10 @@
 	"jsnext:main": "dist/justcore.module.js",
 	"module": "dist/justcore.module.js",
 	"typings": "dist/justcore.d.ts",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/valentin-lozev/justcore.git"
+	},
 	"devDependencies": {
 		"@types/jasmine": "2.8.2",
 		"eslint": "^4.14.0",
