@@ -27,6 +27,13 @@
 	],
 	"license": "MIT",
 	"ignore": [
-		"!dist/*"
+		"node_modules",
+		"bower_components",
+		"build/",
+		"Properties/",
+		"src/",
+		"scripts/",
+		"**/tests",
+		"/*.*"
 	]
 }

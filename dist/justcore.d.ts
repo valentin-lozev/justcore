@@ -1,5 +1,5 @@
 ﻿declare global {
-	namespace justcore {
+	namespace jc {
 
 		export interface Func<T = any> {
 			(...args: any[]): T;
@@ -101,4 +101,4 @@
 	}
 }
 
-export const Core: justcore.CoreClass;
+export const Core: jc.CoreClass;

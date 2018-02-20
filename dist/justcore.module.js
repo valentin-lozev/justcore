@@ -80,7 +80,7 @@ var Sandbox = /** @class */ (function () {
     return Sandbox;
 }());
 
-var VERSION = "3.0.1";
+var VERSION = "1.0.0";
 var errorCodes = {
     m1: function () { return "use(): extensions must be installed before init"; },
     m2: function () { return "use(): extensions must be passed as an array"; },
