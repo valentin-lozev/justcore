@@ -1,14 +1,14 @@
 ﻿/**
- *  Connects the modules to the outside world. Facade of dcore.
+ *  Connects the modules to the outside world. Facade of the core.
  */
-export class Sandbox implements dcore.Sandbox {
+export class Sandbox implements jc.Sandbox {
 
-	_extensionsOnlyCore: Readonly<dcore.Core>;
+	_extensionsOnlyCore: Readonly<jc.Core>;
 	private _moduleId: string;
 	private _instanceId: string;
 
-	constructor(dcore: dcore.Core, moduleId: string, instanceId: string) {
-		this._extensionsOnlyCore = dcore;
+	constructor(core: jc.Core, moduleId: string, instanceId: string) {
+		this._extensionsOnlyCore = core;
 		this._moduleId = moduleId;
 		this._instanceId = instanceId;
 	}
@@ -24,7 +24,7 @@ export class Sandbox implements dcore.Sandbox {
 	/**
 	 *  Starts an instance of given module and initializes it.
 	 */
-	startModule(id: string, options?: dcore.ModuleStartOptions): void {
+	startModule(id: string, options?: jc.ModuleStartOptions): void {
 		this._extensionsOnlyCore.startModule(id, options);
 	}
 
@@ -38,7 +38,7 @@ export class Sandbox implements dcore.Sandbox {
 	/**
 	 *  Publishes a message asynchronously.
 	 */
-	publishAsync<T extends dcore.Message>(message: T): void {
+	publishAsync<T extends jc.Message>(message: T): void {
 		this._extensionsOnlyCore.publishAsync(message);
 	}
 }

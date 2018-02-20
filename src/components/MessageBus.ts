@@ -2,18 +2,18 @@
 
 interface SubscribersMap {
 	[messageType: string]: {
-		[subscriptionId: number]: dcore.MessageHandler;
+		[subscriptionId: number]: jc.MessageHandler;
 	};
 }
 
 /**
- *  Encapsulates communication behavior of dcore.
+ *  Encapsulates communication behavior of the core.
  */
 export class MessageBus {
 
 	private _subscribers: SubscribersMap = Object.create(null);
 
-	onMessage(type: string, handler: dcore.MessageHandler): dcore.Unsubscribe {
+	onMessage(type: string, handler: jc.MessageHandler): jc.Unsubscribe {
 		guard
 			.nonEmptyString(type, "m20")
 			.function(handler, "m21", type);
@@ -21,7 +21,7 @@ export class MessageBus {
 		return this._addSubscriber(type, handler);
 	}
 
-	publishAsync<T extends dcore.Message>(message: T): void {
+	publishAsync<T extends jc.Message>(message: T): void {
 		guard.true(typeof message === "object", "m22");
 
 		if (!(message.type in this._subscribers)) {
@@ -34,7 +34,7 @@ export class MessageBus {
 		});
 	}
 
-	private _publishSingle(message: dcore.Message, handler: dcore.MessageHandler): void {
+	private _publishSingle(message: jc.Message, handler: jc.MessageHandler): void {
 		setTimeout(() => {
 			try {
 				handler(message);
@@ -45,7 +45,7 @@ export class MessageBus {
 		}, 0);
 	}
 
-	private _addSubscriber(type: string, handler: dcore.MessageHandler): dcore.Unsubscribe {
+	private _addSubscriber(type: string, handler: jc.MessageHandler): jc.Unsubscribe {
 		if (!(type in this._subscribers)) {
 			this._subscribers[type] = Object.create(null);
 		}

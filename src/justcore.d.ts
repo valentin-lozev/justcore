@@ -1,5 +1,5 @@
 ﻿declare global {
-	namespace dcore {
+	namespace jc {
 
 		export interface Func<T = any> {
 			(...args: any[]): T;
@@ -29,7 +29,7 @@
 
 		export interface Extension {
 			name: string;
-			install: (dcore: Core) => Partial<PluginsMap>;
+			install: (core: Core) => Partial<PluginsMap>;
 		}
 
 		export interface CoreClass {
@@ -56,7 +56,7 @@
 		}
 
 		export interface SandboxClass {
-			new(dcore: Core, moduleId: string, instanceId: string): Sandbox;
+			new(core: Core, moduleId: string, instanceId: string): Sandbox;
 		}
 
 		export interface Sandbox {
@@ -101,4 +101,4 @@
 	}
 }
 
-export const DCore: dcore.CoreClass;
+export const Core: jc.CoreClass;

@@ -7,14 +7,14 @@ const multiEntry = require("rollup-plugin-multi-entry");
 const uglify = require("rollup-plugin-uglify");
 const typescript = require("rollup-plugin-typescript2");
 
-const DCORE = "dcore";
-const input = "src/components/DCore.ts";
+const LIB_NAME = "justcore";
+const input = "src/components/Core.ts";
 const distFolder = "dist";
 const banner = `/**
- *  @license ${DCORE}.js
+ *  @license ${LIB_NAME}.js
  *  Copyright © ${new Date().getFullYear()} Valentin Lozev
  *  Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
- *  Source code: http://github.com/valentin-lozev/dcore
+ *  Source code: http://github.com/valentin-lozev/justcore
  */
 `;
 
@@ -38,7 +38,7 @@ const cleanDistFolder = () =>
 		.then(() => console.info("dist cleaned up"));
 
 const copyDefinitions = () =>
-	fs.copy(`src/${DCORE}.d.ts`, `${distFolder}/${DCORE}.d.ts`)
+	fs.copy(`src/${LIB_NAME}.d.ts`, `${distFolder}/${LIB_NAME}.d.ts`)
 		.then(() => console.info("Definitions copied successfully"));
 
 const bundleUmdDev = () =>
@@ -52,10 +52,10 @@ const bundleUmdDev = () =>
 		.then(bundle => {
 			return bundle
 				.write({
-					name: DCORE,
+					name: LIB_NAME,
 					format: "umd",
 					banner: banner,
-					file: `${distFolder}/${DCORE}.umd.js`,
+					file: `${distFolder}/${LIB_NAME}.umd.js`,
 					exports: "named"
 				})
 				.then(() => console.info("DEV UMD bundled successfully"));
@@ -78,10 +78,10 @@ const bundleUmdProd = () =>
 		.then(bundle => {
 			return bundle
 				.write({
-					name: DCORE,
+					name: LIB_NAME,
 					format: "umd",
 					banner: banner,
-					file: `${distFolder}/${DCORE}.umd.min.js`,
+					file: `${distFolder}/${LIB_NAME}.umd.min.js`,
 					exports: "named"
 				})
 				.then(() => console.info("PROD UMD bundled successfully"));
@@ -98,10 +98,10 @@ const bundleES = () =>
 		.then(bundle => {
 			return bundle
 				.write({
-					name: DCORE,
+					name: LIB_NAME,
 					format: "es",
 					banner: banner,
-					file: `${distFolder}/${DCORE}.module.js`
+					file: `${distFolder}/${LIB_NAME}.module.js`
 				})
 				.then(() => console.info("ES6 bundled successfully"));
 		});

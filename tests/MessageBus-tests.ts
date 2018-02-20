@@ -1,11 +1,10 @@
 ﻿import { MessageBus } from "../src/components/MessageBus";
-import { DCore } from "../src/components/DCore";
 
 interface TestsContext {
 	bus: MessageBus;
 	message: string;
 	messageData: string;
-	handleMessage: dcore.MessageHandler;
+	handleMessage: jc.MessageHandler;
 }
 
 describe("MessageBus", () => {

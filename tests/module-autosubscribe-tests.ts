@@ -1,24 +1,24 @@
-﻿import { DCore } from "../src/components/DCore";
+﻿import { Core } from "../src/components/Core";
 import { Sandbox } from "../src/components/Sandbox";
 import { moduleAutosubscribe } from "../src/extensions/module-autosubscribe";
 
 interface TestsContext {
-	dcore: dcore.Core;
+	core: jc.Core;
 	messages: string[];
 	moduleId: string;
-	module: dcore.Module;
-	plugins: Partial<dcore.PluginsMap>;
+	module: jc.Module;
+	plugins: Partial<jc.PluginsMap>;
 }
 
 describe("module-autosubscribe", () => {
 
 	beforeEach(function (this: TestsContext): void {
-		this.dcore = new DCore();
-		this.plugins = moduleAutosubscribe().install(this.dcore);
+		this.core = new Core();
+		this.plugins = moduleAutosubscribe().install(this.core);
 		this.messages = ["test-message-1", "test-message-2"];
 		this.moduleId = "test-module";
 		this.module = {
-			sandbox: new Sandbox(this.dcore, this.moduleId, this.moduleId),
+			sandbox: new Sandbox(this.core, this.moduleId, this.moduleId),
 			init: () => true,
 			destroy: () => true,
 			moduleDidReceiveMessage: () => true
@@ -54,7 +54,7 @@ describe("module-autosubscribe", () => {
 			});
 
 			it("should not call subscribe", function (this: TestsContext): void {
-				const spy = spyOn(this.dcore, "onMessage");
+				const spy = spyOn(this.core, "onMessage");
 
 				this.plugins.onModuleInit.call(this.module, this.module.init);
 
@@ -83,7 +83,7 @@ describe("module-autosubscribe", () => {
 			it("should call moduleWillSubscribe when subscribe", function (this: TestsContext): void {
 				this.module.moduleWillSubscribe = () => this.messages;
 				const moduleWillSubscribe = spyOn(this.module, "moduleWillSubscribe").and.callThrough();
-				const createHook = spyOn(this.dcore, "createHook").and.callThrough();
+				const createHook = spyOn(this.core, "createHook").and.callThrough();
 
 				this.plugins.onModuleInit.call(this.module, this.module.init);
 
@@ -97,7 +97,7 @@ describe("module-autosubscribe", () => {
 			});
 
 			it("should call moduleDidReceiveMessage with module as context", function (this: TestsContext): void {
-				const createHook = spyOn(this.dcore, "createHook").and.callThrough();
+				const createHook = spyOn(this.core, "createHook").and.callThrough();
 				this.module.moduleWillSubscribe = () => this.messages;
 
 				this.plugins.onModuleInit.call(this.module, this.module.init);
@@ -113,7 +113,7 @@ describe("module-autosubscribe", () => {
 			});
 
 			it("should call subscribe for each message", function (this: TestsContext): void {
-				const onMessage = spyOn(this.dcore, "onMessage").and.callThrough();
+				const onMessage = spyOn(this.core, "onMessage").and.callThrough();
 				this.module.moduleWillSubscribe = () => this.messages;
 
 				this.plugins.onModuleInit.call(this.module, this.module.init);
@@ -126,7 +126,7 @@ describe("module-autosubscribe", () => {
 			});
 
 			it("should pass moduleDidReceiveMessage hook as handler for each message", function (this: TestsContext): void {
-				const onMessage = spyOn(this.dcore, "onMessage").and.callThrough();
+				const onMessage = spyOn(this.core, "onMessage").and.callThrough();
 				this.module.moduleWillSubscribe = () => this.messages;
 
 				this.plugins.onModuleInit.call(this.module, this.module.init);
@@ -134,7 +134,7 @@ describe("module-autosubscribe", () => {
 				this.messages.forEach((message, index) => {
 					const args = onMessage.calls.argsFor(index);
 					const type = args[0];
-					const handler = args[1] as dcore.Hook;
+					const handler = args[1] as jc.Hook;
 
 					expect(args.length).toEqual(2);
 					expect(type).toEqual(message);
@@ -150,7 +150,7 @@ describe("module-autosubscribe", () => {
 				const init = spyOn(this.module, "init")
 					.and
 					.callFake(() => callsOrder.push("init"));
-				const onMessage = spyOn(this.dcore, "onMessage")
+				const onMessage = spyOn(this.core, "onMessage")
 					.and
 					.callFake(() => callsOrder.push("onMessage"));
 
@@ -187,7 +187,7 @@ describe("module-autosubscribe", () => {
 
 			it("should call and delete the unsubscribers when destroy", function (this: TestsContext): void {
 				const unsubscribe = spyOn({ spy: () => true }, "spy");
-				spyOn(this.dcore, "onMessage").and.returnValue(unsubscribe);
+				spyOn(this.core, "onMessage").and.returnValue(unsubscribe);
 				this.module.moduleWillSubscribe = () => this.messages;
 
 				this.plugins.onModuleInit.call(this.module, this.module.init);
@@ -205,7 +205,7 @@ describe("module-autosubscribe", () => {
 				const unsubscribe = spyOn({ spy: () => true }, "spy")
 					.and
 					.callFake(() => callsOrder.push("unsubscribe"));
-				spyOn(this.dcore, "onMessage").and.returnValue(unsubscribe);
+				spyOn(this.core, "onMessage").and.returnValue(unsubscribe);
 				this.module.moduleWillSubscribe = () => this.messages;
 
 				this.plugins.onModuleInit.call(this.module, this.module.init);

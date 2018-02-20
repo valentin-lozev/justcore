@@ -1,17 +1,17 @@
 ﻿import { guard } from "../utils";
 
-interface Plugin extends dcore.Func {
+interface Plugin extends jc.Func {
 	(next: () => any, ...args: any[]): any;
 }
 
 /**
- *  Encapsulates hooks behavior of dcore.
+ *  Encapsulates hooks behavior of the core.
  */
 export class HooksSystem {
 
 	private _plugins: { [hookType: string]: Plugin[]; } = Object.create(null);
 
-	createHook<T extends dcore.Func>(type: dcore.HookType, method: T, context?: any): T & dcore.Hook {
+	createHook<T extends jc.Func>(type: jc.HookType, method: T, context?: any): T & jc.Hook {
 		guard
 			.nonEmptyString(type, "m16")
 			.function(method, "m17", type);
@@ -27,14 +27,14 @@ export class HooksSystem {
 				(pipeline, plugin) => () => plugin.apply(context, [pipeline, ...args]),
 				() => method.apply(context, args)
 			)();
-		} as T & dcore.Hook;
+		} as T & jc.Hook;
 
 		result._withPipeline = true;
 		result._hookType = type;
 		return result;
 	}
 
-	addPlugin(hookType: dcore.HookType, plugin: Plugin): void {
+	addPlugin(hookType: jc.HookType, plugin: Plugin): void {
 		guard
 			.nonEmptyString(hookType, "m18")
 			.function(plugin, "m19", hookType);

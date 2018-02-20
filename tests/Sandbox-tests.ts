@@ -1,9 +1,9 @@
-﻿import { DCore } from "../src/components/DCore";
+﻿import { Core } from "../src/components/Core";
 import { Sandbox } from "../src/components/Sandbox";
 
 interface TestsContext {
-	dcore: dcore.Core;
-	sandbox: dcore.Sandbox;
+	core: jc.Core;
+	sandbox: jc.Sandbox;
 	moduleId: string;
 	instanceId: string;
 }
@@ -13,8 +13,8 @@ describe("Sandbox", () => {
 	beforeEach(function (this: TestsContext): void {
 		this.moduleId = "testModule";
 		this.instanceId = "testModule-1";
-		this.dcore = new DCore();
-		this.sandbox = new Sandbox(this.dcore, this.moduleId, this.instanceId);
+		this.core = new Core();
+		this.sandbox = new Sandbox(this.core, this.moduleId, this.instanceId);
 	});
 
 	it("should expose a module id", function (this: TestsContext) {
@@ -25,13 +25,13 @@ describe("Sandbox", () => {
 		expect(this.sandbox.instanceId).toEqual(this.instanceId);
 	});
 
-	it("should expose dcore", function (this: TestsContext) {
-		expect(this.sandbox._extensionsOnlyCore).toBe(this.dcore);
+	it("should expose the core", function (this: TestsContext) {
+		expect(this.sandbox._extensionsOnlyCore).toBe(this.core);
 	});
 
-	it("should delegate to dcore when publish", function (this: TestsContext) {
-		const spy = spyOn(this.dcore, "publishAsync");
-		const message: dcore.Message = { type: "on" };
+	it("should delegate to the core when publish", function (this: TestsContext) {
+		const spy = spyOn(this.core, "publishAsync");
+		const message: jc.Message = { type: "on" };
 
 		this.sandbox.publishAsync(message);
 
@@ -39,9 +39,9 @@ describe("Sandbox", () => {
 		expect(spy).toHaveBeenCalledWith(message);
 	});
 
-	it("should delegate to dcore when start a module", function (this: TestsContext) {
-		const spy = spyOn(this.dcore, "startModule");
-		const options: dcore.ModuleStartOptions = {};
+	it("should delegate to the core when start a module", function (this: TestsContext) {
+		const spy = spyOn(this.core, "startModule");
+		const options: jc.ModuleStartOptions = {};
 
 		this.sandbox.startModule(this.moduleId, options);
 
@@ -49,8 +49,8 @@ describe("Sandbox", () => {
 		expect(spy).toHaveBeenCalledWith(this.moduleId, options);
 	});
 
-	it("should delegate to dcore when stop a module", function (this: TestsContext) {
-		const spy = spyOn(this.dcore, "stopModule");
+	it("should delegate to the core when stop a module", function (this: TestsContext) {
+		const spy = spyOn(this.core, "stopModule");
 		const instanceId = "instanceId";
 
 		this.sandbox.stopModule(this.moduleId, instanceId);

@@ -1,7 +1,7 @@
 ﻿import { guard } from "../utils";
 
 declare global {
-	namespace dcore {
+	namespace jc {
 		interface Sandbox {
 			unsubscribers?: UnsubscribersMap;
 		}
@@ -9,13 +9,13 @@ declare global {
 }
 
 interface UnsubscribersMap {
-	[message: string]: dcore.Unsubscribe;
+	[message: string]: jc.Unsubscribe;
 }
 
-function subscribe(this: dcore.Module): void {
-	const dcore = this.sandbox._extensionsOnlyCore;
+function subscribe(this: jc.Module): void {
+	const core = this.sandbox._extensionsOnlyCore;
 	const messages = typeof this.moduleWillSubscribe === "function"
-		? dcore.createHook("onModuleSubscribe", this.moduleWillSubscribe, this)()
+		? core.createHook("onModuleSubscribe", this.moduleWillSubscribe, this)()
 		: null;
 	const anyMessages = Array.isArray(messages) && messages.length >= 0;
 	if (!anyMessages) {
@@ -24,19 +24,19 @@ function subscribe(this: dcore.Module): void {
 
 	guard.function(this.moduleDidReceiveMessage, "m23", this.sandbox.moduleId);
 
-	const moduleDidReceiveMessage = dcore.createHook(
+	const moduleDidReceiveMessage = core.createHook(
 		"onModuleReceiveMessage",
 		this.moduleDidReceiveMessage,
 		this);
 	this.sandbox.unsubscribers = messages.reduce(
 		(map, message) => {
-			map[message] = dcore.onMessage(message, moduleDidReceiveMessage);
+			map[message] = core.onMessage(message, moduleDidReceiveMessage);
 			return map;
 		},
 		Object.create(null) as UnsubscribersMap);
 }
 
-function unsubscribe(this: dcore.Module): void {
+function unsubscribe(this: jc.Module): void {
 	const unsubscribers = this.sandbox.unsubscribers;
 	if (unsubscribers) {
 		Object
@@ -49,16 +49,16 @@ function unsubscribe(this: dcore.Module): void {
 	}
 }
 
-export function moduleAutosubscribe(): dcore.Extension {
+export function moduleAutosubscribe(): jc.Extension {
 	return {
 		name: "module-autosubscribe",
 		install: () => ({
-			onModuleInit: function (this: dcore.Module, next: dcore.Func<void>): void {
+			onModuleInit: function (this: jc.Module, next: jc.Func<void>): void {
 				next();
 				subscribe.call(this);
 			},
 
-			onModuleDestroy: function (this: dcore.Module, next: dcore.Func<void>): void {
+			onModuleDestroy: function (this: jc.Module, next: jc.Func<void>): void {
 				unsubscribe.call(this);
 				next();
 			}

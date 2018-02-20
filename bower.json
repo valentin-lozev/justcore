@@ -1,22 +1,23 @@
 {
 	"private": false,
-	"name": "dcore",
+	"name": "justcore",
 	"description": "A javascript library that helps you build modular SPA applications",
 	"keywords": [
 		"modular",
+		"modules",
 		"library",
 		"typescript"
 	],
 	"authors": [ "Valentin Lozev <valentin.zh.lozev@gmail.com>" ],
 	"repository": {
 		"type": "git",
-		"url": "http://github.com/valentin-lozev/dcore.git"
+		"url": "http://github.com/valentin-lozev/justcore.git"
 	},
 	"dependencies": {
 	},
 	"main": [
-		"dist/dcore.umd.js",
-		"dist/dcore.d.ts"
+		"dist/justcore.umd.js",
+		"dist/justcore.d.ts"
 	],
 	"moduleType": [
 		"amd",
@@ -26,13 +27,6 @@
 	],
 	"license": "MIT",
 	"ignore": [
-		"node_modules",
-		"bower_components",
-		"Properties/",
-		"scripts/",
-		"src/",
-		"**/tests",
-		"coverage/",
-		"/*.*"
+		"!dist/*"
 	]
 }

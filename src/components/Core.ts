@@ -10,21 +10,21 @@ import {
 } from "../utils";
 
 interface ModuleData {
-	factory: dcore.ModuleFactory;
-	instances: { [instanceId: string]: dcore.Module; };
+	factory: jc.ModuleFactory;
+	instances: { [instanceId: string]: jc.Module; };
 }
 
 /**
  *  A mediator between the modules.
  */
-export class DCore implements dcore.Core {
+export class Core implements jc.Core {
 
-	public Sandbox: dcore.SandboxClass = Sandbox;
+	public Sandbox: jc.SandboxClass = Sandbox;
 	private _isInitialized: boolean = false;
-	private _onInit: dcore.Func<void> = null;
+	private _onInit: jc.Func<void> = null;
 	private _hooksSystem: HooksSystem = null;
 	private _messageBus: MessageBus = null;
-	private _extensions: { [name: string]: dcore.Extension; } = Object.create(null);
+	private _extensions: { [name: string]: jc.Extension; } = Object.create(null);
 	private _modules: { [id: string]: ModuleData; } = Object.create(null);
 
 	constructor(hooksSystem = new HooksSystem(), messageBus = new MessageBus()) {
@@ -38,7 +38,7 @@ export class DCore implements dcore.Core {
 	}
 
 	/**
-	 *	Returns current dcore version.
+	 *	Returns current justcore's version.
 	 */
 	get version(): string {
 		return VERSION;
@@ -73,7 +73,7 @@ export class DCore implements dcore.Core {
 	 *	Installs extensions.
 	 * @param extensions
 	 */
-	use(extensions: dcore.Extension[]): void {
+	use(extensions: jc.Extension[]): void {
 		guard
 			.false(this._isInitialized, "m1")
 			.array(extensions, "m2");
@@ -92,14 +92,14 @@ export class DCore implements dcore.Core {
 	/**
 	 *  Creates a hook from given method.
 	 */
-	createHook<T extends dcore.Func>(type: dcore.HookType, method: T, context?: any): T & dcore.Hook {
+	createHook<T extends jc.Func>(type: jc.HookType, method: T, context?: any): T & jc.Hook {
 		return this._hooksSystem.createHook(type, method, context);
 	}
 
 	/**
-	 *  Initializes dcore.
+	 *  Initializes the core.
 	 */
-	init(onInit?: dcore.Func<void>): void {
+	init(onInit?: jc.Func<void>): void {
 		guard.false(this._isInitialized, "m7");
 
 		this._onInit = this.createHook("onCoreInit", onInit || function () { }, this);
@@ -118,7 +118,7 @@ export class DCore implements dcore.Core {
 	/**
 	 *  Adds a module.
 	 */
-	addModule(id: string, factory: dcore.ModuleFactory): void {
+	addModule(id: string, factory: jc.ModuleFactory): void {
 		guard
 			.nonEmptyString(id, "m8")
 			.false(id in this._modules, "m9")
@@ -133,7 +133,7 @@ export class DCore implements dcore.Core {
 	/**
 	 *  Starts an instance of given module and initializes it.
 	 */
-	startModule(id: string, options: dcore.ModuleStartOptions = {}): void {
+	startModule(id: string, options: jc.ModuleStartOptions = {}): void {
 		guard.true(this._isInitialized, "m11")
 			.true(id in this._modules, "m12", id);
 
@@ -198,7 +198,7 @@ export class DCore implements dcore.Core {
 	 * @param messageType
 	 * @param handler
 	 */
-	onMessage(type: string, handler: dcore.MessageHandler): dcore.Unsubscribe {
+	onMessage(type: string, handler: jc.MessageHandler): jc.Unsubscribe {
 		return this._messageBus.onMessage(type, handler);
 	}
 
@@ -206,7 +206,7 @@ export class DCore implements dcore.Core {
 	 *	Publishes a message.
 	 * @param message
 	 */
-	publishAsync<T extends dcore.Message>(message: T): void {
+	publishAsync<T extends jc.Message>(message: T): void {
 		this._messageBus.publishAsync(message);
 	}
 
@@ -224,12 +224,12 @@ export class DCore implements dcore.Core {
 			.forEach(name => this._install(this._extensions[name]));
 	}
 
-	private _install(extension: dcore.Extension): void {
+	private _install(extension: jc.Extension): void {
 		const plugins = extension.install(this) || {};
 		Object
 			.keys(plugins)
 			.forEach(hookType =>
-				this._hooksSystem.addPlugin(hookType as dcore.HookType, plugins[hookType])
+				this._hooksSystem.addPlugin(hookType as jc.HookType, plugins[hookType])
 			);
 	}
 
@@ -238,8 +238,8 @@ export class DCore implements dcore.Core {
 		this._onInit();
 	}
 
-	private _createModule(id: string, instanceId: string, factory: dcore.ModuleFactory): dcore.Module {
-		let result: dcore.Module = null;
+	private _createModule(id: string, instanceId: string, factory: jc.ModuleFactory): jc.Module {
+		let result: jc.Module = null;
 		try {
 			result = factory(new this.Sandbox(this, id, instanceId));
 			guard

@@ -1,10 +1,11 @@
 {
-	"author": "Valentin Lozev",
-	"typings": "dist/dcore.d.ts",
-	"main": "dist/dcore.umd.js",
-	"umd:main": "dist/dcore.umd.js",
-	"module": "dist/dcore.module.js",
-	"jsnext:main": "dist/dcore.module.js",
+	"version": "3.0.1",
+	"name": "justcore",
+	"main": "dist/justcore.umd.js",
+	"umd:main": "dist/justcore.umd.js",
+	"jsnext:main": "dist/justcore.module.js",
+	"module": "dist/justcore.module.js",
+	"typings": "dist/justcore.d.ts",
 	"devDependencies": {
 		"@types/jasmine": "2.8.2",
 		"eslint": "^4.14.0",
@@ -23,10 +24,9 @@
 		"typescript": "^2.6.2",
 		"typescript-eslint-parser": "^11.0.0"
 	},
-	"license": "MIT",
-	"name": "dcore",
 	"scripts": {
 		"build": "node scripts/build.js"
 	},
-	"version": "1.0.0"
+	"license": "MIT",
+	"author": "Valentin Lozev"
 }
