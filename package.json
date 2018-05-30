@@ -17,6 +17,7 @@
 		"jasmine-core": "^2.8.0",
 		"karma": "^1.7.1",
 		"karma-coverage": "^1.1.1",
+		"karma-coveralls": "^1.2.1",
 		"karma-jasmine": "^1.1.0",
 		"karma-mocha-reporter": "^2.2.5",
 		"karma-phantomjs-launcher": "^1.0.4",
