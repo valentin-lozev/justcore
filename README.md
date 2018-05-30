@@ -1,4 +1,4 @@
-# justcore
+# justcore [![Build Status](https://travis-ci.org/valentin-lozev/justcore.svg?branch=master)](https://travis-ci.org/dwyl/esta)
 
 **justcore** is a lightweight Javascript library that helps you modularize and structure your code. Simple, easy-to-use module management solution for building scalable applications.
 
