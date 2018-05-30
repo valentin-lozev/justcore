@@ -16,7 +16,7 @@
 
 ### Documentation
 
-You can see the [wiki pages](../../../wiki).
+You can see the [wiki pages](https://github.com/valentin-lozev/justcore/wiki).
 
 ### Examples
 
