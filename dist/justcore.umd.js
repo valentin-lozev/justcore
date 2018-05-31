@@ -1,5 +1,5 @@
 /**
- *  @license justcore.js
+ *  @license justcore
  *  Copyright © 2018 Valentin Lozev
  *  Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
  *  Source code: http://github.com/valentin-lozev/justcore
@@ -10,81 +10,6 @@
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
 	(factory((global.justcore = {})));
 }(this, (function (exports) { 'use strict';
-
-if (typeof Array.prototype.reduceRight !== 'function') {
-    Array.prototype.reduceRight = function (callback /*, initialValue*/) {
-        'use strict';
-        if (null === this || 'undefined' === typeof this) {
-            throw new TypeError('Array.prototype.reduce called on null or undefined');
-        }
-        if ('function' !== typeof callback) {
-            throw new TypeError(callback + ' is not a function');
-        }
-        var t = Object(this), len = t.length >>> 0, k = len - 1, value;
-        if (arguments.length >= 2) {
-            value = arguments[1];
-        }
-        else {
-            while (k >= 0 && !(k in t)) {
-                k--;
-            }
-            if (k < 0) {
-                throw new TypeError('Reduce of empty array with no initial value');
-            }
-            value = t[k--];
-        }
-        for (; k >= 0; k--) {
-            if (k in t) {
-                value = callback(value, t[k], k, t);
-            }
-        }
-        return value;
-    };
-}
-
-/**
-*  Connects the modules to the outside world. Facade of the core.
-*/
-var Sandbox = /** @class */ (function () {
-    function Sandbox(core, moduleId, instanceId) {
-        this._extensionsOnlyCore = core;
-        this._moduleId = moduleId;
-        this._instanceId = instanceId;
-    }
-    Object.defineProperty(Sandbox.prototype, "moduleId", {
-        get: function () {
-            return this._moduleId;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(Sandbox.prototype, "instanceId", {
-        get: function () {
-            return this._instanceId;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    /**
-     *  Starts an instance of given module and initializes it.
-     */
-    Sandbox.prototype.startModule = function (id, options) {
-        this._extensionsOnlyCore.startModule(id, options);
-    };
-    /**
-     *  Stops a given module instance.
-     */
-    Sandbox.prototype.stopModule = function (id, instanceId) {
-        this._extensionsOnlyCore.stopModule(id, instanceId);
-    };
-    /**
-     *  Publishes a message asynchronously.
-     */
-    Sandbox.prototype.publishAsync = function (message) {
-        this._extensionsOnlyCore.publishAsync(message);
-    };
-    return Sandbox;
-}());
 
 var VERSION = "1.0.0";
 var errorCodes = {
@@ -120,47 +45,130 @@ var ArgumentGuard = /** @class */ (function () {
     function ArgumentGuard() {
     }
     ArgumentGuard.prototype.array = function (arg, code, formatId) {
-        if (!Array.isArray(arg))
+        if (!Array.isArray(arg)) {
             throwError(code, formatId);
+        }
         return this;
     };
     ArgumentGuard.prototype.object = function (arg, code, formatId) {
-        if (typeof arg !== "object" || arg === null)
+        if (typeof arg !== "object" || arg === null) {
             throwError(code, formatId);
+        }
         return this;
     };
     ArgumentGuard.prototype.function = function (arg, code, formatId) {
-        if (typeof arg !== "function")
+        if (typeof arg !== "function") {
             throwError(code, formatId);
+        }
         return this;
     };
     ArgumentGuard.prototype.nonEmptyString = function (arg, code, formatId) {
-        if (typeof arg !== "string" || !arg.length)
+        if (typeof arg !== "string" || !arg.length) {
             throwError(code, formatId);
+        }
         return this;
     };
     ArgumentGuard.prototype.true = function (arg, code, formatId) {
-        if (!arg)
+        if (!arg) {
             throwError(code, formatId);
+        }
         return this;
     };
     ArgumentGuard.prototype.false = function (arg, code, formatId) {
-        if (arg)
+        if (arg) {
             throwError(code, formatId);
+        }
         return this;
     };
     return ArgumentGuard;
 }());
 var guard = new ArgumentGuard();
 function isDocumentReady() {
-    return document.readyState === "complete" ||
-        document.readyState === "interactive" ||
-        document.readyState === "loaded"; /* old safari browsers */
+    var state = document.readyState;
+    return state === "complete" ||
+        state === "interactive" ||
+        state === "loaded"; /* old safari browsers */
 }
 
 var lastUID = 0;
 function uid() {
     return ++lastUID;
+}
+
+function subscribe() {
+    var core = this.sandbox._extensionsOnlyCore;
+    var messages = typeof this.moduleWillSubscribe === "function"
+        ? core.createHook("onModuleSubscribe", this.moduleWillSubscribe, this)()
+        : null;
+    var anyMessages = Array.isArray(messages) && messages.length >= 0;
+    if (!anyMessages) {
+        return;
+    }
+    guard.function(this.moduleDidReceiveMessage, "m23", this.sandbox.moduleId);
+    var moduleDidReceiveMessage = core.createHook("onModuleReceiveMessage", this.moduleDidReceiveMessage, this);
+    this.sandbox.unsubscribers = messages.reduce(function (map, message) {
+        map[message] = core.onMessage(message, moduleDidReceiveMessage);
+        return map;
+    }, Object.create(null));
+}
+function unsubscribe() {
+    var unsubscribers = this.sandbox.unsubscribers;
+    if (unsubscribers) {
+        Object
+            .keys(unsubscribers)
+            .forEach(function (message) {
+            unsubscribers[message]();
+            unsubscribers[message] = null;
+            delete unsubscribers[message];
+        });
+    }
+}
+function moduleAutosubscribe() {
+    return {
+        name: "module-autosubscribe",
+        install: function () { return ({
+            onModuleInit: function (next) {
+                next();
+                subscribe.call(this);
+            },
+            onModuleDestroy: function (next) {
+                unsubscribe.call(this);
+                next();
+            }
+        }); }
+    };
+}
+
+/* tslint:disable */
+if (typeof Array.prototype.reduceRight !== "function") {
+    Array.prototype.reduceRight = function (callback /*, initialValue*/) {
+        "use strict";
+        if (null === this || "undefined" === typeof this) {
+            throw new TypeError("Array.prototype.reduce called on null or undefined");
+        }
+        if ("function" !== typeof callback) {
+            throw new TypeError(callback + " is not a function");
+        }
+        var t = Object(this), len = t.length >>> 0, k = len - 1, value;
+        if (arguments.length >= 2) {
+            value = arguments[1];
+        }
+        else {
+            while (k >= 0 && !(k in t)) {
+                k--;
+            }
+            if (k < 0) {
+                throw new TypeError("Reduce of empty array with no initial value");
+            }
+            value = t[k--];
+        }
+        for (; k >= 0; k--) {
+            if (k in t) {
+                value = callback(value, t[k], k, t);
+            }
+        }
+        return value;
+    };
 }
 
 /**
@@ -249,49 +257,49 @@ var MessageBus = /** @class */ (function () {
     return MessageBus;
 }());
 
-function subscribe() {
-    var core = this.sandbox._extensionsOnlyCore;
-    var messages = typeof this.moduleWillSubscribe === "function"
-        ? core.createHook("onModuleSubscribe", this.moduleWillSubscribe, this)()
-        : null;
-    var anyMessages = Array.isArray(messages) && messages.length >= 0;
-    if (!anyMessages) {
-        return;
+/**
+ *  Connects the modules to the outside world. Facade of the core.
+ */
+var Sandbox = /** @class */ (function () {
+    function Sandbox(core, moduleId, instanceId) {
+        this._extensionsOnlyCore = core;
+        this._moduleId = moduleId;
+        this._instanceId = instanceId;
     }
-    guard.function(this.moduleDidReceiveMessage, "m23", this.sandbox.moduleId);
-    var moduleDidReceiveMessage = core.createHook("onModuleReceiveMessage", this.moduleDidReceiveMessage, this);
-    this.sandbox.unsubscribers = messages.reduce(function (map, message) {
-        map[message] = core.onMessage(message, moduleDidReceiveMessage);
-        return map;
-    }, Object.create(null));
-}
-function unsubscribe() {
-    var unsubscribers = this.sandbox.unsubscribers;
-    if (unsubscribers) {
-        Object
-            .keys(unsubscribers)
-            .forEach(function (message) {
-            unsubscribers[message]();
-            unsubscribers[message] = null;
-            delete unsubscribers[message];
-        });
-    }
-}
-function moduleAutosubscribe() {
-    return {
-        name: "module-autosubscribe",
-        install: function () { return ({
-            onModuleInit: function (next) {
-                next();
-                subscribe.call(this);
-            },
-            onModuleDestroy: function (next) {
-                unsubscribe.call(this);
-                next();
-            }
-        }); }
+    Object.defineProperty(Sandbox.prototype, "moduleId", {
+        get: function () {
+            return this._moduleId;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Sandbox.prototype, "instanceId", {
+        get: function () {
+            return this._instanceId;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    /**
+     *  Starts an instance of given module and initializes it.
+     */
+    Sandbox.prototype.startModule = function (id, options) {
+        this._extensionsOnlyCore.startModule(id, options);
     };
-}
+    /**
+     *  Stops a given module instance.
+     */
+    Sandbox.prototype.stopModule = function (id, instanceId) {
+        this._extensionsOnlyCore.stopModule(id, instanceId);
+    };
+    /**
+     *  Publishes a message asynchronously.
+     */
+    Sandbox.prototype.publishAsync = function (message) {
+        this._extensionsOnlyCore.publishAsync(message);
+    };
+    return Sandbox;
+}());
 
 /**
  *  A mediator between the modules.
@@ -317,7 +325,7 @@ var Core = /** @class */ (function () {
     }
     Object.defineProperty(Core.prototype, "version", {
         /**
-         *	Returns current justcore's version.
+         * Returns current justcore's version.
          */
         get: function () {
             return VERSION;
@@ -327,7 +335,7 @@ var Core = /** @class */ (function () {
     });
     Object.defineProperty(Core.prototype, "extensions", {
         /**
-         *	Lists all installed extensions.
+         * Lists all installed extensions.
          */
         get: function () {
             return Object.keys(this._extensions);
@@ -337,7 +345,7 @@ var Core = /** @class */ (function () {
     });
     Object.defineProperty(Core.prototype, "modules", {
         /**
-         *  Lists all added module ids.
+         * Lists all added module ids.
          */
         get: function () {
             return Object.keys(this._modules);
@@ -347,7 +355,7 @@ var Core = /** @class */ (function () {
     });
     Object.defineProperty(Core.prototype, "runningModules", {
         /**
-         *  Lists all running module instances by their id.
+         * Lists all running module instances by their id.
          */
         get: function () {
             var _this = this;
@@ -361,7 +369,7 @@ var Core = /** @class */ (function () {
         configurable: true
     });
     /**
-     *	Installs extensions.
+     * Installs extensions.
      * @param extensions
      */
     Core.prototype.use = function (extensions) {
@@ -467,7 +475,7 @@ var Core = /** @class */ (function () {
         }
     };
     /**
-     *	Subscribes for messages of given type.
+     * Subscribes for messages of given type.
      * @param messageType
      * @param handler
      */
@@ -475,7 +483,7 @@ var Core = /** @class */ (function () {
         return this._messageBus.onMessage(type, handler);
     };
     /**
-     *	Publishes a message.
+     * Publishes a message.
      * @param message
      */
     Core.prototype.publishAsync = function (message) {

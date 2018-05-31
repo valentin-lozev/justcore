@@ -1,4 +1,4 @@
-﻿export const VERSION = "1.0.0";
+export const VERSION = "1.0.0";
 
 const errorCodes = {
 	m1: () => "use(): extensions must be installed before init",
@@ -29,38 +29,38 @@ const errorCodes = {
 type ErrorCode = keyof typeof errorCodes;
 
 function throwError(code: ErrorCode, formatId?: string): void {
-	const msgCreator = errorCodes[code] as Function;
+	const msgCreator = errorCodes[code] as (...args: any[]) => string;
 	throw new Error(msgCreator(formatId));
 }
 
 class ArgumentGuard {
-	array(arg: any[], code: ErrorCode, formatId?: string): this {
-		if (!Array.isArray(arg)) throwError(code, formatId);
+	public array(arg: any[], code: ErrorCode, formatId?: string): this {
+		if (!Array.isArray(arg)) { throwError(code, formatId); }
 		return this;
 	}
 
-	object(arg: any, code: ErrorCode, formatId?: string): this {
-		if (typeof arg !== "object" || arg === null) throwError(code, formatId);
+	public object(arg: any, code: ErrorCode, formatId?: string): this {
+		if (typeof arg !== "object" || arg === null) { throwError(code, formatId); }
 		return this;
 	}
 
-	function(arg: Function, code: ErrorCode, formatId?: string): this {
-		if (typeof arg !== "function") throwError(code, formatId);
+	public function(arg: (...args: any[]) => any, code: ErrorCode, formatId?: string): this {
+		if (typeof arg !== "function") { throwError(code, formatId); }
 		return this;
 	}
 
-	nonEmptyString(arg: string, code: ErrorCode, formatId?: string): this {
-		if (typeof arg !== "string" || !arg.length) throwError(code, formatId);
+	public nonEmptyString(arg: string, code: ErrorCode, formatId?: string): this {
+		if (typeof arg !== "string" || !arg.length) { throwError(code, formatId); }
 		return this;
 	}
 
-	true(arg: boolean, code: ErrorCode, formatId?: string): this {
-		if (!arg) throwError(code, formatId);
+	public true(arg: boolean, code: ErrorCode, formatId?: string): this {
+		if (!arg) { throwError(code, formatId); }
 		return this;
 	}
 
-	false(arg: boolean, code: ErrorCode, formatId?: string): this {
-		if (arg) throwError(code, formatId);
+	public false(arg: boolean, code: ErrorCode, formatId?: string): this {
+		if (arg) { throwError(code, formatId); }
 		return this;
 	}
 }
@@ -68,9 +68,10 @@ class ArgumentGuard {
 export const guard = new ArgumentGuard();
 
 export function isDocumentReady(): boolean {
-	return document.readyState === "complete" ||
-		document.readyState === "interactive" ||
-		document.readyState === "loaded"; /* old safari browsers */
+	const state = document.readyState;
+	return state === "complete" ||
+		state === "interactive" ||
+		state as string === "loaded"; /* old safari browsers */
 }
 
 export const hasOwnProperty = Object.prototype.hasOwnProperty;

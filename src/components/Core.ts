@@ -1,13 +1,9 @@
-﻿import "../polyfills";
-import { Sandbox } from "./Sandbox";
+import { moduleAutosubscribe } from "../extensions/module-autosubscribe";
+import "../polyfills";
+import { guard, isDocumentReady, VERSION } from "../utils";
 import { HooksSystem } from "./HooksSystem";
 import { MessageBus } from "./MessageBus";
-import { moduleAutosubscribe } from "../extensions/module-autosubscribe";
-import {
-	guard,
-	isDocumentReady,
-	VERSION
-} from "../utils";
+import { Sandbox } from "./Sandbox";
 
 interface ModuleData {
 	factory: jc.ModuleFactory;
@@ -38,28 +34,28 @@ export class Core implements jc.Core {
 	}
 
 	/**
-	 *	Returns current justcore's version.
+	 * Returns current justcore's version.
 	 */
 	get version(): string {
 		return VERSION;
 	}
 
 	/**
-	 *	Lists all installed extensions.
+	 * Lists all installed extensions.
 	 */
 	get extensions(): string[] {
 		return Object.keys(this._extensions);
 	}
 
 	/**
-	 *  Lists all added module ids.
+	 * Lists all added module ids.
 	 */
 	get modules(): string[] {
 		return Object.keys(this._modules);
 	}
 
 	/**
-	 *  Lists all running module instances by their id.
+	 * Lists all running module instances by their id.
 	 */
 	get runningModules(): { [id: string]: string[]; } {
 		return this.modules
@@ -70,10 +66,10 @@ export class Core implements jc.Core {
 	}
 
 	/**
-	 *	Installs extensions.
+	 * Installs extensions.
 	 * @param extensions
 	 */
-	use(extensions: jc.Extension[]): void {
+	public use(extensions: jc.Extension[]): void {
 		guard
 			.false(this._isInitialized, "m1")
 			.array(extensions, "m2");
@@ -92,17 +88,17 @@ export class Core implements jc.Core {
 	/**
 	 *  Creates a hook from given method.
 	 */
-	createHook<T extends jc.Func>(type: jc.HookType, method: T, context?: any): T & jc.Hook {
+	public createHook<T extends jc.Func>(type: jc.HookType, method: T, context?: any): T & jc.Hook {
 		return this._hooksSystem.createHook(type, method, context);
 	}
 
 	/**
 	 *  Initializes the core.
 	 */
-	init(onInit?: jc.Func<void>): void {
+	public init(onInit?: jc.Func<void>): void {
 		guard.false(this._isInitialized, "m7");
 
-		this._onInit = this.createHook("onCoreInit", onInit || function () { }, this);
+		this._onInit = this.createHook("onCoreInit", onInit || function() { /* ignored */ }, this);
 		this._createHooks();
 		this._installExtensions();
 
@@ -118,7 +114,7 @@ export class Core implements jc.Core {
 	/**
 	 *  Adds a module.
 	 */
-	addModule(id: string, factory: jc.ModuleFactory): void {
+	public addModule(id: string, factory: jc.ModuleFactory): void {
 		guard
 			.nonEmptyString(id, "m8")
 			.false(id in this._modules, "m9")
@@ -133,7 +129,7 @@ export class Core implements jc.Core {
 	/**
 	 *  Starts an instance of given module and initializes it.
 	 */
-	startModule(id: string, options: jc.ModuleStartOptions = {}): void {
+	public startModule(id: string, options: jc.ModuleStartOptions = {}): void {
 		guard.true(this._isInitialized, "m11")
 			.true(id in this._modules, "m12", id);
 
@@ -170,7 +166,7 @@ export class Core implements jc.Core {
 	/**
 	 *  Stops a given module instance.
 	 */
-	stopModule(id: string, instanceId?: string): void {
+	public stopModule(id: string, instanceId?: string): void {
 		const moduleData = this._modules[id];
 		if (!moduleData) {
 			console.warn(`stopModule(): "${id}" not found`);
@@ -194,19 +190,19 @@ export class Core implements jc.Core {
 	}
 
 	/**
-	 *	Subscribes for messages of given type.
+	 * Subscribes for messages of given type.
 	 * @param messageType
 	 * @param handler
 	 */
-	onMessage(type: string, handler: jc.MessageHandler): jc.Unsubscribe {
+	public onMessage(type: string, handler: jc.MessageHandler): jc.Unsubscribe {
 		return this._messageBus.onMessage(type, handler);
 	}
 
 	/**
-	 *	Publishes a message.
+	 * Publishes a message.
 	 * @param message
 	 */
-	publishAsync<T extends jc.Message>(message: T): void {
+	public publishAsync<T extends jc.Message>(message: T): void {
 		this._messageBus.publishAsync(message);
 	}
 

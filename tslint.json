@@ -1,0 +1,29 @@
+{
+	"extends": "tslint:recommended",
+	"parserOptions": {
+		"ecmaVersion": 5,
+		"sourceType": "module"
+	},
+	"rules": {
+		"arrow-parens": false,
+		"eofline": false,
+		"indent": {
+			"options": [ "tabs" ]
+		},
+		"no-console": [ "log", "info" ],
+		"no-namespace": false,
+		"object-literal-shorthand": false,
+		"object-literal-sort-keys": false,
+		"only-arrow-functions": false,
+		"trailing-comma": false,
+		"interface-name": false,
+		"variable-name": {
+			"options": [
+				"ban-keywords",
+				"check-format",
+				"allow-pascal-case",
+				"allow-leading-underscore"
+			]
+		}
+	}
+}

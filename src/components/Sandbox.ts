@@ -1,9 +1,9 @@
-﻿/**
+/**
  *  Connects the modules to the outside world. Facade of the core.
  */
 export class Sandbox implements jc.Sandbox {
 
-	_extensionsOnlyCore: Readonly<jc.Core>;
+	public _extensionsOnlyCore: Readonly<jc.Core>;
 	private _moduleId: string;
 	private _instanceId: string;
 
@@ -24,21 +24,21 @@ export class Sandbox implements jc.Sandbox {
 	/**
 	 *  Starts an instance of given module and initializes it.
 	 */
-	startModule(id: string, options?: jc.ModuleStartOptions): void {
+	public startModule(id: string, options?: jc.ModuleStartOptions): void {
 		this._extensionsOnlyCore.startModule(id, options);
 	}
 
 	/**
 	 *  Stops a given module instance.
 	 */
-	stopModule(id: string, instanceId?: string): void {
+	public stopModule(id: string, instanceId?: string): void {
 		this._extensionsOnlyCore.stopModule(id, instanceId);
 	}
 
 	/**
 	 *  Publishes a message asynchronously.
 	 */
-	publishAsync<T extends jc.Message>(message: T): void {
+	public publishAsync<T extends jc.Message>(message: T): void {
 		this._extensionsOnlyCore.publishAsync(message);
 	}
 }

@@ -1,148 +1,26 @@
-﻿const fs = require("fs-extra");
-const path = require("path");
-const karma = require("karma");
-const eslint = require("eslint");
-const rollup = require("rollup");
-const multiEntry = require("rollup-plugin-multi-entry");
-const uglify = require("rollup-plugin-uglify");
-const typescript = require("rollup-plugin-typescript2");
+﻿const copyDefinitions = require('./copyDefinitions');
+const buildUmdDevelopment = require('./buildUmdDevelopment');
+const buildUmdProduction = require('./buildUmdProduction');
+const buildES = require('./buildES');
+const runTests = require('./runTests');
 
-const LIB_NAME = "justcore";
-const input = "src/components/Core.ts";
-const distFolder = "dist";
+const input = 'src/components/Core.ts';
+const definitionsSource = 'src/justcore.d.ts';
+const definitionsTarget = 'dist/justcore.d.ts';
 const banner = `/**
- *  @license ${LIB_NAME}.js
+ *  @license justcore
  *  Copyright © ${new Date().getFullYear()} Valentin Lozev
  *  Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
  *  Source code: http://github.com/valentin-lozev/justcore
  */
 `;
 
-const runEslint = () => {
-	const cli = new eslint.CLIEngine({
-		extensions: [".ts"]
-	});
-	const report = cli.executeOnFiles(["src/"]);
-	const formatter = cli.getFormatter();
-	const errorReport = eslint.CLIEngine.getErrorResults(report.results);
-	if (errorReport.length > 0) {
-		console.log(formatter(errorReport));
-		throw "eslint failed";
-	} else {
-		console.log(formatter(report.results));
-	}
-}
-
-const cleanDistFolder = () =>
-	fs.remove(distFolder)
-		.then(() => console.info("dist cleaned up"));
-
-const copyDefinitions = () =>
-	fs.copy(`src/${LIB_NAME}.d.ts`, `${distFolder}/${LIB_NAME}.d.ts`)
-		.then(() => console.info("Definitions copied successfully"));
-
-const bundleUmdDev = () =>
-	rollup
-		.rollup({
-			input: input,
-			plugins: [
-				typescript()
-			]
-		})
-		.then(bundle => {
-			return bundle
-				.write({
-					name: LIB_NAME,
-					format: "umd",
-					banner: banner,
-					file: `${distFolder}/${LIB_NAME}.umd.js`,
-					exports: "named"
-				})
-				.then(() => console.info("DEV UMD bundled successfully"));
-		});
-
-const bundleUmdProd = () =>
-	rollup
-		.rollup({
-			input: input,
-			plugins: [
-				typescript(),
-				uglify({
-					mangle: false,
-					output: {
-						comments: "some"
-					}
-				})
-			]
-		})
-		.then(bundle => {
-			return bundle
-				.write({
-					name: LIB_NAME,
-					format: "umd",
-					banner: banner,
-					file: `${distFolder}/${LIB_NAME}.umd.min.js`,
-					exports: "named"
-				})
-				.then(() => console.info("PROD UMD bundled successfully"));
-		});
-
-const bundleES = () =>
-	rollup
-		.rollup({
-			input: input,
-			plugins: [
-				typescript()
-			]
-		})
-		.then(bundle => {
-			return bundle
-				.write({
-					name: LIB_NAME,
-					format: "es",
-					banner: banner,
-					file: `${distFolder}/${LIB_NAME}.module.js`
-				})
-				.then(() => console.info("ES6 bundled successfully"));
-		});
-
-const bundleTests = () =>
-	rollup
-		.rollup({
-			input: "tests/**/*-tests.ts",
-			plugins: [
-				multiEntry(),
-				typescript({
-					clean: true
-				})
-			]
-		})
-		.then(bundle => {
-			return bundle
-				.write({
-					format: "iife",
-					file: "tests/bundle.js",
-					name: "tests"
-				})
-				.then(() => console.info("TESTS bundled successfully"));
-		});
-
-const runTests = () => {
-	const configPath = path.resolve('./karma.conf.js');
-	const config = karma.config.parseConfig(configPath);
-	new karma.Server(config).start();
-};
-
-const build = () =>
-	Promise.resolve()
-		.then(() => runEslint())
-		.then(() => cleanDistFolder())
-		.then(() => copyDefinitions())
-		.then(() => bundleUmdDev())
-		.then(() => bundleUmdProd())
-		.then(() => bundleES())
-		.then(() => bundleTests())
-		.then(() => runTests())
-		.catch(reason => console.error(reason));
+const build = () => Promise.resolve()
+	.then(() => copyDefinitions(definitionsSource, definitionsTarget))
+	.then(() => buildUmdDevelopment(input, banner))
+	.then(() => buildUmdProduction(input, banner))
+	.then(() => buildES(input, banner))
+	.then(() => runTests())
+	.catch(reason => console.error(reason));
 
 build();

@@ -1,4 +1,4 @@
-﻿import { guard, uid } from "../utils";
+import { guard, uid } from "../utils";
 
 interface SubscribersMap {
 	[messageType: string]: {
@@ -13,7 +13,7 @@ export class MessageBus {
 
 	private _subscribers: SubscribersMap = Object.create(null);
 
-	onMessage(type: string, handler: jc.MessageHandler): jc.Unsubscribe {
+	public onMessage(type: string, handler: jc.MessageHandler): jc.Unsubscribe {
 		guard
 			.nonEmptyString(type, "m20")
 			.function(handler, "m21", type);
@@ -21,7 +21,7 @@ export class MessageBus {
 		return this._addSubscriber(type, handler);
 	}
 
-	publishAsync<T extends jc.Message>(message: T): void {
+	public publishAsync<T extends jc.Message>(message: T): void {
 		guard.true(typeof message === "object", "m22");
 
 		if (!(message.type in this._subscribers)) {

@@ -1,4 +1,4 @@
-﻿import { guard } from "../utils";
+import { guard } from "../utils";
 
 declare global {
 	namespace jc {
@@ -53,12 +53,12 @@ export function moduleAutosubscribe(): jc.Extension {
 	return {
 		name: "module-autosubscribe",
 		install: () => ({
-			onModuleInit: function (this: jc.Module, next: jc.Func<void>): void {
+			onModuleInit: function(this: jc.Module, next: jc.Func<void>): void {
 				next();
 				subscribe.call(this);
 			},
 
-			onModuleDestroy: function (this: jc.Module, next: jc.Func<void>): void {
+			onModuleDestroy: function(this: jc.Module, next: jc.Func<void>): void {
 				unsubscribe.call(this);
 				next();
 			}
