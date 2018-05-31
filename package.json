@@ -10,6 +10,16 @@
 		"type": "git",
 		"url": "https://github.com/valentin-lozev/justcore.git"
 	},
+	"license": "MIT",
+	"author": "Valentin Lozev",
+	"keywords": [
+		"justcore",
+		"modular architecture",
+		"modules management",
+		"scalable applications",
+		"front-end",
+		"typescript"
+	],
 	"devDependencies": {
 		"@types/jasmine": "2.8.2",
 		"eslint": "^4.14.0",
@@ -32,7 +42,5 @@
 	"scripts": {
 		"build": "node scripts/build.js",
 		"test": "npm run build"
-	},
-	"license": "MIT",
-	"author": "Valentin Lozev"
+	}
 }
