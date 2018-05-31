@@ -1,11 +1,11 @@
 # justcore [![Build Status](https://travis-ci.org/valentin-lozev/justcore.svg?branch=master)](https://travis-ci.org/valentin-lozev/justcore) [![Coverage Status](https://coveralls.io/repos/github/valentin-lozev/justcore/badge.svg?branch=master)](https://coveralls.io/github/valentin-lozev/justcore?branch=master)
 
-**justcore** is a lightweight Javascript library that helps you modularize and structure your code. Simple, easy-to-use module management solution for building scalable applications.
+justcore is a lightweight Javascript library that helps you modularize and structure your code. Simple, easy-to-use module management solution for building scalable applications.
 
-* **Highly decoupled:** **justcore** pushes you to write modules as self-contained pieces of code that work independently of each other.
-* **Easy to maintain:** When modules don't have direct access to each other, a bug in one module will not have impact on the others. A module can be even removed completely without affecting the application. Finding bugs in a well-organized code will be no more annoying.
+* **Highly decoupled:** justcore pushes you to write modules as self-contained pieces of code that work independently of each other.
+* **Easy to maintain:** When modules don't have direct access to each other, a bug in one module will not have impact on the others. A module can be even removed completely without affecting the application. Fixing bugs in a well-organized code will be no more annoying.
 * **Easy to test:** Each module can be tested separately in complete isolation from the application.
-* **Extensible extensions:** **justcore** is built for extension. You can extend your modules' capabilities, plug into application lifecycle hooks or introduce your own hooks.
+* **Extensible extensions:** justcore is built for extension. You can extend your modules' capabilities, plug into application lifecycle hooks or introduce your own hooks.
 * **External dependencies:** None.
 
 ## Getting started
@@ -125,4 +125,4 @@ Inspired by the fascinating patterns recommended by Nicolas Zakas in his talk ["
 
 ## License
 
-**justcore** is licensed under the [MIT License](LICENSE).
+justcore is licensed under the [MIT License](LICENSE).
