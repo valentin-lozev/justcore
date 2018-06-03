@@ -81,7 +81,7 @@ export class SearchModule {
 ## Core concepts
 
 <p align="center">
-  <img alt="justcore flow" src="docs/justcore-diagram.png" />
+  <img alt="justcore flow" src="https://github.com/valentin-lozev/justcore/blob/master/docs/justcore-diagram.png" />
 </p>
 
 ### Modules
@@ -125,4 +125,4 @@ Inspired by the fascinating patterns recommended by Nicolas Zakas in his talk ["
 
 ## License
 
-justcore is licensed under the [MIT License](LICENSE).
+justcore is licensed under the [MIT License](https://github.com/valentin-lozev/justcore/blob/master/LICENSE).
