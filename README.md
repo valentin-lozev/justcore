@@ -23,7 +23,7 @@ You can find full API documentation [here](https://valentin-lozev.github.io/just
 * [Module](https://valentin-lozev.github.io/justcore/interfaces/core.__global.jc.module.html)
 * [Extension](https://valentin-lozev.github.io/justcore/interfaces/core.__global.jc.extension.html)
 
-### Examples
+### Basic usage
 
 *app.js*
 ```javascript
