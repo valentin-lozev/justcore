@@ -1,45 +1,48 @@
 {
-	"version": "1.0.1",
-	"name": "justcore",
-	"main": "dist/justcore.umd.js",
-	"umd:main": "dist/justcore.umd.js",
-	"jsnext:main": "dist/justcore.module.js",
-	"module": "dist/justcore.module.js",
-	"typings": "dist/justcore.d.ts",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/valentin-lozev/justcore.git"
-	},
-	"license": "MIT",
-	"author": "Valentin Lozev",
-	"keywords": [
-		"justcore",
-		"modular architecture",
-		"modules management",
-		"scalable applications",
-		"front-end",
-		"typescript"
-	],
-	"devDependencies": {
-		"@types/jasmine": "2.8.2",
-		"fs-extra": "^4.0.3",
-		"jasmine-core": "^2.8.0",
-		"karma": "^1.7.1",
-		"karma-coverage": "^1.1.1",
-		"karma-coveralls": "^1.2.1",
-		"karma-jasmine": "^1.1.0",
-		"karma-mocha-reporter": "^2.2.5",
-		"karma-phantomjs-launcher": "^1.0.4",
-		"path": "^0.12.7",
-		"rollup": "^0.50.0",
-		"rollup-plugin-multi-entry": "^2.0.2",
-		"rollup-plugin-tslint": "^0.1.34",
-		"rollup-plugin-typescript2": "^0.9.0",
-		"rollup-plugin-uglify": "^2.0.1",
-		"typescript": "^2.6.2"
-	},
-	"scripts": {
-		"clean": "rimraf dist",
-		"build": "npm run clean && node scripts/build.js"
-	}
+  "version": "1.0.1",
+  "name": "justcore",
+  "main": "dist/justcore.umd.js",
+  "umd:main": "dist/justcore.umd.js",
+  "jsnext:main": "dist/justcore.module.js",
+  "module": "dist/justcore.module.js",
+  "typings": "dist/justcore.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/valentin-lozev/justcore.git"
+  },
+  "license": "MIT",
+  "author": "Valentin Lozev",
+  "keywords": [
+    "justcore",
+    "modular architecture",
+    "modules management",
+    "scalable applications",
+    "front-end",
+    "typescript"
+  ],
+  "devDependencies": {
+    "@types/jasmine": "2.8.2",
+    "fs-extra": "^4.0.3",
+    "jasmine-core": "^2.8.0",
+    "karma": "^1.7.1",
+    "karma-coverage": "^1.1.1",
+    "karma-coveralls": "^1.2.1",
+    "karma-jasmine": "^1.1.0",
+    "karma-mocha-reporter": "^2.2.5",
+    "karma-phantomjs-launcher": "^1.0.4",
+    "path": "^0.12.7",
+    "rollup": "^0.50.0",
+    "rollup-plugin-multi-entry": "^2.0.2",
+    "rollup-plugin-tslint": "^0.1.34",
+    "rollup-plugin-typescript2": "^0.9.0",
+    "rollup-plugin-uglify": "^2.0.1",
+    "typedoc": "^0.11.1",
+    "typedoc-plugin-external-module-name": "^1.1.1",
+    "typescript": "^2.6.2"
+  },
+  "scripts": {
+    "clean": "rimraf dist",
+    "build": "npm run clean && node scripts/build.js",
+    "docs": "rimraf docs && typedoc --name justcore --readme ./README.md --out ./docs --excludeExternals --excludePrivate --excludeProtected --tsconfig tdconfig.json --theme ./docs-theme --includeDeclarations"
+  }
 }

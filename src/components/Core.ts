@@ -10,9 +10,6 @@ interface ModuleData {
 	instances: { [instanceId: string]: jc.Module; };
 }
 
-/**
- *  A mediator between the modules.
- */
 export class Core implements jc.Core {
 
 	public Sandbox: jc.SandboxClass = Sandbox;
@@ -33,30 +30,18 @@ export class Core implements jc.Core {
 		]);
 	}
 
-	/**
-	 * Returns current justcore's version.
-	 */
 	get version(): string {
 		return VERSION;
 	}
 
-	/**
-	 * Lists all installed extensions.
-	 */
 	get extensions(): string[] {
 		return Object.keys(this._extensions);
 	}
 
-	/**
-	 * Lists all added module ids.
-	 */
 	get modules(): string[] {
 		return Object.keys(this._modules);
 	}
 
-	/**
-	 * Lists all running module instances by their id.
-	 */
 	get runningModules(): { [id: string]: string[]; } {
 		return this.modules
 			.reduce((result, id) => {
@@ -65,10 +50,6 @@ export class Core implements jc.Core {
 			}, Object.create(null));
 	}
 
-	/**
-	 * Installs extensions.
-	 * @param extensions
-	 */
 	public use(extensions: jc.Extension[]): void {
 		guard
 			.false(this._isInitialized, "m1")
@@ -85,16 +66,10 @@ export class Core implements jc.Core {
 		});
 	}
 
-	/**
-	 *  Creates a hook from given method.
-	 */
 	public createHook<T extends jc.Func>(type: jc.HookType, method: T, context?: any): T & jc.Hook {
 		return this._hooksSystem.createHook(type, method, context);
 	}
 
-	/**
-	 *  Initializes the core.
-	 */
 	public init(onInit?: jc.Func<void>): void {
 		guard.false(this._isInitialized, "m7");
 
@@ -111,9 +86,6 @@ export class Core implements jc.Core {
 		this._isInitialized = true;
 	}
 
-	/**
-	 *  Adds a module.
-	 */
 	public addModule(id: string, factory: jc.ModuleFactory): void {
 		guard
 			.nonEmptyString(id, "m8")
@@ -126,9 +98,6 @@ export class Core implements jc.Core {
 		};
 	}
 
-	/**
-	 *  Starts an instance of given module and initializes it.
-	 */
 	public startModule(id: string, options: jc.ModuleStartOptions = {}): void {
 		guard.true(this._isInitialized, "m11")
 			.true(id in this._modules, "m12", id);
@@ -163,9 +132,6 @@ export class Core implements jc.Core {
 		}
 	}
 
-	/**
-	 *  Stops a given module instance.
-	 */
 	public stopModule(id: string, instanceId?: string): void {
 		const moduleData = this._modules[id];
 		if (!moduleData) {
@@ -189,19 +155,10 @@ export class Core implements jc.Core {
 		}
 	}
 
-	/**
-	 * Subscribes for messages of given type.
-	 * @param messageType
-	 * @param handler
-	 */
 	public onMessage(type: string, handler: jc.MessageHandler): jc.Unsubscribe {
 		return this._messageBus.onMessage(type, handler);
 	}
 
-	/**
-	 * Publishes a message.
-	 * @param message
-	 */
 	public publishAsync<T extends jc.Message>(message: T): void {
 		this._messageBus.publishAsync(message);
 	}

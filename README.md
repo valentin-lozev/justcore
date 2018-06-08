@@ -81,7 +81,7 @@ export class SearchModule {
 ## Core concepts
 
 <p align="center">
-  <img alt="justcore flow" src="https://github.com/valentin-lozev/justcore/blob/master/docs/justcore-diagram.png" />
+  <img alt="justcore flow" src="https://github.com/valentin-lozev/justcore/blob/master/docs/assets/images/justcore-diagram.png" />
 </p>
 
 ### Modules

@@ -6,9 +6,6 @@ interface SubscribersMap {
 	};
 }
 
-/**
- *  Encapsulates communication behavior of the core.
- */
 export class MessageBus {
 
 	private _subscribers: SubscribersMap = Object.create(null);

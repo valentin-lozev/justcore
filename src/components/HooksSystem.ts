@@ -4,9 +4,6 @@ interface Plugin extends jc.Func {
 	(next: () => any, ...args: any[]): any;
 }
 
-/**
- *  Encapsulates hooks behavior of the core.
- */
 export class HooksSystem {
 
 	private _plugins: { [hookType: string]: Plugin[]; } = Object.create(null);

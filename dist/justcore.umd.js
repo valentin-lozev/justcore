@@ -171,9 +171,6 @@ if (typeof Array.prototype.reduceRight !== "function") {
     };
 }
 
-/**
- *  Encapsulates hooks behavior of the core.
- */
 var HooksSystem = /** @class */ (function () {
     function HooksSystem() {
         this._plugins = Object.create(null);
@@ -207,9 +204,6 @@ var HooksSystem = /** @class */ (function () {
     return HooksSystem;
 }());
 
-/**
- *  Encapsulates communication behavior of the core.
- */
 var MessageBus = /** @class */ (function () {
     function MessageBus() {
         this._subscribers = Object.create(null);
@@ -257,9 +251,6 @@ var MessageBus = /** @class */ (function () {
     return MessageBus;
 }());
 
-/**
- *  Connects the modules to the outside world. Facade of the core.
- */
 var Sandbox = /** @class */ (function () {
     function Sandbox(core, moduleId, instanceId) {
         this._extensionsOnlyCore = core;
@@ -280,30 +271,18 @@ var Sandbox = /** @class */ (function () {
         enumerable: true,
         configurable: true
     });
-    /**
-     *  Starts an instance of given module and initializes it.
-     */
     Sandbox.prototype.startModule = function (id, options) {
         this._extensionsOnlyCore.startModule(id, options);
     };
-    /**
-     *  Stops a given module instance.
-     */
     Sandbox.prototype.stopModule = function (id, instanceId) {
         this._extensionsOnlyCore.stopModule(id, instanceId);
     };
-    /**
-     *  Publishes a message asynchronously.
-     */
     Sandbox.prototype.publishAsync = function (message) {
         this._extensionsOnlyCore.publishAsync(message);
     };
     return Sandbox;
 }());
 
-/**
- *  A mediator between the modules.
- */
 var Core = /** @class */ (function () {
     function Core(hooksSystem, messageBus) {
         if (hooksSystem === void 0) { hooksSystem = new HooksSystem(); }
@@ -324,9 +303,6 @@ var Core = /** @class */ (function () {
         ]);
     }
     Object.defineProperty(Core.prototype, "version", {
-        /**
-         * Returns current justcore's version.
-         */
         get: function () {
             return VERSION;
         },
@@ -334,9 +310,6 @@ var Core = /** @class */ (function () {
         configurable: true
     });
     Object.defineProperty(Core.prototype, "extensions", {
-        /**
-         * Lists all installed extensions.
-         */
         get: function () {
             return Object.keys(this._extensions);
         },
@@ -344,9 +317,6 @@ var Core = /** @class */ (function () {
         configurable: true
     });
     Object.defineProperty(Core.prototype, "modules", {
-        /**
-         * Lists all added module ids.
-         */
         get: function () {
             return Object.keys(this._modules);
         },
@@ -354,9 +324,6 @@ var Core = /** @class */ (function () {
         configurable: true
     });
     Object.defineProperty(Core.prototype, "runningModules", {
-        /**
-         * Lists all running module instances by their id.
-         */
         get: function () {
             var _this = this;
             return this.modules
@@ -368,10 +335,6 @@ var Core = /** @class */ (function () {
         enumerable: true,
         configurable: true
     });
-    /**
-     * Installs extensions.
-     * @param extensions
-     */
     Core.prototype.use = function (extensions) {
         var _this = this;
         guard
@@ -386,15 +349,9 @@ var Core = /** @class */ (function () {
             _this._extensions[x.name] = x;
         });
     };
-    /**
-     *  Creates a hook from given method.
-     */
     Core.prototype.createHook = function (type, method, context) {
         return this._hooksSystem.createHook(type, method, context);
     };
-    /**
-     *  Initializes the core.
-     */
     Core.prototype.init = function (onInit) {
         guard.false(this._isInitialized, "m7");
         this._onInit = this.createHook("onCoreInit", onInit || function () { }, this);
@@ -408,9 +365,6 @@ var Core = /** @class */ (function () {
         }
         this._isInitialized = true;
     };
-    /**
-     *  Adds a module.
-     */
     Core.prototype.addModule = function (id, factory) {
         guard
             .nonEmptyString(id, "m8")
@@ -421,9 +375,6 @@ var Core = /** @class */ (function () {
             instances: Object.create(null)
         };
     };
-    /**
-     *  Starts an instance of given module and initializes it.
-     */
     Core.prototype.startModule = function (id, options) {
         if (options === void 0) { options = {}; }
         guard.true(this._isInitialized, "m11")
@@ -450,9 +401,6 @@ var Core = /** @class */ (function () {
             console.error(err);
         }
     };
-    /**
-     *  Stops a given module instance.
-     */
     Core.prototype.stopModule = function (id, instanceId) {
         var moduleData = this._modules[id];
         if (!moduleData) {
@@ -474,18 +422,9 @@ var Core = /** @class */ (function () {
             console.error(err);
         }
     };
-    /**
-     * Subscribes for messages of given type.
-     * @param messageType
-     * @param handler
-     */
     Core.prototype.onMessage = function (type, handler) {
         return this._messageBus.onMessage(type, handler);
     };
-    /**
-     * Publishes a message.
-     * @param message
-     */
     Core.prototype.publishAsync = function (message) {
         this._messageBus.publishAsync(message);
     };
