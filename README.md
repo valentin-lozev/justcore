@@ -16,7 +16,12 @@ justcore is a lightweight Javascript library that helps you modularize and struc
 
 ### Documentation
 
-You can see the [wiki pages](https://github.com/valentin-lozev/justcore/wiki).
+You can find full API documentation [here](https://valentin-lozev.github.io/justcore/index.html).
+
+* [Core](https://valentin-lozev.github.io/justcore/interfaces/core.__global.jc.core.html)
+* [Sandbox](https://valentin-lozev.github.io/justcore/interfaces/core.__global.jc.sandbox.html)
+* [Module](https://valentin-lozev.github.io/justcore/interfaces/core.__global.jc.module.html)
+* [Extension](https://valentin-lozev.github.io/justcore/interfaces/core.__global.jc.extension.html)
 
 ### Examples
 
