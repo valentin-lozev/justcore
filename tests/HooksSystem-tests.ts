@@ -69,8 +69,8 @@ describe("HooksSystem", () => {
 	});
 
 	it("should attach custom attributes when create hook", function (this: TestsContext): void {
-		expect((this.module.sum as jc.Hook)._withPipeline).toEqual(true);
-		expect((this.module.sum as jc.Hook)._hookType).toEqual(this.moduleHook);
+		expect((this.module.sum as jc.HookProps & jc.Func<number>)._withPipeline).toEqual(true);
+		expect((this.module.sum as jc.HookProps & jc.Func<number>)._hookType).toEqual(this.moduleHook);
 	});
 
 	it("should throw on empty hook when add plugin", function (this: TestsContext): void {

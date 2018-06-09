@@ -134,7 +134,7 @@ describe("module-autosubscribe", () => {
 				this.messages.forEach((message, index) => {
 					const args = onMessage.calls.argsFor(index);
 					const type = args[0];
-					const handler = args[1] as jc.Hook;
+					const handler = args[1] as jc.HookProps;
 
 					expect(args.length).toEqual(2);
 					expect(type).toEqual(message);

@@ -8,7 +8,7 @@ export class HooksSystem {
 
 	private _plugins: { [hookType: string]: Plugin[]; } = Object.create(null);
 
-	public createHook<T extends jc.Func>(type: jc.HookType, method: T, context?: any): T & jc.Hook {
+	public createHook<T extends jc.Func>(type: jc.HookType, method: T, context?: any): T & jc.HookProps {
 		guard
 			.nonEmptyString(type, "m16")
 			.function(method, "m17", type);
@@ -24,7 +24,7 @@ export class HooksSystem {
 				(pipeline, plugin) => () => plugin.apply(context, [pipeline, ...args]),
 				() => method.apply(context, args)
 			)();
-		} as T & jc.Hook;
+		} as T & jc.HookProps;
 
 		result._withPipeline = true;
 		result._hookType = type;

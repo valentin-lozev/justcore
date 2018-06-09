@@ -66,7 +66,7 @@ export class Core implements jc.Core {
 		});
 	}
 
-	public createHook<T extends jc.Func>(type: jc.HookType, method: T, context?: any): T & jc.Hook {
+	public createHook<T extends jc.Func>(type: jc.HookType, method: T, context?: any): T & jc.HookProps {
 		return this._hooksSystem.createHook(type, method, context);
 	}
 

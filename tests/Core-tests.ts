@@ -106,8 +106,8 @@ describe("Core", () => {
 			this.core.init();
 
 			expect(createHook).toHaveBeenCalledWith("onModuleAdd", initialMethod, this.core);
-			expect((this.core.addModule as jc.Hook)._withPipeline).toEqual(true);
-			expect((this.core.addModule as jc.Hook)._hookType).toEqual("onModuleAdd");
+			expect((this.core.addModule as jc.HookProps & jc.Func<void>)._withPipeline).toEqual(true);
+			expect((this.core.addModule as jc.HookProps & jc.Func<void>)._hookType).toEqual("onModuleAdd");
 		});
 
 		it("should create hook in startModule when init", function (this: TestsContext) {
@@ -117,8 +117,8 @@ describe("Core", () => {
 			this.core.init();
 
 			expect(createHook).toHaveBeenCalledWith("onModuleStart", initialMethod, this.core);
-			expect((this.core.startModule as jc.Hook)._withPipeline).toEqual(true);
-			expect((this.core.startModule as jc.Hook)._hookType).toEqual("onModuleStart");
+			expect((this.core.startModule as jc.HookProps & jc.Func<void>)._withPipeline).toEqual(true);
+			expect((this.core.startModule as jc.HookProps & jc.Func<void>)._hookType).toEqual("onModuleStart");
 		});
 
 		it("should create hook in stopModule when init", function (this: TestsContext) {
@@ -128,8 +128,8 @@ describe("Core", () => {
 			this.core.init();
 
 			expect(createHook).toHaveBeenCalledWith("onModuleStop", initialMethod, this.core);
-			expect((this.core.stopModule as jc.Hook)._withPipeline).toEqual(true);
-			expect((this.core.stopModule as jc.Hook)._hookType).toEqual("onModuleStop");
+			expect((this.core.stopModule as jc.HookProps & jc.Func<void>)._withPipeline).toEqual(true);
+			expect((this.core.stopModule as jc.HookProps & jc.Func<void>)._hookType).toEqual("onModuleStop");
 		});
 
 		it("should create hook in onMessage when init", function (this: TestsContext) {
@@ -139,8 +139,8 @@ describe("Core", () => {
 			this.core.init();
 
 			expect(createHook).toHaveBeenCalledWith("onMessageSubscribe", initialMethod, this.core);
-			expect((this.core.onMessage as jc.Hook)._withPipeline).toEqual(true);
-			expect((this.core.onMessage as jc.Hook)._hookType).toEqual("onMessageSubscribe");
+			expect((this.core.onMessage as jc.HookProps & jc.Func<jc.Unsubscribe>)._withPipeline).toEqual(true);
+			expect((this.core.onMessage as jc.HookProps & jc.Func<jc.Unsubscribe>)._hookType).toEqual("onMessageSubscribe");
 		});
 
 		it("should create hook in publish when init", function (this: TestsContext) {
@@ -150,8 +150,8 @@ describe("Core", () => {
 			this.core.init();
 
 			expect(createHook).toHaveBeenCalledWith("onMessagePublish", initialMethod, this.core);
-			expect((this.core.publishAsync as jc.Hook)._withPipeline).toEqual(true);
-			expect((this.core.publishAsync as jc.Hook)._hookType).toEqual("onMessagePublish");
+			expect((this.core.publishAsync as jc.HookProps & jc.Func<void>)._withPipeline).toEqual(true);
+			expect((this.core.publishAsync as jc.HookProps & jc.Func<void>)._hookType).toEqual("onMessagePublish");
 		});
 	});
 
