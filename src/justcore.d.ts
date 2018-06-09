@@ -12,37 +12,37 @@ declare global {
 
 		/** A helper interface that holds all supported lifecycle hooks. */
 		export interface PluginsMap {
-			/** Invoked when {@link Core#init}. */
+			/** Invoked when [[Core.init]] */
 			onCoreInit(this: Core, next: Func<void>): void;
 
-			/** Invoked when {@link Core#onMessage}. */
+			/** Invoked when [[Core.onMessage]] */
 			onMessageSubscribe(this: Core, next: Func<Unsubscribe>, messageType: string, handler: MessageHandler): Unsubscribe;
 
-			/** Invoked when {@link Core#publishAsync}. */
+			/** Invoked when [[Core.publishAsync]] */
 			onMessagePublish<T extends Message>(this: Core, next: Func<void>, message: T): void;
 
-			/** Invoked when {@link Core#addModule}. */
+			/** Invoked when [[Core.addModule]] */
 			onModuleAdd(this: Core, next: Func<void>, id: string, factory: ModuleFactory): void;
 
-			/** Invoked when {@link Core#startModule}. */
+			/** Invoked when [[Core.startModule]] */
 			onModuleStart(this: Core, next: Func<void>, id: string, options?: ModuleStartOptions): void;
 
-			/** Invoked when {@link Core#stopModule}. */
+			/** Invoked when [[Core.stopModule]] */
 			onModuleStop(this: Core, next: Func<void>, id: string, instanceId?: string): void;
 
-			/** Invoked when {@link Module#init}. */
+			/** Invoked when [[Module.init]] */
 			onModuleInit<TProps = {}>(this: Module, next: Func<void>, props?: TProps): void;
 
-			/** Invoked when {@link Module#moduleWillSubscribe}. */
+			/** Invoked when [[Module.moduleWillSubscribe]] */
 			onModuleSubscribe(this: Module, next: Func<string[]>): string[];
 
-			/** Invoked when {@link Module#moduleDidReceiveMessage}. */
+			/** Invoked when [[Module.moduleDidReceiveMessage]] */
 			onModuleReceiveMessage(this: Module, next: Func<void>, message: Message): void;
 
-			/** Invoked when {@link Module#moduleDidReceiveProps}. */
+			/** Invoked when [[Module.moduleDidReceiveProps]] */
 			onModuleReceiveProps<TProps = {}>(this: Module, next: Func<void>, nextProps: TProps): void;
 
-			/** Invoked when {@link Module#destroy}. */
+			/** Invoked when [[Module.destroy]] */
 			onModuleDestroy(this: Module, next: Func<void>): void;
 		}
 
@@ -55,7 +55,7 @@ declare global {
 			_hookType: HookType;
 		}
 
-		/** One of the the supported hooks' keys. */
+		/** One of the the supported hooks' keys. See [[PluginsMap]] */
 		export type HookType = keyof PluginsMap;
 
 		/** A piece of code that extends the core. */
@@ -128,18 +128,19 @@ declare global {
 			 * - Each message handler is invoked in dedicated call stack;
 			 * 
 			 * - Loose coupling between publishers and handlers. 
-			 *   If you somehow rely on the publishAsync invoking, your modules don't work independently from each other.
+			 *   If you somehow rely on the publishAsync's result, your modules don't work independently from each other.
 			 *   
 			 * - Process of tracing messages won't suffer when message handlers depth increases.
 			 *   Because of the event loop's nature in javascript,
 			 *	 each message will be published to all of its handlers first even though some of the handlers might publish a new message along the way,
+			 *	 e.g. lets say:
+			 *	 - Module "A" publishes message "M1"
+			 *	 - Module "B" subscribes for message "M1" and publishes a new message "M2" when message "M1" comes
+			 *	 - Module "C" subscribes for message "M1"
+			 *	 - Module "D" subscribes for message "M2"
 			 *	 
-			 *	 e.g. lets say Module "A" publishes message "M1".
-			 *	 Module "B" subscribes for message "M1" and publishes a new message "M2" when message "M1" comes.
-			 *	 Module "C" subscribes for message "M1".
-			 *	 Module "D" subscribes for message "M2".
+			 *	 When Module "A" publishes its message "M1", the order of the handlers invoked will be:
 			 *	 
-			 *	 When Module "A" publishes its message "M1", the order of the handlers invoked will be: 
 			 *	 Module "B" -> Module "C" -> Module "D".
 			 */
 			publishAsync<T extends Message>(message: T): void;
@@ -163,13 +164,13 @@ declare global {
 			/** A reference to the core. It should be used only by extensions. */
 			_extensionsOnlyCore: Readonly<Core>;
 
-			/** @see Core#startModule */
+			/** See [[Core.startModule]] */
 			startModule(id: string, options?: ModuleStartOptions): void;
 
-			/** @see Core#stopModule */
+			/** See [[Core.stopModule]] */
 			stopModule(id: string, instanceId?: string): void;
 
-			/** @see Core#publishAsync */
+			/** See [[Core.publishAsync]] */
 			publishAsync<T extends Message>(message: T): void;
 		}
 
@@ -226,7 +227,7 @@ declare global {
 		}
 
 		/** 
-		 * A function that is returned when you subscribe for given message by invoking the core directly, e.g. in an extension.
+		 * A function that is returned when you subscribe for given message by invoking [[Core.onMessage]], e.g. in an extension.
 		 * Caling the function will unsubscribe you.
 		 */
 		export interface Unsubscribe {

@@ -171,7 +171,7 @@
 					<a name="createhook" class="tsd-anchor"></a>
 					<h3>create<wbr>Hook</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter">
-						<li class="tsd-signature tsd-kind-icon">create<wbr>Hook&lt;T&gt;<span class="tsd-signature-symbol">(</span>type<span class="tsd-signature-symbol">: </span><a href="../modules/core.__global.jc.html#hooktype" class="tsd-signature-type">HookType</a>, method<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">T</span>, context<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol"> &amp; </span><a href="core.__global.jc.hook.html" class="tsd-signature-type">Hook</a></li>
+						<li class="tsd-signature tsd-kind-icon">create<wbr>Hook&lt;T&gt;<span class="tsd-signature-symbol">(</span>type<span class="tsd-signature-symbol">: </span><a href="../modules/core.__global.jc.html#hooktype" class="tsd-signature-type">HookType</a>, method<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">T</span>, context<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol"> &amp; </span><a href="core.__global.jc.hookprops.html" class="tsd-signature-type">HookProps</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
@@ -202,7 +202,7 @@
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">T</span>
 								<span class="tsd-signature-symbol"> &amp; </span>
-								<a href="core.__global.jc.hook.html" class="tsd-signature-type">Hook</a>
+								<a href="core.__global.jc.hookprops.html" class="tsd-signature-type">HookProps</a>
 							</h4>
 						</li>
 					</ul>
@@ -272,8 +272,31 @@
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Publishes a message.</p>
+									<p>Publishes a message asynchronously
+										by scheduling (setTimeout) each message handler to the event loop.
+									That async behavior gives us the following benefits:</p>
 								</div>
+								<ul>
+									<li><p>Each message handler is invoked in dedicated call stack;</p>
+									</li>
+									<li><p>Loose coupling between publishers and handlers.
+										If you somehow rely on the publishAsync&#39;s result, your modules don&#39;t work independently from each other.</p>
+									</li>
+									<li><p>Process of tracing messages won&#39;t suffer when message handlers depth increases.
+											Because of the event loop&#39;s nature in javascript,
+											each message will be published to all of its handlers first even though some of the handlers might publish a new message along the way,
+										e.g. lets say:</p>
+										<ul>
+											<li>Module &quot;A&quot; publishes message &quot;M1&quot;</li>
+											<li>Module &quot;B&quot; subscribes for message &quot;M1&quot; and publishes a new message &quot;M2&quot; when message &quot;M1&quot; comes</li>
+											<li>Module &quot;C&quot; subscribes for message &quot;M1&quot;</li>
+											<li><p>Module &quot;D&quot; subscribes for message &quot;M2&quot;</p>
+												<p>When Module &quot;A&quot; publishes its message &quot;M1&quot;, the order of the handlers invoked will be:</p>
+												<p>Module &quot;B&quot; -&gt; Module &quot;C&quot; -&gt; Module &quot;D&quot;.</p>
+											</li>
+										</ul>
+									</li>
+								</ul>
 							</div>
 							<h4 class="tsd-type-parameters-title">Type parameters</h4>
 							<ul class="tsd-type-parameters">
@@ -438,8 +461,8 @@
 					<li class=" tsd-kind-interface tsd-parent-kind-module tsd-has-type-parameter">
 						<a href="core.__global.jc.func.html" class="tsd-kind-icon">Func</a>
 					</li>
-					<li class=" tsd-kind-interface tsd-parent-kind-module tsd-has-type-parameter">
-						<a href="core.__global.jc.hook.html" class="tsd-kind-icon">Hook</a>
+					<li class=" tsd-kind-interface tsd-parent-kind-module">
+						<a href="core.__global.jc.hookprops.html" class="tsd-kind-icon">Hook<wbr>Props</a>
 					</li>
 					<li class=" tsd-kind-interface tsd-parent-kind-module">
 						<a href="core.__global.jc.message.html" class="tsd-kind-icon">Message</a>
