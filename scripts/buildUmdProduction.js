@@ -2,7 +2,7 @@ const rollup = require('rollup');
 const typescript = require('rollup-plugin-typescript2');
 const uglify = require('rollup-plugin-uglify');
 
-module.exports = (input, banner) =>
+module.exports = (input, banner, intro) =>
 	rollup
 		.rollup({
 			input: input,
@@ -21,6 +21,7 @@ module.exports = (input, banner) =>
 				name: 'justcore',
 				format: 'umd',
 				banner: banner,
+				intro: intro,
 				file: 'dist/justcore.umd.min.js',
 				exports: 'named'
 			})

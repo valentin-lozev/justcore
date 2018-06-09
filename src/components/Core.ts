@@ -1,6 +1,6 @@
 import { moduleAutosubscribe } from "../extensions/module-autosubscribe";
 import "../polyfills";
-import { guard, isDocumentReady, VERSION } from "../utils";
+import { guard, isDocumentReady } from "../utils";
 import { HooksSystem } from "./HooksSystem";
 import { MessageBus } from "./MessageBus";
 import { Sandbox } from "./Sandbox";
@@ -9,6 +9,8 @@ interface ModuleData {
 	factory: jc.ModuleFactory;
 	instances: { [instanceId: string]: jc.Module; };
 }
+
+declare const VERSION: string;
 
 export class Core implements jc.Core {
 

@@ -4,7 +4,7 @@ const rollup = require('rollup');
 const typescript = require('rollup-plugin-typescript2');
 const multiEntry = require('rollup-plugin-multi-entry');
 
-module.exports = () =>
+module.exports = (intro) =>
 	rollup
 		.rollup({
 			input: 'tests/**/*-tests.ts',
@@ -18,6 +18,7 @@ module.exports = () =>
 		.then(bundle => bundle.write({
 			format: 'iife',
 			file: 'tests/bundle.js',
+			intro: intro,
 			name: 'tests'
 		}))
 		.then(() => {

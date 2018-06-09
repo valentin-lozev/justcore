@@ -1,5 +1,4 @@
-﻿import { VERSION } from "../src/utils";
-import { Sandbox } from "../src/components/Sandbox";
+﻿import { Sandbox } from "../src/components/Sandbox";
 import { MessageBus } from "../src/components/MessageBus";
 import { HooksSystem } from "../src/components/HooksSystem";
 import { Core } from "../src/components/Core";
@@ -48,8 +47,9 @@ describe("Core", () => {
 	});
 
 	describe("Initialization", () => {
-		it(`should have ${VERSION} as version prop`, function (this: TestsContext) {
-			expect(this.core.version).toEqual(VERSION);
+		it(`should use project's version as version prop`, function (this: TestsContext) {
+			expect(typeof this.core.version).toEqual("string");
+			expect(this.core.version.split(".").length).toEqual(3);
 		});
 
 		it(`should have module-autosubscribe installed by default`, function (this: TestsContext) {

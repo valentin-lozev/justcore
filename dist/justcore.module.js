@@ -1,11 +1,12 @@
 /**
  *  @license justcore
- *  Copyright © 2018 Valentin Lozev
+ *  Copyright © Valentin Lozev 2016 - Present
  *  Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
  *  Source code: http://github.com/valentin-lozev/justcore
  */
 
-var VERSION = "1.0.0";
+var VERSION = "1.0.1";
+
 var errorCodes = {
     m1: function () { return "use(): extensions must be installed before init"; },
     m2: function () { return "use(): extensions must be passed as an array"; },

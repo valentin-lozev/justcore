@@ -1,5 +1,3 @@
-export const VERSION = "1.0.0";
-
 const errorCodes = {
 	m1: () => "use(): extensions must be installed before init",
 	m2: () => "use(): extensions must be passed as an array",
