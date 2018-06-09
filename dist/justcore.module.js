@@ -5,7 +5,7 @@
  *  Source code: http://github.com/valentin-lozev/justcore
  */
 
-var VERSION = "1.0.1";
+var VERSION = "1.0.2";
 
 var errorCodes = {
     m1: function () { return "use(): extensions must be installed before init"; },
