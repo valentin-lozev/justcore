@@ -85,6 +85,9 @@ var ArgumentGuard = /** @class */ (function () {
 }());
 var guard = new ArgumentGuard();
 function isDocumentReady() {
+    if (!document) {
+        return true;
+    }
     var state = document.readyState;
     return state === "complete" ||
         state === "interactive" ||
@@ -358,11 +361,16 @@ var Core = /** @class */ (function () {
         this._onInit = this.createHook("onCoreInit", onInit || function () { }, this);
         this._createHooks();
         this._installExtensions();
-        if (isDocumentReady()) {
-            setTimeout(this._onDomReady, 0);
+        if (document) {
+            if (isDocumentReady()) {
+                setTimeout(this._onDomReady, 0);
+            }
+            else {
+                document.addEventListener("DOMContentLoaded", this._onDomReady);
+            }
         }
         else {
-            document.addEventListener("DOMContentLoaded", this._onDomReady);
+            setTimeout(this._onDomReady, 0);
         }
         this._isInitialized = true;
     };
@@ -452,7 +460,9 @@ var Core = /** @class */ (function () {
         });
     };
     Core.prototype._onDomReady = function () {
-        document.removeEventListener("DOMContentLoaded", this._onDomReady);
+        if (document) {
+            document.removeEventListener("DOMContentLoaded", this._onDomReady);
+        }
         this._onInit();
     };
     Core.prototype._createModule = function (id, instanceId, factory) {

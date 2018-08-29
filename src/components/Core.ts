@@ -79,10 +79,14 @@ export class Core implements jc.Core {
 		this._createHooks();
 		this._installExtensions();
 
-		if (isDocumentReady()) {
-			setTimeout(this._onDomReady, 0);
+		if (document) {
+			if (isDocumentReady()) {
+				setTimeout(this._onDomReady, 0);
+			} else {
+				document.addEventListener("DOMContentLoaded", this._onDomReady);
+			}
 		} else {
-			document.addEventListener("DOMContentLoaded", this._onDomReady);
+			setTimeout(this._onDomReady, 0);
 		}
 
 		this._isInitialized = true;
@@ -189,7 +193,9 @@ export class Core implements jc.Core {
 	}
 
 	private _onDomReady(): void {
-		document.removeEventListener("DOMContentLoaded", this._onDomReady);
+		if (document) {
+			document.removeEventListener("DOMContentLoaded", this._onDomReady);
+		}
 		this._onInit();
 	}
 
