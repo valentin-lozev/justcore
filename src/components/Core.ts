@@ -79,7 +79,7 @@ export class Core implements jc.Core {
 		this._createHooks();
 		this._installExtensions();
 
-		if (document) {
+		if (typeof window !== "undefined") {
 			if (isDocumentReady()) {
 				setTimeout(this._onDomReady, 0);
 			} else {
@@ -193,7 +193,7 @@ export class Core implements jc.Core {
 	}
 
 	private _onDomReady(): void {
-		if (document) {
+		if (typeof window !== "undefined") {
 			document.removeEventListener("DOMContentLoaded", this._onDomReady);
 		}
 		this._onInit();

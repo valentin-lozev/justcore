@@ -66,7 +66,10 @@ class ArgumentGuard {
 export const guard = new ArgumentGuard();
 
 export function isDocumentReady(): boolean {
-	if (!document) { return true; }
+	if (typeof window === "undefined") {
+		return true;
+	}
+
 	const state = document.readyState;
 	return state === "complete" ||
 		state === "interactive" ||

@@ -79,7 +79,7 @@ var ArgumentGuard = /** @class */ (function () {
 }());
 var guard = new ArgumentGuard();
 function isDocumentReady() {
-    if (!document) {
+    if (typeof window === "undefined") {
         return true;
     }
     var state = document.readyState;
@@ -355,7 +355,7 @@ var Core = /** @class */ (function () {
         this._onInit = this.createHook("onCoreInit", onInit || function () { }, this);
         this._createHooks();
         this._installExtensions();
-        if (document) {
+        if (typeof window !== "undefined") {
             if (isDocumentReady()) {
                 setTimeout(this._onDomReady, 0);
             }
@@ -454,7 +454,7 @@ var Core = /** @class */ (function () {
         });
     };
     Core.prototype._onDomReady = function () {
-        if (document) {
+        if (typeof window !== "undefined") {
             document.removeEventListener("DOMContentLoaded", this._onDomReady);
         }
         this._onInit();
