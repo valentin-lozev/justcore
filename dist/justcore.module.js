@@ -84,7 +84,6 @@ function isDocumentReady() {
         state === "interactive" ||
         state === "loaded"; /* old safari browsers */
 }
-
 var lastUID = 0;
 function uid() {
     return ++lastUID;
@@ -137,7 +136,6 @@ function moduleAutosubscribe() {
 /* tslint:disable */
 if (typeof Array.prototype.reduceRight !== "function") {
     Array.prototype.reduceRight = function (callback /*, initialValue*/) {
-        "use strict";
         if (null === this || "undefined" === typeof this) {
             throw new TypeError("Array.prototype.reduce called on null or undefined");
         }
@@ -166,6 +164,29 @@ if (typeof Array.prototype.reduceRight !== "function") {
     };
 }
 
+/*! *****************************************************************************
+Copyright (c) Microsoft Corporation. All rights reserved.
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+this file except in compliance with the License. You may obtain a copy of the
+License at http://www.apache.org/licenses/LICENSE-2.0
+
+THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
+WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
+MERCHANTABLITY OR NON-INFRINGEMENT.
+
+See the Apache Version 2.0 License for specific language governing permissions
+and limitations under the License.
+***************************************************************************** */
+
+function __spreadArrays() {
+    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
+    for (var r = Array(s), k = 0, i = 0; i < il; i++)
+        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
+            r[k] = a[j];
+    return r;
+}
+
 var HooksSystem = /** @class */ (function () {
     function HooksSystem() {
         this._plugins = Object.create(null);
@@ -184,7 +205,7 @@ var HooksSystem = /** @class */ (function () {
             if (!plugins) {
                 return method.apply(context, args);
             }
-            return plugins.reduceRight(function (pipeline, plugin) { return function () { return plugin.apply(context, [pipeline].concat(args)); }; }, function () { return method.apply(context, args); })();
+            return plugins.reduceRight(function (pipeline, plugin) { return function () { return plugin.apply(context, __spreadArrays([pipeline], args)); }; }, function () { return method.apply(context, args); })();
         };
         result._withPipeline = true;
         result._hookType = type;

@@ -7,7 +7,7 @@
   "rules": {
     "arrow-parens": false,
     "eofline": false,
-    "indent": [ true, "tabs" ],
+    "indent": [ true, "spaces", 4 ],
     "no-console": [ true, "log", "info" ],
     "no-namespace": false,
     "object-literal-shorthand": false,

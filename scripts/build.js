@@ -18,11 +18,11 @@ const banner = `/**
 const intro = `var VERSION = "${project.version}";`;
 
 const build = () => Promise.resolve()
-	.then(() => copyDefinitions(definitionsSource, definitionsTarget))
-	.then(() => buildUmdDevelopment(input, banner, intro))
-	.then(() => buildUmdProduction(input, banner, intro))
-	.then(() => buildES(input, banner, intro))
-	.then(() => runTests(intro))
-	.catch(reason => console.error(reason));
+    .then(() => copyDefinitions(definitionsSource, definitionsTarget))
+    .then(() => buildUmdDevelopment(input, banner, intro))
+    .then(() => buildUmdProduction(input, banner, intro))
+    .then(() => buildES(input, banner, intro))
+    .then(() => runTests(intro))
+    .catch(reason => console.error(reason));
 
 build();
