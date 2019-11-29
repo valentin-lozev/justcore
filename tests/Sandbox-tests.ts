@@ -58,4 +58,15 @@ describe("Sandbox", () => {
         expect(spy).toHaveBeenCalledTimes(1);
         expect(spy).toHaveBeenCalledWith(this.moduleId, instanceId);
     });
+
+    it("should delegate to the core when get service", function (this: TestsContext): void {
+        const service = () => { };
+        const spy = spyOn(this.core.serviceLocator, "getService").and.returnValue(service);
+
+        const result = this.sandbox.getService("service");
+
+        expect(this.core.serviceLocator.getService).toHaveBeenCalledTimes(1);
+        expect(this.core.serviceLocator.getService).toHaveBeenCalledWith("service");
+        expect(result).toBe(service);
+    });
 });

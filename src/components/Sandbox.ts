@@ -29,4 +29,8 @@ export class Sandbox implements jc.Sandbox {
     public publishAsync<T extends jc.Message>(message: T): void {
         this._extensionsOnlyCore.publishAsync(message);
     }
+
+    public getService<K extends keyof jc.ServiceLocatorMap>(key: K): jc.ServiceLocatorMap[K] {
+        return this._extensionsOnlyCore.serviceLocator.getService(key);
+    }
 }

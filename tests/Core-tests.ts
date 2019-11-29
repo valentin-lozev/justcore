@@ -3,6 +3,7 @@ import { MessageBus } from "../src/components/MessageBus";
 import { HooksSystem } from "../src/components/HooksSystem";
 import { Core } from "../src/components/Core";
 import { moduleAutosubscribe } from "../src/extensions/module-autosubscribe";
+import { ServiceLocator } from "../src/components/ServiceLocator";
 
 interface TestsContext {
     hooksSystem: HooksSystem;
@@ -152,6 +153,10 @@ describe("Core", () => {
             expect(createHook).toHaveBeenCalledWith("onMessagePublish", initialMethod, this.core);
             expect((this.core.publishAsync as jc.HookProps & jc.Func<void>)._withPipeline).toEqual(true);
             expect((this.core.publishAsync as jc.HookProps & jc.Func<void>)._hookType).toEqual("onMessagePublish");
+        });
+
+        it("should has default service locator implementation", function (this: TestsContext) {
+            expect(this.core.serviceLocator).toBeInstanceOf(ServiceLocator);
         });
     });
 

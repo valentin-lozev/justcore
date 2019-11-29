@@ -3,7 +3,7 @@ import { guard } from "../utils";
 declare global {
     namespace jc {
         interface Sandbox {
-            unsubscribers?: UnsubscribersMap;
+            _unsubscribers?: UnsubscribersMap;
         }
     }
 }
@@ -28,7 +28,7 @@ function subscribe(this: jc.Module): void {
         "onModuleReceiveMessage",
         this.moduleDidReceiveMessage,
         this);
-    this.sandbox.unsubscribers = messages.reduce(
+    this.sandbox._unsubscribers = messages.reduce(
         (map, message) => {
             map[message] = core.onMessage(message, moduleDidReceiveMessage);
             return map;
@@ -37,7 +37,7 @@ function subscribe(this: jc.Module): void {
 }
 
 function unsubscribe(this: jc.Module): void {
-    const unsubscribers = this.sandbox.unsubscribers;
+    const unsubscribers = this.sandbox._unsubscribers;
     if (unsubscribers) {
         Object
             .keys(unsubscribers)

@@ -5,7 +5,7 @@
  *  Source code: http://github.com/valentin-lozev/justcore
  */
 
-var VERSION = "1.0.2";
+var VERSION = "2.0.0";
 
 var errorCodes = {
     m1: function () { return "use(): extensions must be installed before init"; },
@@ -30,7 +30,11 @@ var errorCodes = {
     m20: function () { return "onMessage(): message type must be a non empty string"; },
     m21: function (id) { return "onMessage(): \"" + id + "\" handler should be a function"; },
     m22: function () { return "publishAsync(): message must be an object"; },
-    m23: function (id) { return "\"" + id + "\" moduleDidReceiveMessage hook must be defined in order to subscribe"; }
+    m23: function (id) { return "\"" + id + "\" moduleDidReceiveMessage hook must be defined in order to subscribe"; },
+    m24: function () { return "addService(): key must be a non empty string"; },
+    m25: function (key) { return "addService(): \"" + key + "\" has already been added"; },
+    m26: function (key) { return "addService(): \"" + key + "\" factory must be a function that returns service instance"; },
+    m27: function (key) { return "getService(): " + key + " service not found"; },
 };
 function throwError(code, formatId) {
     var msgCreator = errorCodes[code];
@@ -84,6 +88,7 @@ function isDocumentReady() {
         state === "interactive" ||
         state === "loaded"; /* old safari browsers */
 }
+var hasOwnProperty = Object.prototype.hasOwnProperty;
 var lastUID = 0;
 function uid() {
     return ++lastUID;
@@ -100,13 +105,13 @@ function subscribe() {
     }
     guard.function(this.moduleDidReceiveMessage, "m23", this.sandbox.moduleId);
     var moduleDidReceiveMessage = core.createHook("onModuleReceiveMessage", this.moduleDidReceiveMessage, this);
-    this.sandbox.unsubscribers = messages.reduce(function (map, message) {
+    this.sandbox._unsubscribers = messages.reduce(function (map, message) {
         map[message] = core.onMessage(message, moduleDidReceiveMessage);
         return map;
     }, Object.create(null));
 }
 function unsubscribe() {
-    var unsubscribers = this.sandbox.unsubscribers;
+    var unsubscribers = this.sandbox._unsubscribers;
     if (unsubscribers) {
         Object
             .keys(unsubscribers)
@@ -296,13 +301,55 @@ var Sandbox = /** @class */ (function () {
     Sandbox.prototype.publishAsync = function (message) {
         this._extensionsOnlyCore.publishAsync(message);
     };
+    Sandbox.prototype.getService = function (key) {
+        return this._extensionsOnlyCore.serviceLocator.getService(key);
+    };
     return Sandbox;
 }());
 
+var ServiceLocator = /** @class */ (function () {
+    function ServiceLocator() {
+        this.container = Object.create(null);
+        this.instantiationsStack = [];
+    }
+    ServiceLocator.prototype.addService = function (key, factory) {
+        guard.nonEmptyString(key, "m24")
+            .false(hasOwnProperty.call(this.container, key), "m25", key)
+            .function(factory, "m26", key);
+        this.container[key] = {
+            factory: factory,
+            instance: null
+        };
+    };
+    ServiceLocator.prototype.getService = function (key) {
+        var serviceData = this.container[key];
+        guard.true(!!serviceData, "m27", key);
+        if (serviceData.instance) {
+            return serviceData.instance;
+        }
+        if (this.isServiceBeingInstantiated(key)) {
+            throw new Error("getService(): service circular dependency " + this.instantiationsStack.join(" -> ") + " -> " + key);
+        }
+        this.instantiationsStack.push(key);
+        try {
+            serviceData.instance = serviceData.factory();
+        }
+        finally {
+            this.instantiationsStack.pop();
+        }
+        return serviceData.instance;
+    };
+    ServiceLocator.prototype.isServiceBeingInstantiated = function (key) {
+        return this.instantiationsStack.indexOf(key) > -1;
+    };
+    return ServiceLocator;
+}());
+
 var Core = /** @class */ (function () {
-    function Core(hooksSystem, messageBus) {
+    function Core(hooksSystem, messageBus, serviceLocator) {
         if (hooksSystem === void 0) { hooksSystem = new HooksSystem(); }
         if (messageBus === void 0) { messageBus = new MessageBus(); }
+        if (serviceLocator === void 0) { serviceLocator = new ServiceLocator(); }
         this.Sandbox = Sandbox;
         this._isInitialized = false;
         this._onInit = null;
@@ -312,6 +359,7 @@ var Core = /** @class */ (function () {
         this._modules = Object.create(null);
         this._hooksSystem = hooksSystem;
         this._messageBus = messageBus;
+        this.serviceLocator = serviceLocator;
         this._onDomReady = this._onDomReady.bind(this);
         this.use([
             // built-in extensions

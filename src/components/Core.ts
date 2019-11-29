@@ -4,6 +4,7 @@ import { guard, isDocumentReady } from "../utils";
 import { HooksSystem } from "./HooksSystem";
 import { MessageBus } from "./MessageBus";
 import { Sandbox } from "./Sandbox";
+import { ServiceLocator } from "./ServiceLocator";
 
 interface ModuleData {
     factory: jc.ModuleFactory;
@@ -15,16 +16,21 @@ declare const VERSION: string;
 export class Core implements jc.Core {
 
     public Sandbox: jc.SandboxClass = Sandbox;
+    public readonly serviceLocator: jc.ServiceLocator;
     private _isInitialized: boolean = false;
     private _onInit: jc.Func<void> = null;
-    private _hooksSystem: HooksSystem = null;
-    private _messageBus: MessageBus = null;
-    private _extensions: { [name: string]: jc.Extension; } = Object.create(null);
-    private _modules: { [id: string]: ModuleData; } = Object.create(null);
+    private readonly _hooksSystem: HooksSystem = null;
+    private readonly _messageBus: MessageBus = null;
+    private readonly _extensions: { [name: string]: jc.Extension; } = Object.create(null);
+    private readonly _modules: { [id: string]: ModuleData; } = Object.create(null);
 
-    constructor(hooksSystem = new HooksSystem(), messageBus = new MessageBus()) {
+    constructor(
+        hooksSystem = new HooksSystem(),
+        messageBus = new MessageBus(),
+        serviceLocator = new ServiceLocator()) {
         this._hooksSystem = hooksSystem;
         this._messageBus = messageBus;
+        this.serviceLocator = serviceLocator;
         this._onDomReady = this._onDomReady.bind(this);
         this.use([
             // built-in extensions

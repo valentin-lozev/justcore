@@ -96,6 +96,9 @@ declare global {
             /** Lists all running module instances by their id. */
             runningModules: Readonly<{ [id: string]: string[]; }>;
 
+            /** Core's dependency container. */
+            serviceLocator: ServiceLocator;
+
             /** The Sandbox class that will be used when core creates sandbox instances. */
             Sandbox: SandboxClass;
 
@@ -172,6 +175,10 @@ declare global {
 
             /** See [[Core.publishAsync]] */
             publishAsync<T extends Message>(message: T): void;
+
+            /** See [[ServiceLocator.getService]] */
+            getService<K extends keyof ServiceLocatorMap>(key: K): ServiceLocatorMap[K];
+            getService<S>(key: string): S;
         }
 
         /** A function that accepts a sandbox instance and creates a module for it. */
@@ -194,7 +201,7 @@ declare global {
             moduleWillSubscribe?(): string[];
 
             /** A lifecycle hook that is called when the module receives a message. */
-            moduleDidReceiveMessage?<T extends Message>(message: T): void;
+            moduleDidReceiveMessage?<T extends Message = Message>(message: T): void;
 
             /** A lifecycle hook that is called when the module has already been started and something tries to start it again. */
             moduleDidReceiveProps?(nextProps: TProps): void;
@@ -232,6 +239,23 @@ declare global {
 		 */
         export interface Unsubscribe {
             (): void;
+        }
+
+        /**
+         * A dependency injection container.
+         */
+        export interface ServiceLocator {
+            addService<K extends keyof ServiceLocatorMap>(key: K, factory: () => ServiceLocatorMap[K]): void;
+            addService<S>(key: string, factory: () => S): void;
+            getService<K extends keyof ServiceLocatorMap>(key: K): ServiceLocatorMap[K];
+            getService<S>(key: string): S;
+        }
+
+        /**
+         * A helper interface for the service locator. 
+         * Its key-value pairs will be used by typescript to power your services with typing.
+         */
+        export interface ServiceLocatorMap {
         }
     }
 }

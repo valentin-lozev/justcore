@@ -21,7 +21,11 @@ const errorCodes = {
     m20: () => "onMessage(): message type must be a non empty string",
     m21: id => `onMessage(): "${id}" handler should be a function`,
     m22: () => "publishAsync(): message must be an object",
-    m23: id => `"${id}" moduleDidReceiveMessage hook must be defined in order to subscribe`
+    m23: id => `"${id}" moduleDidReceiveMessage hook must be defined in order to subscribe`,
+    m24: () => "addService(): key must be a non empty string",
+    m25: key => `addService(): "${key}" has already been added`,
+    m26: key => `addService(): "${key}" factory must be a function that returns service instance`,
+    m27: key => `getService(): ${key} service not found`,
 };
 
 type ErrorCode = keyof typeof errorCodes;

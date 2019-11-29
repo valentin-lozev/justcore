@@ -119,9 +119,9 @@ describe("module-autosubscribe", () => {
                 this.plugins.onModuleInit.call(this.module, this.module.init);
 
                 expect(onMessage).toHaveBeenCalledTimes(this.messages.length);
-                expect(Object.keys(this.module.sandbox.unsubscribers).length).toEqual(this.messages.length);
-                Object.keys(this.module.sandbox.unsubscribers).forEach(message => {
-                    expect(typeof this.module.sandbox.unsubscribers[message]).toEqual("function");
+                expect(Object.keys(this.module.sandbox._unsubscribers).length).toEqual(this.messages.length);
+                Object.keys(this.module.sandbox._unsubscribers).forEach(message => {
+                    expect(typeof this.module.sandbox._unsubscribers[message]).toEqual("function");
                 });
             });
 
@@ -195,7 +195,7 @@ describe("module-autosubscribe", () => {
                 this.plugins.onModuleDestroy.call(this.module, this.module.destroy);
 
                 expect(unsubscribe).toHaveBeenCalledTimes(this.messages.length);
-                expect(Object.keys(this.module.sandbox.unsubscribers).length).toEqual(0);
+                expect(Object.keys(this.module.sandbox._unsubscribers).length).toEqual(0);
             });
 
             it("should call unsubscribe before next", function (this: TestsContext): void {
