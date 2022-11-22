@@ -24,7 +24,7 @@
     "@types/jasmine": "3.5.0",
     "fs-extra": "8.1.0",
     "jasmine-core": "3.5.0",
-    "karma": "4.4.1",
+    "karma": "6.4.1",
     "karma-coverage": "2.0.1",
     "karma-coveralls": "2.1.0",
     "karma-jasmine": "2.0.1",
